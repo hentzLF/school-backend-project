@@ -1,0 +1,14 @@
+namespace AgriMarket.Domain.Entities;
+
+public class AppUser
+{
+    public Guid Id { get; set;}
+
+    public string Email { get; set;} = default!;
+
+    public string PasswordHash { get; set; } = default!;
+
+    public DateTime? LockoutEnd {get; set;}
+
+    public ICollection<UserProfile>? Profiles {get; set;}
+}

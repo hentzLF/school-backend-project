@@ -2,6 +2,7 @@ using AgriMarket.Api.Dtos.Users;
 using AgriMarket.DAL;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
 
@@ -44,24 +45,27 @@ public class UsersController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
+        var callerUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         var profile = await _db.UserProfiles.AsNoTracking()
             .Include(up => up.AppUser)
             .Where(up => up.Id == id)
-            .Select(up => new UserProfileResponse
-            {
-                Id = up.Id,
-                FirstName = up.FirstName,
-                LastName = up.LastName,
-                Bio = up.Bio,
-                AvatarUrl = up.AvatarUrl,
-                AppUserId = up.AppUserId,
-                Email = up.AppUser != null ? up.AppUser.Email : null
-            })
             .FirstOrDefaultAsync();
 
         if (profile is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"UserProfile {id} not found.");
 
-        return Ok(profile);
+        var isOwner = callerUserId != null && profile.AppUserId.ToString() == callerUserId;
+
+        return Ok(new UserProfileResponse
+        {
+            Id = profile.Id,
+            FirstName = profile.FirstName,
+            LastName = profile.LastName,
+            Bio = profile.Bio,
+            AvatarUrl = profile.AvatarUrl,
+            AppUserId = profile.AppUserId,
+            Email = isOwner ? profile.AppUser?.Email : null
+        });
     }
 }

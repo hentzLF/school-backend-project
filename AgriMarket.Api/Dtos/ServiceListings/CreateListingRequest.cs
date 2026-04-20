@@ -14,9 +14,6 @@ public class CreateListingRequest
     public decimal PricePerHectare { get; set; }
 
     [Required]
-    public Guid UserProfileId { get; set; }
-
-    [Required]
     public Guid ServiceCategoryId { get; set; }
 
     public Guid? LocationId { get; set; }

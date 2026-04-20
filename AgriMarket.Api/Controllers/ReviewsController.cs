@@ -1,8 +1,10 @@
 using AgriMarket.Api.Dtos.Reviews;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
 
@@ -64,9 +66,12 @@ public class ReviewsController : ControllerBase
         return Ok(review);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateReviewRequest req)
     {
+        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+
         var review = new Review
         {
             Id = Guid.NewGuid(),
@@ -74,7 +79,7 @@ public class ReviewsController : ControllerBase
             Comment = req.Comment,
             CreatedAt = DateTime.UtcNow,
             BookingId = req.BookingId,
-            ReviewerProfileId = req.ReviewerProfileId
+            ReviewerProfileId = callerProfileId
         };
 
         _db.Reviews.Add(review);

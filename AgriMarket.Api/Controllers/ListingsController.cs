@@ -1,8 +1,10 @@
 using AgriMarket.Api.Dtos.ServiceListings;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
 
@@ -68,9 +70,12 @@ public class ListingsController : ControllerBase
         return Ok(sl);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateListingRequest req)
     {
+        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+
         var listing = new ServiceListing
         {
             Id = Guid.NewGuid(),
@@ -78,7 +83,7 @@ public class ListingsController : ControllerBase
             Description = req.Description,
             PricePerHectare = req.PricePerHectare,
             IsActive = true,
-            UserProfileId = req.UserProfileId,
+            UserProfileId = callerProfileId,
             ServiceCategoryId = req.ServiceCategoryId,
             LocationId = req.LocationId
         };
@@ -101,12 +106,18 @@ public class ListingsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = listing.Id }, response);
     }
 
+    [Authorize]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateListingRequest req)
     {
+        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+
         var listing = await _db.ServiceListings.FindAsync(id);
         if (listing is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"ServiceListing {id} not found.");
+
+        if (listing.UserProfileId != callerProfileId)
+            return Problem(statusCode: 403, title: "Forbidden", detail: "You do not own this listing.");
 
         listing.Title = req.Title;
         listing.Description = req.Description;
@@ -130,12 +141,18 @@ public class ListingsController : ControllerBase
         });
     }
 
+    [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
+        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+
         var listing = await _db.ServiceListings.FindAsync(id);
         if (listing is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"ServiceListing {id} not found.");
+
+        if (listing.UserProfileId != callerProfileId)
+            return Problem(statusCode: 403, title: "Forbidden", detail: "You do not own this listing.");
 
         _db.ServiceListings.Remove(listing);
         await _db.SaveChangesAsync();

@@ -9,11 +9,11 @@
 
 ## 2. Service Listings — DTOs and Controller
 
-- [ ] 2.1 Create `Dtos/ServiceListings/ServiceListingResponse.cs` with fields: `Id`, `Title`, `Description`, `PricePerHectare`, `IsActive`, `UserProfileId`, `ServiceCategoryId`, `LocationId`
-- [ ] 2.2 Create `Dtos/ServiceListings/CreateListingRequest.cs` with required fields and data annotations for validation
-- [ ] 2.3 Create `Dtos/ServiceListings/UpdateListingRequest.cs`
-- [ ] 2.4 Create `Controllers/ListingsController.cs` with `GET /api/listings` (paginated), `GET /api/listings/{id}`, `POST /api/listings`, `PUT /api/listings/{id}`, `DELETE /api/listings/{id}`
-- [ ] 2.5 Verify all listing endpoints return correct status codes and ProblemDetails on errors
+- [x] 2.1 Create `Dtos/ServiceListings/ServiceListingResponse.cs` with fields: `Id`, `Title`, `Description`, `PricePerHectare`, `IsActive`, `UserProfileId`, `ServiceCategoryId`, `LocationId`
+- [x] 2.2 Create `Dtos/ServiceListings/CreateListingRequest.cs` with required fields and data annotations for validation
+- [x] 2.3 Create `Dtos/ServiceListings/UpdateListingRequest.cs`
+- [x] 2.4 Create `Controllers/ListingsController.cs` with `GET /api/listings` (paginated), `GET /api/listings/{id}`, `POST /api/listings`, `PUT /api/listings/{id}`, `DELETE /api/listings/{id}`
+- [x] 2.5 Verify all listing endpoints return correct status codes and ProblemDetails on errors
 
 ## 3. Bookings — DTOs and Controller
 

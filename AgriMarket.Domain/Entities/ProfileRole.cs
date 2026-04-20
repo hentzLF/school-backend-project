@@ -6,8 +6,6 @@ public class ProfileRole
 {
     public Guid Id {get; set;}
     
-    
-
     // Foreign Key
     public Guid UserProfileId {get; set;}
 

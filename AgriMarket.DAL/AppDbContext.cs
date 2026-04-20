@@ -192,4 +192,5 @@ public class AppDbContext : DbContext
     public DbSet<Message> Messages { get; set; } = default!;
     public DbSet<MessageRead> MessageReads { get; set; } = default!;
     public DbSet<Notification> Notifications { get; set; } = default!;
+    public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
 }

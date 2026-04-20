@@ -17,24 +17,24 @@
 
 ## 3. Bookings — DTOs and Controller
 
-- [ ] 3.1 Create `Dtos/Bookings/BookingResponse.cs` with fields: `Id`, `Status`, `TotalPrice`, `AreaInHectares`, `CreatedAt`, `Notes`, `ServiceListingId`, `ClientProfileId`, `AvailabilityId`
-- [ ] 3.2 Create `Dtos/Bookings/CreateBookingRequest.cs` with required fields and validation
-- [ ] 3.3 Create `Dtos/Bookings/UpdateBookingStatusRequest.cs` with a `Status` field
-- [ ] 3.4 Create `Controllers/BookingsController.cs` with `GET /api/bookings` (paginated), `GET /api/bookings/{id}`, `POST /api/bookings`, `PATCH /api/bookings/{id}/status`
-- [ ] 3.5 Verify booking endpoints return correct status codes and ProblemDetails on errors
+- [x] 3.1 Create `Dtos/Bookings/BookingResponse.cs` with fields: `Id`, `Status`, `TotalPrice`, `AreaInHectares`, `CreatedAt`, `Notes`, `ServiceListingId`, `ClientProfileId`, `AvailabilityId`
+- [x] 3.2 Create `Dtos/Bookings/CreateBookingRequest.cs` with required fields and validation
+- [x] 3.3 Create `Dtos/Bookings/UpdateBookingStatusRequest.cs` with a `Status` field
+- [x] 3.4 Create `Controllers/BookingsController.cs` with `GET /api/bookings` (paginated), `GET /api/bookings/{id}`, `POST /api/bookings`, `PATCH /api/bookings/{id}/status`
+- [x] 3.5 Verify booking endpoints return correct status codes and ProblemDetails on errors
 
 ## 4. Users — DTOs and Controller
 
-- [ ] 4.1 Create `Dtos/Users/UserProfileResponse.cs` with fields: `Id`, `FirstName`, `LastName`, `Bio`, `AvatarUrl`, `AppUserId`, `Email`
-- [ ] 4.2 Create `Controllers/UsersController.cs` with `GET /api/users` (paginated), `GET /api/users/{id}` (eager-loads `AppUser` for email)
-- [ ] 4.3 Verify user endpoints return correct status codes and ProblemDetails on errors
+- [x] 4.1 Create `Dtos/Users/UserProfileResponse.cs` with fields: `Id`, `FirstName`, `LastName`, `Bio`, `AvatarUrl`, `AppUserId`, `Email`
+- [x] 4.2 Create `Controllers/UsersController.cs` with `GET /api/users` (paginated), `GET /api/users/{id}` (eager-loads `AppUser` for email)
+- [x] 4.3 Verify user endpoints return correct status codes and ProblemDetails on errors
 
 ## 5. Reviews — DTOs and Controller
 
-- [ ] 5.1 Create `Dtos/Reviews/ReviewResponse.cs` with fields: `Id`, `Rating`, `Comment`, `CreatedAt`, `BookingId`, `ReviewerProfileId`
-- [ ] 5.2 Create `Dtos/Reviews/CreateReviewRequest.cs` with required fields and `[Range(1, 5)]` on `Rating`
-- [ ] 5.3 Create `Controllers/ReviewsController.cs` with `GET /api/reviews` (paginated), `GET /api/reviews/{id}`, `POST /api/reviews`
-- [ ] 5.4 Verify review endpoints return correct status codes and ProblemDetails on errors
+- [x] 5.1 Create `Dtos/Reviews/ReviewResponse.cs` with fields: `Id`, `Rating`, `Comment`, `CreatedAt`, `BookingId`, `ReviewerProfileId`
+- [x] 5.2 Create `Dtos/Reviews/CreateReviewRequest.cs` with required fields and `[Range(1, 5)]` on `Rating`
+- [x] 5.3 Create `Controllers/ReviewsController.cs` with `GET /api/reviews` (paginated), `GET /api/reviews/{id}`, `POST /api/reviews`
+- [x] 5.4 Verify review endpoints return correct status codes and ProblemDetails on errors
 
 ## 6. Swagger
 

@@ -38,7 +38,7 @@
 
 ## 6. Swagger
 
-- [ ] 6.1 Add `Swashbuckle.AspNetCore` NuGet package to `AgriMarket.Api`
-- [ ] 6.2 Register `AddSwaggerGen()` and `AddEndpointsApiExplorer()` in `Program.cs`
-- [ ] 6.3 Add `UseSwagger()` and `UseSwaggerUI()` inside `if (app.Environment.IsDevelopment())` block
-- [ ] 6.4 Verify Swagger UI loads at `/swagger` in Development and lists all four controllers
+- [x] 6.1 Add `Swashbuckle.AspNetCore` NuGet package to `AgriMarket.Api`
+- [x] 6.2 Register `AddSwaggerGen()` and `AddEndpointsApiExplorer()` in `Program.cs`
+- [x] 6.3 Add `UseSwagger()` and `UseSwaggerUI()` inside `if (app.Environment.IsDevelopment())` block
+- [x] 6.4 Verify Swagger UI loads at `/swagger` in Development and lists all four controllers

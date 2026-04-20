@@ -6,7 +6,6 @@ namespace AgriMarket.Domain.Entities;
 public class ServiceListing
 {
     public Guid Id {get; set;}
-
     public string Title {get; set;} = default!;
     public string? Description {get; set;}
     public decimal PricePerHectare {get; set;}
@@ -15,8 +14,7 @@ public class ServiceListing
     // Foreign Keys
     public Guid UserProfileId {get; set;}
     public Guid ServiceCategoryId {get; set;}
-
-    public Guid? LucationId {get; set;}
+    public Guid? LocationId {get; set;}
     
     // Navigation
     public UserProfile? UserProfile {get; set;}

@@ -1,25 +1,25 @@
 ## 1. Domain & Database
 
-- [ ] 1.1 Add `CreatedAt` property to `AppUser` entity
-- [ ] 1.2 Create EF migration for `AppUser.CreatedAt` with default value for existing rows
-- [ ] 1.3 Update `AppDbSeeder` to set `CreatedAt` on seeded users
+- [x] 1.1 Add `CreatedAt` property to `AppUser` entity
+- [x] 1.2 Create EF migration for `AppUser.CreatedAt` with default value for existing rows
+- [x] 1.3 Update `AppDbSeeder` to set `CreatedAt` on seeded users
 
 ## 2. Web Project Authentication Setup
 
-- [ ] 2.1 Add cookie authentication configuration to `AgriMarket.Web/Program.cs` (scheme, login path, access denied path)
-- [ ] 2.2 Add `AdminOnly` authorization policy requiring Admin role claim
-- [ ] 2.3 Add `UseAuthentication()` middleware to the pipeline (before `UseAuthorization()`)
-- [ ] 2.4 Add area route registration for Admin area in `Program.cs`
+- [x] 2.1 Add cookie authentication configuration to `AgriMarket.Web/Program.cs` (scheme, login path, access denied path)
+- [x] 2.2 Add `AdminOnly` authorization policy requiring Admin role claim
+- [x] 2.3 Add `UseAuthentication()` middleware to the pipeline (before `UseAuthorization()`)
+- [x] 2.4 Add area route registration for Admin area in `Program.cs`
 
 ## 3. Account Controller & Views
 
-- [ ] 3.1 Create `AccountController` with Login GET/POST, Register GET/POST, Logout actions
-- [ ] 3.2 Create `LoginViewModel` and `RegisterViewModel` with validation attributes
-- [ ] 3.3 Create Login view with form (email, password)
-- [ ] 3.4 Create Register view with form (email, password, first name, last name)
-- [ ] 3.5 Create AccessDenied view
-- [ ] 3.6 Implement BCrypt password verification and cookie claim issuance in login action
-- [ ] 3.7 Implement user creation with Admin role and auto-login in register action
+- [x] 3.1 Create `AccountController` with Login GET/POST, Register GET/POST, Logout actions
+- [x] 3.2 Create `LoginViewModel` and `RegisterViewModel` with validation attributes
+- [x] 3.3 Create Login view with form (email, password)
+- [x] 3.4 Create Register view with form (email, password, first name, last name)
+- [x] 3.5 Create AccessDenied view
+- [x] 3.6 Implement BCrypt password verification and cookie claim issuance in login action
+- [x] 3.7 Implement user creation with Admin role and auto-login in register action
 
 ## 4. Admin Area Structure & Layout
 

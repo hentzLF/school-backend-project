@@ -1,0 +1,109 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; }
+
+<h4 class="mb-4">Dashboard</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <div class="card-title small">Total Users</div>
+                <div class="fs-3 fw-bold">@Model.TotalUsers</div>
+                <div class="small">+@Model.NewUsersThisWeek this week &nbsp;·&nbsp; +@Model.NewUsersThisMonth this month</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-bg-success">
+            <div class="card-body">
+                <div class="card-title small">Listings</div>
+                <div class="fs-3 fw-bold">@Model.TotalListings</div>
+                <div class="small">@Model.ActiveListings active &nbsp;·&nbsp; @Model.InactiveListings inactive</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-bg-info">
+            <div class="card-body">
+                <div class="card-title small">Bookings</div>
+                <div class="fs-3 fw-bold">@Model.TotalBookings</div>
+                <div class="small">@Model.BookingsByStatus.GetValueOrDefault(AgriMarket.Domain.Enums.BookingStatus.Pending) pending</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-bg-dark">
+            <div class="card-body">
+                <div class="card-title small">Revenue</div>
+                <div class="fs-3 fw-bold">€@Model.TotalRevenue.ToString("N2")</div>
+                <div class="small">€@Model.TotalPlatformFees.ToString("N2") platform fees &nbsp;·&nbsp; €@Model.RevenueThisMonth.ToString("N2") this month</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card @(Model.ActiveDisputes > 0 ? "text-bg-danger" : "text-bg-secondary")">
+            <div class="card-body">
+                <div class="card-title small">Disputes</div>
+                <div class="fs-3 fw-bold">@Model.ActiveDisputes active</div>
+                <div class="small">@Model.ResolvedDisputes resolved</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Bookings by Status</div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr><th>Status</th><th class="text-end">Count</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var (status, count) in Model.BookingsByStatus)
+                        {
+                            <tr>
+                                <td>@status</td>
+                                <td class="text-end">@count</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Recent Bookings</div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Client</th>
+                    <th>Listing</th>
+                    <th>Status</th>
+                    <th class="text-end">Price</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.RecentBookings)
+                {
+                    <tr>
+                        <td>@b.ClientName</td>
+                        <td>@b.ListingTitle</td>
+                        <td><span class="badge text-bg-secondary">@b.Status</span></td>
+                        <td class="text-end">€@b.TotalPrice.ToString("N2")</td>
+                        <td>@b.CreatedAt.ToString("dd MMM yyyy")</td>
+                    </tr>
+                }
+                @if (!Model.RecentBookings.Any())
+                {
+                    <tr><td colspan="5" class="text-muted text-center py-3">No bookings yet</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

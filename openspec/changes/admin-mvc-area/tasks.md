@@ -23,16 +23,16 @@
 
 ## 4. Admin Area Structure & Layout
 
-- [ ] 4.1 Create `Areas/Admin/` directory structure (Controllers, Views, ViewModels)
-- [ ] 4.2 Create `_AdminLayout.cshtml` with Bootstrap sidebar (Dashboard, Users, Listings, Bookings, Categories, Payments links) and top bar with user info/sign-out
-- [ ] 4.3 Create `_ViewStart.cshtml` pointing to `_AdminLayout`
-- [ ] 4.4 Create `_ViewImports.cshtml` with Admin ViewModels namespace and tag helpers
+- [x] 4.1 Create `Areas/Admin/` directory structure (Controllers, Views, ViewModels)
+- [x] 4.2 Create `_AdminLayout.cshtml` with Bootstrap sidebar (Dashboard, Users, Listings, Bookings, Categories, Payments links) and top bar with user info/sign-out
+- [x] 4.3 Create `_ViewStart.cshtml` pointing to `_AdminLayout`
+- [x] 4.4 Create `_ViewImports.cshtml` with Admin ViewModels namespace and tag helpers
 
 ## 5. Dashboard
 
-- [ ] 5.1 Create `DashboardViewModel` with all statistics properties (user counts, listing counts, booking breakdown, revenue, disputes, recent bookings)
-- [ ] 5.2 Create `DashboardController` with Index action that queries all statistics from DbContext
-- [ ] 5.3 Create Dashboard Index view with statistic cards and recent bookings table
+- [x] 5.1 Create `DashboardViewModel` with all statistics properties (user counts, listing counts, booking breakdown, revenue, disputes, recent bookings)
+- [x] 5.2 Create `DashboardController` with Index action that queries all statistics from DbContext
+- [x] 5.3 Create Dashboard Index view with statistic cards and recent bookings table
 
 ## 6. User Management
 

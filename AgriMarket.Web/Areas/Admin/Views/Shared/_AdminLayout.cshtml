@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AgriMarket Admin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        body { display: flex; min-height: 100vh; flex-direction: column; }
+        .admin-wrapper { display: flex; flex: 1; }
+        .admin-sidebar {
+            width: 240px;
+            min-height: 100vh;
+            background-color: #212529;
+            flex-shrink: 0;
+        }
+        .admin-sidebar .sidebar-brand {
+            padding: 1rem 1.5rem;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: block;
+            text-decoration: none;
+            border-bottom: 1px solid #343a40;
+        }
+        .admin-sidebar .nav-link {
+            color: #adb5bd;
+            padding: .6rem 1.5rem;
+            border-radius: 0;
+        }
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active {
+            color: #fff;
+            background-color: #343a40;
+        }
+        .admin-main { flex: 1; display: flex; flex-direction: column; }
+        .admin-topbar {
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+            padding: .6rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        .admin-content { padding: 1.5rem; flex: 1; }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+    <nav class="admin-sidebar d-flex flex-column">
+        <a class="sidebar-brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">AgriMarket Admin</a>
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Users" asp-action="Index">
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Listings" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Listings" asp-action="Index">
+                    Listings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bookings" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Bookings" asp-action="Index">
+                    Bookings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Categories" asp-action="Index">
+                    Categories
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Payments" ? "active" : "")"
+                   asp-area="Admin" asp-controller="Payments" asp-action="Index">
+                    Payments
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <span class="text-muted small">@User.Identity?.Name</span>
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="mb-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button>
+            </form>
+        </div>
+        <div class="admin-content">
+            @RenderBody()
+        </div>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

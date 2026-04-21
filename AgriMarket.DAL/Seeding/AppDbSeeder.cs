@@ -15,7 +15,8 @@ public static class AppDbSeeder
         {
             Id = Guid.NewGuid(),
             Email = "admin@agrimarket.ee",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!")
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            CreatedAt = DateTime.UtcNow
         };
 
         var adminProfile = new UserProfile

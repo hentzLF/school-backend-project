@@ -10,6 +10,8 @@ public class AppUser
 
     public DateTime? LockoutEnd {get; set;}
 
+    public DateTime CreatedAt { get; set; }
+
     // Navigation
     public ICollection<UserProfile>? Profiles {get; set;}
     public ICollection<OAuthAccount>? OAuthAccounts { get; set; }

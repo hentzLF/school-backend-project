@@ -45,37 +45,37 @@
 
 ## 7. Listing Management
 
-- [ ] 7.1 Create `ListingListItemViewModel`, `ListingListViewModel`, `ListingDetailViewModel`, `ListingEditViewModel`
-- [ ] 7.2 Create `ListingsController` with Index (with filter), Details, Edit GET/POST, Delete GET/POST, ToggleActive actions
-- [ ] 7.3 Create Listings Index view (table with title, provider, category, price, status)
-- [ ] 7.4 Create Listings Details view (full listing info with provider, equipment, availabilities)
-- [ ] 7.5 Create Listings Edit view (title, description, price, category, active toggle)
-- [ ] 7.6 Create Listings Delete confirmation view
+- [x] 7.1 Create `ListingListItemViewModel`, `ListingListViewModel`, `ListingDetailViewModel`, `ListingEditViewModel`
+- [x] 7.2 Create `ListingsController` with Index (with filter), Details, Edit GET/POST, Delete GET/POST, ToggleActive actions
+- [x] 7.3 Create Listings Index view (table with title, provider, category, price, status)
+- [x] 7.4 Create Listings Details view (full listing info with provider, equipment, availabilities)
+- [x] 7.5 Create Listings Edit view (title, description, price, category, active toggle)
+- [x] 7.6 Create Listings Delete confirmation view
 
 ## 8. Booking Management
 
-- [ ] 8.1 Create `BookingListItemViewModel`, `BookingListViewModel`, `BookingDetailViewModel`, `BookingEditViewModel`
-- [ ] 8.2 Create `BookingsController` with Index (with status filter), Details, Edit GET/POST (status update), Delete GET/POST actions
-- [ ] 8.3 Create Bookings Index view (table with client, listing, status, price, date)
-- [ ] 8.4 Create Bookings Details view (full booking info with client, listing, payment, review)
-- [ ] 8.5 Create Bookings Edit view (status dropdown)
-- [ ] 8.6 Create Bookings Delete confirmation view
+- [x] 8.1 Create `BookingListItemViewModel`, `BookingListViewModel`, `BookingDetailViewModel`, `BookingEditViewModel`
+- [x] 8.2 Create `BookingsController` with Index (with status filter), Details, Edit GET/POST (status update), Delete GET/POST actions
+- [x] 8.3 Create Bookings Index view (table with client, listing, status, price, date)
+- [x] 8.4 Create Bookings Details view (full booking info with client, listing, payment, review)
+- [x] 8.5 Create Bookings Edit view (status dropdown)
+- [x] 8.6 Create Bookings Delete confirmation view
 
 ## 9. Category Management
 
-- [ ] 9.1 Create `CategoryListItemViewModel`, `CategoryListViewModel`, `CategoryCreateViewModel`, `CategoryEditViewModel`
-- [ ] 9.2 Create `CategoriesController` with Index, Create GET/POST, Edit GET/POST, Delete GET/POST actions
-- [ ] 9.3 Create Categories Index view (table with name, description, listings count)
-- [ ] 9.4 Create Categories Create view (name, description form)
-- [ ] 9.5 Create Categories Edit view (name, description form)
-- [ ] 9.6 Create Categories Delete confirmation view (with listings guard)
+- [x] 9.1 Create `CategoryListItemViewModel`, `CategoryListViewModel`, `CategoryCreateViewModel`, `CategoryEditViewModel`
+- [x] 9.2 Create `CategoriesController` with Index, Create GET/POST, Edit GET/POST, Delete GET/POST actions
+- [x] 9.3 Create Categories Index view (table with name, description, listings count)
+- [x] 9.4 Create Categories Create view (name, description form)
+- [x] 9.5 Create Categories Edit view (name, description form)
+- [x] 9.6 Create Categories Delete confirmation view (with listings guard)
 
 ## 10. Payment & Dispute Management
 
-- [ ] 10.1 Create `PaymentListItemViewModel`, `PaymentListViewModel`, `PaymentDetailViewModel`, `DisputeResolveViewModel`
-- [ ] 10.2 Create `PaymentsController` with Index (with status filter), Details, Resolve POST actions
-- [ ] 10.3 Create Payments Index view (table with booking, amount, fee, status, dates)
-- [ ] 10.4 Create Payments Details view (full payment info with booking, client, provider, resolution form for disputes)
+- [x] 10.1 Create `PaymentListItemViewModel`, `PaymentListViewModel`, `PaymentDetailViewModel`, `DisputeResolveViewModel`
+- [x] 10.2 Create `PaymentsController` with Index (with status filter), Details, Resolve POST actions
+- [x] 10.3 Create Payments Index view (table with booking, amount, fee, status, dates)
+- [x] 10.4 Create Payments Details view (full payment info with booking, client, provider, resolution form for disputes)
 
 ## 11. Validation & Anti-Forgery
 

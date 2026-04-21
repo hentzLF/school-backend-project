@@ -1,0 +1,49 @@
+@model CategoryListItemViewModel
+@{ ViewData["Title"] = "Delete Category"; }
+
+<div class="mb-4">
+    <h4>Delete Category</h4>
+    <p class="text-muted">Are you sure you want to permanently delete this category?</p>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+@if (Model.ListingsCount > 0)
+{
+    <div class="alert alert-warning">
+        This category has <strong>@Model.ListingsCount listing(s)</strong> associated with it and cannot be deleted.
+    </div>
+}
+
+<div class="card border-danger mb-4" style="max-width: 500px;">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Name</dt>
+            <dd class="col-sm-8">@Model.Name</dd>
+            <dt class="col-sm-4">Description</dt>
+            <dd class="col-sm-8">@(Model.Description ?? "—")</dd>
+            <dt class="col-sm-4">Listings</dt>
+            <dd class="col-sm-8">@Model.ListingsCount</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    @if (Model.ListingsCount == 0)
+    {
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    }
+    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+</div>

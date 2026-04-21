@@ -1,0 +1,31 @@
+@model ListingListItemViewModel
+@{ ViewData["Title"] = "Delete Listing"; }
+
+<div class="mb-4">
+    <h4>Delete Listing</h4>
+    <p class="text-muted">Are you sure you want to permanently delete this listing?</p>
+</div>
+
+<div class="card border-danger mb-4" style="max-width: 500px;">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Title</dt>
+            <dd class="col-sm-8">@Model.Title</dd>
+            <dt class="col-sm-4">Provider</dt>
+            <dd class="col-sm-8">@Model.ProviderName</dd>
+            <dt class="col-sm-4">Category</dt>
+            <dd class="col-sm-8">@Model.CategoryName</dd>
+            <dt class="col-sm-4">Price/ha</dt>
+            <dd class="col-sm-8">€@Model.PricePerHectare.ToString("0.00")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancel</a>
+</div>

@@ -79,6 +79,6 @@
 
 ## 11. Validation & Anti-Forgery
 
-- [ ] 11.1 Add `[ValidateAntiForgeryToken]` to all POST actions across Admin controllers
-- [ ] 11.2 Add `@Html.AntiForgeryToken()` to all form views
-- [ ] 11.3 Verify all ViewModels have appropriate `[Required]`, `[EmailAddress]`, and other validation attributes
+- [x] 11.1 Add `[ValidateAntiForgeryToken]` to all POST actions across Admin controllers
+- [x] 11.2 Add `@Html.AntiForgeryToken()` to all form views
+- [x] 11.3 Verify all ViewModels have appropriate `[Required]`, `[EmailAddress]`, and other validation attributes

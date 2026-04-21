@@ -36,12 +36,12 @@
 
 ## 6. User Management
 
-- [ ] 6.1 Create `UserListItemViewModel`, `UserListViewModel`, `UserDetailViewModel`, `UserEditViewModel`
-- [ ] 6.2 Create `UsersController` with Index, Details, Edit GET/POST, Delete GET/POST, Lock/Unlock actions
-- [ ] 6.3 Create Users Index view (table with email, profiles, roles, created, status)
-- [ ] 6.4 Create Users Details view (full profile info, associated data)
-- [ ] 6.5 Create Users Edit view (edit email, lockout)
-- [ ] 6.6 Create Users Delete confirmation view
+- [x] 6.1 Create `UserListItemViewModel`, `UserListViewModel`, `UserDetailViewModel`, `UserEditViewModel`
+- [x] 6.2 Create `UsersController` with Index, Details, Edit GET/POST, Delete GET/POST, Lock/Unlock actions
+- [x] 6.3 Create Users Index view (table with email, profiles, roles, created, status)
+- [x] 6.4 Create Users Details view (full profile info, associated data)
+- [x] 6.5 Create Users Edit view (edit email, lockout)
+- [x] 6.6 Create Users Delete confirmation view
 
 ## 7. Listing Management
 

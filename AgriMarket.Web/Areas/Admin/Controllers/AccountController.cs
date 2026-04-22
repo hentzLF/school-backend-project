@@ -1,5 +1,4 @@
 using AgriMarket.BLL.Services;
-using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
@@ -67,7 +66,7 @@ public class AccountController(IUserService userService) : Controller
             return View(model);
         }
 
-        var user = new AppUser
+        var user = new AgriMarket.Domain.Entities.AppUser
         {
             Id = Guid.NewGuid(),
             Email = model.Email,
@@ -75,7 +74,7 @@ public class AccountController(IUserService userService) : Controller
             CreatedAt = DateTime.UtcNow
         };
 
-        var profile = new UserProfile
+        var profile = new AgriMarket.Domain.Entities.UserProfile
         {
             Id = Guid.NewGuid(),
             FirstName = model.FirstName,
@@ -99,7 +98,7 @@ public class AccountController(IUserService userService) : Controller
 
     public IActionResult AccessDenied() => View();
 
-    private async Task SignInAsync(AppUser user, UserProfile profile)
+    private async Task SignInAsync(AgriMarket.Domain.Entities.AppUser user, AgriMarket.Domain.Entities.UserProfile profile)
     {
         var claims = new List<Claim>
         {

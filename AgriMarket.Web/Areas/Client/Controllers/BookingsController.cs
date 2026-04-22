@@ -1,6 +1,7 @@
 using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Client.ViewModels.Bookings;
+using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -20,15 +21,7 @@ public class BookingsController(IBookingService bookingService, IUserService use
 
         var vm = new BookingIndexViewModel
         {
-            Bookings = bookings.Select(b => new BookingIndexItemViewModel
-            {
-                Id = b.Id,
-                ListingTitle = b.ServiceListing?.Title ?? "Unknown",
-                Status = b.Status,
-                TotalPrice = b.TotalPrice,
-                AreaInHectares = b.AreaInHectares,
-                CreatedAt = b.CreatedAt
-            })
+            Bookings = bookings.Select(b => b.ToClientIndexItem())
         };
 
         return View(vm);
@@ -40,27 +33,12 @@ public class BookingsController(IBookingService bookingService, IUserService use
         if (clientProfile == null) return Unauthorized();
 
         var booking = await bookingService.GetByIdAsync(id);
-
         if (booking == null) return NotFound();
 
         if (booking.ClientProfileId != clientProfile.Id)
             return RedirectToAction("AccessDenied", "Account");
 
-        var vm = new BookingDetailsViewModel
-        {
-            Id = booking.Id,
-            Status = booking.Status,
-            TotalPrice = booking.TotalPrice,
-            AreaInHectares = booking.AreaInHectares,
-            CreatedAt = booking.CreatedAt,
-            Notes = booking.Notes,
-            ListingTitle = booking.ServiceListing?.Title ?? "Unknown",
-            ListingId = booking.ServiceListingId,
-            AvailabilityStart = booking.Availability?.StartTime ?? default,
-            AvailabilityEnd = booking.Availability?.EndTime ?? default
-        };
-
-        return View(vm);
+        return View(booking.ToClientDetailsVm());
     }
 
     [HttpPost]
@@ -71,7 +49,6 @@ public class BookingsController(IBookingService bookingService, IUserService use
         if (clientProfile == null) return Unauthorized();
 
         var booking = await bookingService.GetByIdAsync(id);
-
         if (booking == null) return NotFound();
 
         if (booking.ClientProfileId != clientProfile.Id)
@@ -81,11 +58,10 @@ public class BookingsController(IBookingService bookingService, IUserService use
             return RedirectToAction(nameof(Details), new { id });
 
         await bookingService.UpdateStatusAsync(id, BookingStatus.ClientConfirmed, clientProfile.Id);
-
         return RedirectToAction(nameof(Details), new { id });
     }
 
-    private async Task<Domain.Entities.UserProfile?> GetClientProfileAsync()
+    private async Task<AgriMarket.BLL.Dtos.Users.UserProfileDto?> GetClientProfileAsync()
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(userIdStr, out var userId)) return null;

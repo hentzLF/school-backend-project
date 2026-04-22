@@ -1,3 +1,5 @@
+using AgriMarket.BLL.Dtos.Bookings;
+using AgriMarket.BLL;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
@@ -14,86 +16,106 @@ public class BookingService : IBookingService
         _db = db;
     }
 
-    public async Task<IEnumerable<Booking>> GetAllAsync(BookingStatus? status = null)
+    public async Task<IEnumerable<BookingDto>> GetAllAsync(BookingStatus? status = null)
     {
-        var query = _db.Bookings
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
-            .AsQueryable();
-
+        var query = BuildBaseQuery();
         if (status.HasValue)
             query = query.Where(b => b.Status == status.Value);
 
-        return await query.OrderByDescending(b => b.CreatedAt).ToListAsync();
+        var bookings = await query.OrderByDescending(b => b.CreatedAt).ToListAsync();
+        return bookings.Select(ToBookingDto);
     }
 
-    public async Task<Booking?> GetByIdAsync(Guid id)
+    public async Task<BookingDto?> GetByIdAsync(Guid id)
     {
-        return await _db.Bookings
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
-            .Include(b => b.Availability)
-            .Include(b => b.Payment)
-            .Include(b => b.Review)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await BuildBaseQuery().FirstOrDefaultAsync(b => b.Id == id);
+        return booking is null ? null : ToBookingDto(booking);
     }
 
-    public async Task<IEnumerable<Booking>> GetByClientAsync(Guid clientProfileId)
+    public async Task<IEnumerable<BookingDto>> GetByClientAsync(Guid clientProfileId)
     {
-        return await _db.Bookings
-            .Include(b => b.ServiceListing)
+        var bookings = await BuildBaseQuery()
             .Where(b => b.ClientProfileId == clientProfileId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
+
+        return bookings.Select(ToBookingDto);
     }
 
-    public async Task<IEnumerable<Booking>> GetByProviderAsync(Guid providerProfileId)
+    public async Task<IEnumerable<BookingDto>> GetByProviderAsync(Guid providerProfileId)
     {
-        return await _db.Bookings
-            .Include(b => b.ServiceListing)
+        var bookings = await BuildBaseQuery()
             .Where(b => b.ServiceListing!.UserProfileId == providerProfileId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
+
+        return bookings.Select(ToBookingDto);
     }
 
-    public async Task<Booking> CreateAsync(Booking booking)
+    public async Task<BookingDto> CreateAsync(Guid userId, CreateBookingDto dto)
     {
-        // Enforce provider self-booking rule
-        var listing = await _db.ServiceListings.FindAsync(booking.ServiceListingId);
-        if (listing != null && listing.UserProfileId == booking.ClientProfileId)
+        var clientProfile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        if (clientProfile is null)
+            throw new BusinessRuleException("User profile not found.");
+
+        var listing = await _db.ServiceListings.AsNoTracking().FirstOrDefaultAsync(l => l.Id == dto.ServiceListingId);
+        if (listing is null)
+            throw new KeyNotFoundException($"ServiceListing {dto.ServiceListingId} not found.");
+
+        if (listing.UserProfileId == clientProfile.Id)
+            throw new BusinessRuleException("Providers cannot book their own services.");
+
+        var availability = await _db.Availabilities.FirstOrDefaultAsync(a => a.Id == dto.AvailabilityId);
+        if (availability is null || availability.ServiceListingId != dto.ServiceListingId)
+            throw new BusinessRuleException("Availability does not belong to the selected listing.");
+
+        if (availability.IsBooked)
+            throw new BusinessRuleException("The selected availability is no longer available.");
+
+        availability.IsBooked = true;
+        var booking = new Booking
         {
-            throw new InvalidOperationException("Providers cannot book their own services.");
-        }
+            Id = Guid.NewGuid(),
+            Status = BookingStatus.Pending,
+            TotalPrice = (decimal)dto.AreaInHectares * listing.PricePerHectare,
+            AreaInHectares = dto.AreaInHectares,
+            CreatedAt = DateTime.UtcNow,
+            Notes = dto.Notes,
+            ServiceListingId = dto.ServiceListingId,
+            ClientProfileId = clientProfile.Id,
+            AvailabilityId = dto.AvailabilityId
+        };
 
         _db.Bookings.Add(booking);
         await _db.SaveChangesAsync();
-        return booking;
+        return (await GetByIdAsync(booking.Id))!;
     }
 
-    public async Task UpdateStatusAsync(Guid id, BookingStatus status, Guid? callerProfileId = null)
+    public async Task<BookingDto> UpdateStatusAsync(Guid id, BookingStatus status, Guid? callerProfileId = null)
     {
         var booking = await _db.Bookings
             .Include(b => b.ServiceListing)
             .FirstOrDefaultAsync(b => b.Id == id);
-            
-        if (booking != null)
+        if (booking is null)
+            throw new KeyNotFoundException($"Booking {id} not found.");
+
+        if (callerProfileId.HasValue)
         {
-            if (callerProfileId.HasValue)
-            {
-                var isClient = booking.ClientProfileId == callerProfileId.Value;
-                var isProvider = booking.ServiceListing?.UserProfileId == callerProfileId.Value;
+            var isClient = booking.ClientProfileId == callerProfileId.Value;
+            var isProvider = booking.ServiceListing?.UserProfileId == callerProfileId.Value;
 
-                if (!isClient && !isProvider)
-                    throw new UnauthorizedAccessException("You are not a party to this booking.");
+            if (!isClient && !isProvider)
+                throw new UnauthorizedAccessException("You are not a party to this booking.");
 
-                var allowed = GetAllowedTransitions(booking.Status, isClient, isProvider);
-                if (!allowed.Contains(status))
-                    throw new InvalidOperationException($"Transition from {booking.Status} to {status} is not permitted for your role.");
-            }
-
-            booking.Status = status;
-            await _db.SaveChangesAsync();
+            var allowed = GetAllowedTransitions(booking.Status, isClient, isProvider);
+            if (!allowed.Contains(status))
+                throw new BusinessRuleException($"Transition from {booking.Status} to {status} is not permitted for your role.");
         }
+
+        booking.Status = status;
+        await _db.SaveChangesAsync();
+
+        return (await GetByIdAsync(id))!;
     }
 
     private static IReadOnlySet<BookingStatus> GetAllowedTransitions(BookingStatus current, bool isClient, bool isProvider)
@@ -144,28 +166,74 @@ public class BookingService : IBookingService
         return await _db.Bookings.AnyAsync(b => b.ServiceListingId == listingId && activeStatuses.Contains(b.Status));
     }
 
-    public async Task<IEnumerable<Booking>> GetByListingAsync(Guid listingId)
+    public async Task<IEnumerable<BookingSummaryDto>> GetByListingAsync(Guid listingId)
     {
-        return await _db.Bookings
+        var bookings = await _db.Bookings
+            .AsNoTracking()
             .Include(b => b.ClientProfile)
             .Where(b => b.ServiceListingId == listingId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
+
+        return bookings.Select(b => new BookingSummaryDto
+        {
+            Id = b.Id,
+            ClientName = b.ClientProfile is null
+                ? "Unknown"
+                : $"{b.ClientProfile.FirstName} {b.ClientProfile.LastName}",
+            Status = b.Status,
+            AreaInHectares = b.AreaInHectares,
+            TotalPrice = b.TotalPrice,
+            CreatedAt = b.CreatedAt
+        });
     }
 
-    public async Task<(IEnumerable<Booking> Items, int TotalCount)> GetAllForProfileAsync(Guid profileId, int page, int pageSize)
+    public async Task<(IEnumerable<BookingDto> Items, int TotalCount)> GetAllForProfileAsync(Guid profileId, int page, int pageSize)
     {
-        var query = _db.Bookings
-            .Include(b => b.ServiceListing)
-            .Where(b => b.ClientProfileId == profileId || b.ServiceListing!.UserProfileId == profileId)
-            .AsNoTracking();
+        var query = BuildBaseQuery()
+            .Where(b => b.ClientProfileId == profileId || b.ServiceListing!.UserProfileId == profileId);
 
         var totalCount = await query.CountAsync();
         var items = await query
+            .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return (items, totalCount);
+        return (items.Select(ToBookingDto), totalCount);
+    }
+
+    private IQueryable<Booking> BuildBaseQuery()
+    {
+        return _db.Bookings
+            .AsNoTracking()
+            .Include(b => b.ClientProfile)
+            .Include(b => b.ServiceListing)
+            .Include(b => b.Availability)
+            .Include(b => b.Payment)
+            .Include(b => b.Review);
+    }
+
+    private static BookingDto ToBookingDto(Booking booking)
+    {
+        return new BookingDto
+        {
+            Id = booking.Id,
+            Status = booking.Status,
+            TotalPrice = booking.TotalPrice,
+            AreaInHectares = booking.AreaInHectares,
+            CreatedAt = booking.CreatedAt,
+            Notes = booking.Notes,
+            ServiceListingId = booking.ServiceListingId,
+            ClientProfileId = booking.ClientProfileId,
+            AvailabilityId = booking.AvailabilityId,
+            ClientName = booking.ClientProfile is null
+                ? "Unknown"
+                : $"{booking.ClientProfile.FirstName} {booking.ClientProfile.LastName}",
+            ListingTitle = booking.ServiceListing?.Title ?? "Unknown",
+            ProviderProfileId = booking.ServiceListing?.UserProfileId ?? Guid.Empty,
+            AvailabilityStart = booking.Availability?.StartTime ?? default,
+            AvailabilityEnd = booking.Availability?.EndTime ?? default
+        };
     }
 }

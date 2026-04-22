@@ -1,5 +1,4 @@
 using AgriMarket.BLL.Services;
-using AgriMarket.Domain.Entities;
 using AgriMarket.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -49,7 +48,7 @@ public class CategoriesController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
-        var category = new ServiceCategory
+        var category = new AgriMarket.Domain.Entities.ServiceCategory
         {
             Id = Guid.NewGuid(),
             Name = vm.Name,

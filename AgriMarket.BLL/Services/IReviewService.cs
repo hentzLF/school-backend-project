@@ -1,11 +1,11 @@
-using AgriMarket.Domain.Entities;
+using AgriMarket.BLL.Dtos.Reviews;
 
 namespace AgriMarket.BLL.Services;
 
 public interface IReviewService
 {
-    Task<IEnumerable<Review>> GetByBookingAsync(Guid bookingId);
-    Task<Review> CreateAsync(Review review);
-    Task<(IEnumerable<Review> Items, int TotalCount)> GetAllAsync(int page, int pageSize);
-    Task<Review?> GetByIdAsync(Guid id);
+    Task<IEnumerable<ReviewDto>> GetByBookingAsync(Guid bookingId);
+    Task<ReviewDto> CreateAsync(Guid userId, CreateReviewDto dto);
+    Task<(IEnumerable<ReviewDto> Items, int TotalCount)> GetAllAsync(int page, int pageSize);
+    Task<ReviewDto?> GetByIdAsync(Guid id);
 }

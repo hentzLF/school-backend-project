@@ -1,19 +1,18 @@
-using AgriMarket.Domain.Entities;
+using AgriMarket.BLL.Dtos.Listings;
 
 namespace AgriMarket.BLL.Services;
 
 public interface IListingService
 {
-    Task<IEnumerable<ServiceListing>> GetAllAsync();
-    Task<ServiceListing?> GetByIdAsync(Guid id);
-    Task<IEnumerable<ServiceListing>> GetByProviderAsync(Guid providerProfileId);
-    Task<ServiceListing> CreateAsync(ServiceListing listing);
-    Task UpdateAsync(ServiceListing listing);
-    Task DeleteAsync(Guid id);
-    Task<IEnumerable<ServiceListing>> GetActiveListingsAsync();
-    Task ToggleActiveAsync(Guid id);
-    Task<Availability> AddAvailabilityAsync(Availability availability);
-    Task DeleteAvailabilityAsync(Guid id);
-    Task<Availability?> GetAvailabilityByIdAsync(Guid id);
-    Task UpdateAvailabilityAsync(Availability availability);
+    Task<IEnumerable<ListingSummaryDto>> GetAllAsync();
+    Task<ListingDto?> GetByIdAsync(Guid id);
+    Task<IEnumerable<ListingSummaryDto>> GetByProviderAsync(Guid providerProfileId);
+    Task<ListingDto> CreateAsync(Guid userId, CreateListingDto dto);
+    Task<ListingDto> UpdateAsync(Guid userId, UpdateListingDto dto);
+    Task DeleteAsync(Guid userId, Guid listingId);
+    Task<IEnumerable<ListingSummaryDto>> GetActiveListingsAsync();
+    Task ToggleActiveAsync(Guid userId, Guid listingId);
+    Task<AvailabilityDto> AddAvailabilityAsync(Guid userId, CreateAvailabilityDto dto);
+    Task DeleteAvailabilityAsync(Guid userId, Guid availabilityId);
+    Task<AvailabilityDto?> GetAvailabilityByIdAsync(Guid id);
 }

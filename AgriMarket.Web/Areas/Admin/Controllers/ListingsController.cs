@@ -1,8 +1,10 @@
 using AgriMarket.BLL.Services;
 using AgriMarket.Web.Areas.Admin.ViewModels;
+using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Claims;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
@@ -12,7 +14,7 @@ public class ListingsController(IListingService listingService, ICategoryService
 {
     public async Task<IActionResult> Index(bool? active)
     {
-        var listings = active.HasValue && active.Value 
+        var listings = active.HasValue && active.Value
             ? await listingService.GetActiveListingsAsync()
             : await listingService.GetAllAsync();
 
@@ -25,17 +27,7 @@ public class ListingsController(IListingService listingService, ICategoryService
         {
             TotalCount = listings.Count(),
             FilterActive = active,
-            Listings = listings.Select(l => new ListingListItemViewModel
-            {
-                Id = l.Id,
-                Title = l.Title,
-                ProviderName = l.UserProfile != null
-                    ? $"{l.UserProfile.FirstName} {l.UserProfile.LastName}"
-                    : "Unknown",
-                CategoryName = l.ServiceCategory?.Name ?? "Unknown",
-                PricePerHectare = l.PricePerHectare,
-                IsActive = l.IsActive
-            })
+            Listings = listings.Select(l => l.ToAdminListItem())
         };
 
         return View(vm);
@@ -44,40 +36,10 @@ public class ListingsController(IListingService listingService, ICategoryService
     public async Task<IActionResult> Details(Guid id)
     {
         var listing = await listingService.GetByIdAsync(id);
-
         if (listing == null) return NotFound();
 
         var bookingsCount = await bookingService.GetCountByListingAsync(id);
-
-        var vm = new ListingDetailViewModel
-        {
-            Id = listing.Id,
-            Title = listing.Title,
-            Description = listing.Description,
-            PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive,
-            ProviderName = listing.UserProfile != null
-                ? $"{listing.UserProfile.FirstName} {listing.UserProfile.LastName}"
-                : "Unknown",
-            ProviderProfileId = listing.UserProfileId,
-            CategoryName = listing.ServiceCategory?.Name ?? "Unknown",
-            CategoryId = listing.ServiceCategoryId,
-            BookingsCount = bookingsCount,
-            Equipments = listing.Equipments?.Select(e => new ListingEquipmentViewModel
-            {
-                Name = e.Name,
-                Model = e.Model,
-                ManufactureYear = e.ManufactureYear
-            }) ?? [],
-            Availabilities = listing.Availabilities == null ? [] : listing.Availabilities.Select(a => new ListingAvailabilityViewModel
-            {
-                StartTime = a.StartTime,
-                EndTime = a.EndTime,
-                IsBooked = a.IsBooked
-            }).OrderBy(a => a.StartTime)
-        };
-
-        return View(vm);
+        return View(listing.ToAdminDetailVm(bookingsCount));
     }
 
     [HttpGet]
@@ -86,17 +48,8 @@ public class ListingsController(IListingService listingService, ICategoryService
         var listing = await listingService.GetByIdAsync(id);
         if (listing == null) return NotFound();
 
-        var vm = new ListingEditViewModel
-        {
-            Id = listing.Id,
-            Title = listing.Title,
-            Description = listing.Description,
-            PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive,
-            ServiceCategoryId = listing.ServiceCategoryId,
-            Categories = await GetCategorySelectList(listing.ServiceCategoryId)
-        };
-
+        var vm = listing.ToAdminEditVm();
+        vm.Categories = await GetCategorySelectList(listing.ServiceCategoryId);
         return View(vm);
     }
 
@@ -110,15 +63,17 @@ public class ListingsController(IListingService listingService, ICategoryService
             return View(vm);
         }
 
-        var listing = await listingService.GetByIdAsync(vm.Id);
-        if (listing == null) return NotFound();
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
 
-        listing.Title = vm.Title;
-        listing.Description = vm.Description;
-        listing.PricePerHectare = vm.PricePerHectare;
-        listing.IsActive = vm.IsActive;
-        listing.ServiceCategoryId = vm.ServiceCategoryId;
-        await listingService.UpdateAsync(listing);
+        try
+        {
+            await listingService.UpdateAsync(userId, vm.ToUpdateListingDto());
+        }
+        catch
+        {
+            return NotFound();
+        }
 
         return RedirectToAction(nameof(Details), new { id = vm.Id });
     }
@@ -127,32 +82,26 @@ public class ListingsController(IListingService listingService, ICategoryService
     public async Task<IActionResult> Delete(Guid id)
     {
         var listing = await listingService.GetByIdAsync(id);
-
         if (listing == null) return NotFound();
 
-        var vm = new ListingListItemViewModel
-        {
-            Id = listing.Id,
-            Title = listing.Title,
-            ProviderName = listing.UserProfile != null
-                ? $"{listing.UserProfile.FirstName} {listing.UserProfile.LastName}"
-                : "Unknown",
-            CategoryName = listing.ServiceCategory?.Name ?? "Unknown",
-            PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive
-        };
-
-        return View(vm);
+        return View(listing.ToAdminListItem());
     }
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        var listing = await listingService.GetByIdAsync(id);
-        if (listing == null) return NotFound();
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
 
-        await listingService.DeleteAsync(id);
+        try
+        {
+            await listingService.DeleteAsync(userId, id);
+        }
+        catch
+        {
+            return NotFound();
+        }
 
         return RedirectToAction(nameof(Index));
     }
@@ -161,10 +110,17 @@ public class ListingsController(IListingService listingService, ICategoryService
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleActive(Guid id)
     {
-        var listing = await listingService.GetByIdAsync(id);
-        if (listing == null) return NotFound();
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
 
-        await listingService.ToggleActiveAsync(id);
+        try
+        {
+            await listingService.ToggleActiveAsync(userId, id);
+        }
+        catch
+        {
+            return NotFound();
+        }
 
         return RedirectToAction(nameof(Details), new { id });
     }

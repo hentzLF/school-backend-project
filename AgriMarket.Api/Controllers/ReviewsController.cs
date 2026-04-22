@@ -1,9 +1,9 @@
-using AgriMarket.Api.Dtos.Reviews;
+using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.BLL.Services;
-using AgriMarket.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AgriMarket.Api.Controllers;
 
@@ -25,77 +25,44 @@ public class ReviewsController : ControllerBase
         if (page < 1) page = 1;
 
         var result = await _reviewService.GetAllAsync(page, pageSize);
-        var items = result.Items.Select(r => new ReviewResponse
-        {
-            Id = r.Id,
-            Rating = r.Rating,
-            Comment = r.Comment,
-            CreatedAt = r.CreatedAt,
-            BookingId = r.BookingId,
-            ReviewerProfileId = r.ReviewerProfileId
-        });
-
-        return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
+        return Ok(new { items = result.Items, page, pageSize, totalCount = result.TotalCount });
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var review = await _reviewService.GetByIdAsync(id);
-
         if (review is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"Review {id} not found.");
 
-        return Ok(new ReviewResponse
-        {
-            Id = review.Id,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt,
-            BookingId = review.BookingId,
-            ReviewerProfileId = review.ReviewerProfileId
-        });
+        return Ok(review);
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateReviewRequest req)
+    public async Task<IActionResult> Create([FromBody] CreateReviewDto req)
     {
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
-
-        var review = new Review
-        {
-            Id = Guid.NewGuid(),
-            Rating = req.Rating,
-            Comment = req.Comment,
-            CreatedAt = DateTime.UtcNow,
-            BookingId = req.BookingId,
-            ReviewerProfileId = callerProfileId
-        };
+        if (!TryGetUserId(out var userId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid user identity.");
 
         try
         {
-            await _reviewService.CreateAsync(review);
+            var review = await _reviewService.CreateAsync(userId, req);
+            return CreatedAtAction(nameof(GetById), new { id = review.Id }, review);
         }
-        catch (InvalidOperationException ex)
+        catch (BusinessRuleException ex)
         {
             return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
         }
-        catch (ArgumentException ex)
+        catch (KeyNotFoundException ex)
         {
             return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
         }
+    }
 
-        var response = new ReviewResponse
-        {
-            Id = review.Id,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt,
-            BookingId = review.BookingId,
-            ReviewerProfileId = review.ReviewerProfileId
-        };
-
-        return CreatedAtAction(nameof(GetById), new { id = review.Id }, response);
+    private bool TryGetUserId(out Guid userId)
+    {
+        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        return Guid.TryParse(sub, out userId);
     }
 }

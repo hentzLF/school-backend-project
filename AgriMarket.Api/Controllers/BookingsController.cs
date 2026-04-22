@@ -1,10 +1,9 @@
-using AgriMarket.Api.Dtos.Bookings;
+using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos.Bookings;
 using AgriMarket.BLL.Services;
-using AgriMarket.Domain.Entities;
-using AgriMarket.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AgriMarket.Api.Controllers;
 
@@ -26,135 +25,87 @@ public class BookingsController : ControllerBase
         if (pageSize > 100) pageSize = 100;
         if (page < 1) page = 1;
 
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+        if (!TryGetProfileId(out var callerProfileId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid profile identity.");
 
         var result = await _bookingService.GetAllForProfileAsync(callerProfileId, page, pageSize);
-
-        var items = result.Items.Select(b => new BookingResponse
-        {
-            Id = b.Id,
-            Status = b.Status,
-            TotalPrice = b.TotalPrice,
-            AreaInHectares = b.AreaInHectares,
-            CreatedAt = b.CreatedAt,
-            Notes = b.Notes,
-            ServiceListingId = b.ServiceListingId,
-            ClientProfileId = b.ClientProfileId,
-            AvailabilityId = b.AvailabilityId
-        });
-
-        return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
+        return Ok(new { items = result.Items, page, pageSize, totalCount = result.TotalCount });
     }
 
     [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+        if (!TryGetProfileId(out var callerProfileId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid profile identity.");
 
         var booking = await _bookingService.GetByIdAsync(id);
-
         if (booking is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"Booking {id} not found.");
 
-        if (booking.ClientProfileId != callerProfileId
-            && booking.ServiceListing?.UserProfileId != callerProfileId)
+        if (booking.ClientProfileId != callerProfileId && booking.ProviderProfileId != callerProfileId)
             return Problem(statusCode: 403, title: "Forbidden", detail: "You are not a party to this booking.");
 
-        return Ok(new BookingResponse
-        {
-            Id = booking.Id,
-            Status = booking.Status,
-            TotalPrice = booking.TotalPrice,
-            AreaInHectares = booking.AreaInHectares,
-            CreatedAt = booking.CreatedAt,
-            Notes = booking.Notes,
-            ServiceListingId = booking.ServiceListingId,
-            ClientProfileId = booking.ClientProfileId,
-            AvailabilityId = booking.AvailabilityId
-        });
+        return Ok(booking);
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateBookingRequest req)
+    public async Task<IActionResult> Create([FromBody] CreateBookingDto req)
     {
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
-
-        var booking = new Booking
-        {
-            Id = Guid.NewGuid(),
-            Status = BookingStatus.Pending,
-            TotalPrice = 0,
-            AreaInHectares = req.AreaInHectares,
-            CreatedAt = DateTime.UtcNow,
-            Notes = req.Notes,
-            ServiceListingId = req.ServiceListingId,
-            ClientProfileId = callerProfileId,
-            AvailabilityId = req.AvailabilityId
-        };
+        if (!TryGetUserId(out var userId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid user identity.");
 
         try
         {
-            await _bookingService.CreateAsync(booking);
+            var booking = await _bookingService.CreateAsync(userId, req);
+            return CreatedAtAction(nameof(GetById), new { id = booking.Id }, booking);
         }
-        catch (InvalidOperationException ex)
+        catch (BusinessRuleException ex)
         {
             return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
         }
-
-        var response = new BookingResponse
+        catch (KeyNotFoundException ex)
         {
-            Id = booking.Id,
-            Status = booking.Status,
-            TotalPrice = booking.TotalPrice,
-            AreaInHectares = booking.AreaInHectares,
-            CreatedAt = booking.CreatedAt,
-            Notes = booking.Notes,
-            ServiceListingId = booking.ServiceListingId,
-            ClientProfileId = booking.ClientProfileId,
-            AvailabilityId = booking.AvailabilityId
-        };
-
-        return CreatedAtAction(nameof(GetById), new { id = booking.Id }, response);
+            return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
+        }
     }
 
     [Authorize]
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateBookingStatusRequest req)
     {
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
-
-        var booking = await _bookingService.GetByIdAsync(id);
-
-        if (booking is null)
-            return Problem(statusCode: 404, title: "Not Found", detail: $"Booking {id} not found.");
+        if (!TryGetProfileId(out var callerProfileId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid profile identity.");
 
         try
         {
-            await _bookingService.UpdateStatusAsync(id, req.Status, callerProfileId);
-            booking.Status = req.Status;
+            var booking = await _bookingService.UpdateStatusAsync(id, req.Status, callerProfileId);
+            return Ok(booking);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
         }
         catch (UnauthorizedAccessException ex)
         {
             return Problem(statusCode: 403, title: "Forbidden", detail: ex.Message);
         }
-        catch (InvalidOperationException ex)
+        catch (BusinessRuleException ex)
         {
             return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
         }
+    }
 
-        return Ok(new BookingResponse
-        {
-            Id = booking.Id,
-            Status = booking.Status,
-            TotalPrice = booking.TotalPrice,
-            AreaInHectares = booking.AreaInHectares,
-            CreatedAt = booking.CreatedAt,
-            Notes = booking.Notes,
-            ServiceListingId = booking.ServiceListingId,
-            ClientProfileId = booking.ClientProfileId,
-            AvailabilityId = booking.AvailabilityId
-        });
+    private bool TryGetProfileId(out Guid profileId)
+    {
+        var value = User.FindFirst("profileId")?.Value;
+        return Guid.TryParse(value, out profileId);
+    }
+
+    private bool TryGetUserId(out Guid userId)
+    {
+        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        return Guid.TryParse(sub, out userId);
     }
 }

@@ -1,6 +1,8 @@
-using AgriMarket.Api.Dtos.Users;
+using AgriMarket.Api.Mappers;
+using AgriMarket.BLL.Dtos.Users;
 using AgriMarket.BLL.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
@@ -23,40 +25,27 @@ public class UsersController : ControllerBase
         if (page < 1) page = 1;
 
         var result = await _userService.GetAllProfilesAsync(page, pageSize);
-        var items = result.Items.Select(up => new UserProfileResponse
-        {
-            Id = up.Id,
-            FirstName = up.FirstName,
-            LastName = up.LastName,
-            Bio = up.Bio,
-            AvatarUrl = up.AvatarUrl,
-            AppUserId = up.AppUserId
-        });
-
+        var items = result.Items.Select(UserApiMapper.HideEmail);
         return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var callerUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var callerUserId = GetCallerUserId();
+        var isAdmin = User.Claims.Any(c =>
+            c.Type == ClaimTypes.Role && string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase));
 
-        var profile = await _userService.GetProfileByIdAsync(id);
-
+        var profile = await _userService.GetProfileByIdAsync(id, callerUserId, isAdmin);
         if (profile is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"UserProfile {id} not found.");
 
-        var isOwner = callerUserId != null && profile.AppUserId.ToString() == callerUserId;
+        return Ok(profile);
+    }
 
-        return Ok(new UserProfileResponse
-        {
-            Id = profile.Id,
-            FirstName = profile.FirstName,
-            LastName = profile.LastName,
-            Bio = profile.Bio,
-            AvatarUrl = profile.AvatarUrl,
-            AppUserId = profile.AppUserId,
-            Email = isOwner ? profile.AppUser?.Email : null
-        });
+    private Guid? GetCallerUserId()
+    {
+        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        return Guid.TryParse(sub, out var userId) ? userId : null;
     }
 }

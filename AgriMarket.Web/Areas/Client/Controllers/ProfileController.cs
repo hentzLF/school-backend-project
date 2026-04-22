@@ -1,5 +1,6 @@
 using AgriMarket.BLL.Services;
 using AgriMarket.Web.Areas.Client.ViewModels.Profile;
+using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,38 +13,20 @@ public class ProfileController(IUserService userService) : Controller
 {
     public async Task<IActionResult> Index()
     {
-        var profile = await GetProfileWithRoleAsync();
+        var profile = await GetProfileAsync();
         if (profile == null) return Unauthorized();
 
-        var role = profile.Roles?.FirstOrDefault()?.Role ?? default;
-
-        var vm = new ProfileViewModel
-        {
-            FirstName = profile.FirstName,
-            LastName = profile.LastName,
-            Bio = profile.Bio,
-            AvatarUrl = profile.AvatarUrl,
-            Role = role
-        };
-
-        return View(vm);
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        return View(profile.ToProfileViewModel(role));
     }
 
     [HttpGet]
     public async Task<IActionResult> Edit()
     {
-        var profile = await GetProfileWithRoleAsync();
+        var profile = await GetProfileAsync();
         if (profile == null) return Unauthorized();
 
-        var vm = new EditProfileViewModel
-        {
-            FirstName = profile.FirstName,
-            LastName = profile.LastName,
-            Bio = profile.Bio,
-            AvatarUrl = profile.AvatarUrl
-        };
-
-        return View(vm);
+        return View(profile.ToEditProfileViewModel());
     }
 
     [HttpPost]
@@ -53,31 +36,28 @@ public class ProfileController(IUserService userService) : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var profile = await GetProfileAsync();
-        if (profile == null) return Unauthorized();
+        var profileDto = await GetProfileAsync();
+        if (profileDto == null) return Unauthorized();
 
-        profile.FirstName = model.FirstName;
-        profile.LastName = model.LastName;
-        profile.Bio = model.Bio;
-        profile.AvatarUrl = model.AvatarUrl;
-
-        await userService.UpdateProfileAsync(profile);
+        await userService.UpdateProfileAsync(new AgriMarket.BLL.Dtos.Users.UserProfileDto
+        {
+            Id = profileDto.Id,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            Bio = model.Bio,
+            AvatarUrl = model.AvatarUrl,
+            AppUserId = profileDto.AppUserId,
+            Email = profileDto.Email
+        });
 
         TempData["SuccessMessage"] = "Profile updated successfully.";
         return RedirectToAction(nameof(Index));
     }
 
-    private async Task<Domain.Entities.UserProfile?> GetProfileWithRoleAsync()
+    private async Task<AgriMarket.BLL.Dtos.Users.UserProfileDto?> GetProfileAsync()
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(userIdStr, out var userId)) return null;
-        return await userService.GetProfileByUserIdAsync(userId, includeRoles: true);
-    }
-
-    private async Task<Domain.Entities.UserProfile?> GetProfileAsync()
-    {
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(userIdStr, out var userId)) return null;
-        return await userService.GetProfileByUserIdAsync(userId, includeRoles: false);
+        return await userService.GetProfileByUserIdAsync(userId);
     }
 }

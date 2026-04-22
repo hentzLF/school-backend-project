@@ -1,9 +1,10 @@
-using AgriMarket.Api.Dtos.ServiceListings;
+using AgriMarket.Api.Mappers;
+using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos.Listings;
 using AgriMarket.BLL.Services;
-using AgriMarket.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AgriMarket.Api.Controllers;
 
@@ -26,21 +27,7 @@ public class ListingsController : ControllerBase
 
         var allItems = await _listingService.GetAllAsync();
         var totalCount = allItems.Count();
-        
-        var items = allItems
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(sl => new ServiceListingResponse
-            {
-                Id = sl.Id,
-                Title = sl.Title,
-                Description = sl.Description,
-                PricePerHectare = sl.PricePerHectare,
-                IsActive = sl.IsActive,
-                UserProfileId = sl.UserProfileId,
-                ServiceCategoryId = sl.ServiceCategoryId,
-                LocationId = sl.LocationId
-            });
+        var items = allItems.Skip((page - 1) * pageSize).Take(pageSize);
 
         return Ok(new { items, page, pageSize, totalCount });
     }
@@ -48,109 +35,79 @@ public class ListingsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var sl = await _listingService.GetByIdAsync(id);
+        var listing = await _listingService.GetByIdAsync(id);
 
-        if (sl is null)
+        if (listing is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"ServiceListing {id} not found.");
 
-        return Ok(new ServiceListingResponse
-        {
-            Id = sl.Id,
-            Title = sl.Title,
-            Description = sl.Description,
-            PricePerHectare = sl.PricePerHectare,
-            IsActive = sl.IsActive,
-            UserProfileId = sl.UserProfileId,
-            ServiceCategoryId = sl.ServiceCategoryId,
-            LocationId = sl.LocationId
-        });
+        return Ok(listing);
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateListingRequest req)
+    public async Task<IActionResult> Create([FromBody] CreateListingDto req)
     {
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+        if (!TryGetUserId(out var userId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid user identity.");
 
-        var listing = new ServiceListing
+        try
         {
-            Id = Guid.NewGuid(),
-            Title = req.Title,
-            Description = req.Description,
-            PricePerHectare = req.PricePerHectare,
-            IsActive = true,
-            UserProfileId = callerProfileId,
-            ServiceCategoryId = req.ServiceCategoryId,
-            LocationId = req.LocationId
-        };
-
-        await _listingService.CreateAsync(listing);
-
-        var response = new ServiceListingResponse
+            var listing = await _listingService.CreateAsync(userId, req);
+            return CreatedAtAction(nameof(GetById), new { id = listing.Id }, listing);
+        }
+        catch (BusinessRuleException ex)
         {
-            Id = listing.Id,
-            Title = listing.Title,
-            Description = listing.Description,
-            PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive,
-            UserProfileId = listing.UserProfileId,
-            ServiceCategoryId = listing.ServiceCategoryId,
-            LocationId = listing.LocationId
-        };
-
-        return CreatedAtAction(nameof(GetById), new { id = listing.Id }, response);
+            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
+        }
     }
 
     [Authorize]
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateListingRequest req)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateListingDto req)
     {
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+        if (!TryGetUserId(out var userId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid user identity.");
 
-        var listing = await _listingService.GetByIdAsync(id);
-        if (listing is null)
-            return Problem(statusCode: 404, title: "Not Found", detail: $"ServiceListing {id} not found.");
-
-        if (listing.UserProfileId != callerProfileId)
-            return Problem(statusCode: 403, title: "Forbidden", detail: "You do not own this listing.");
-
-        listing.Title = req.Title;
-        listing.Description = req.Description;
-        listing.PricePerHectare = req.PricePerHectare;
-        listing.IsActive = req.IsActive;
-        listing.ServiceCategoryId = req.ServiceCategoryId;
-        listing.LocationId = req.LocationId;
-
-        await _listingService.UpdateAsync(listing);
-
-        return Ok(new ServiceListingResponse
+        try
         {
-            Id = listing.Id,
-            Title = listing.Title,
-            Description = listing.Description,
-            PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive,
-            UserProfileId = listing.UserProfileId,
-            ServiceCategoryId = listing.ServiceCategoryId,
-            LocationId = listing.LocationId
-        });
+            var listing = await _listingService.UpdateAsync(userId, req.WithRouteId(id));
+            return Ok(listing);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
+        }
+        catch (BusinessRuleException ex)
+        {
+            return Problem(statusCode: 403, title: "Forbidden", detail: ex.Message);
+        }
     }
 
     [Authorize]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
+        if (!TryGetUserId(out var userId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid user identity.");
 
-        var listing = await _listingService.GetByIdAsync(id);
-        if (listing is null)
-            return Problem(statusCode: 404, title: "Not Found", detail: $"ServiceListing {id} not found.");
+        try
+        {
+            await _listingService.DeleteAsync(userId, id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
+        }
+        catch (BusinessRuleException ex)
+        {
+            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
+        }
+    }
 
-        if (listing.UserProfileId != callerProfileId)
-            return Problem(statusCode: 403, title: "Forbidden", detail: "You do not own this listing.");
-
-        await _listingService.DeleteAsync(id);
-
-        return NoContent();
+    private bool TryGetUserId(out Guid userId)
+    {
+        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        return Guid.TryParse(sub, out userId);
     }
 }

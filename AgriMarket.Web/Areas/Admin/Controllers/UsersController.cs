@@ -1,7 +1,10 @@
+using AgriMarket.BLL.Dtos.Users;
 using AgriMarket.BLL.Services;
 using AgriMarket.Web.Areas.Admin.ViewModels;
+using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
@@ -20,24 +23,10 @@ public class UsersController : Controller
     {
         var users = await _userService.GetAllUsersAsync();
 
-        var now = DateTime.UtcNow;
         var vm = new UserListViewModel
         {
             TotalCount = users.Count(),
-            Users = users.Select(u => new UserListItemViewModel
-            {
-                Id = u.Id,
-                Email = u.Email,
-                ProfilesCount = u.Profiles?.Count ?? 0,
-                Roles = u.Profiles?
-                    .SelectMany(p => p.Roles ?? [])
-                    .Select(r => r.Role)
-                    .Distinct()
-                    .ToList() ?? [],
-                CreatedAt = u.CreatedAt,
-                IsLocked = u.LockoutEnd.HasValue && u.LockoutEnd.Value > now,
-                LockoutEnd = u.LockoutEnd
-            })
+            Users = users.Select(u => u.ToUserListItem())
         };
 
         return View(vm);
@@ -45,29 +34,22 @@ public class UsersController : Controller
 
     public async Task<IActionResult> Details(Guid id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
+        var profile = await _userService.GetUserByIdAsync(id, GetCallerUserId(), isAdmin: true);
+        if (profile == null) return NotFound();
 
-        if (user == null) return NotFound();
-
-        var now = DateTime.UtcNow;
         var vm = new UserDetailViewModel
         {
-            Id = user.Id,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt,
-            IsLocked = user.LockoutEnd.HasValue && user.LockoutEnd.Value > now,
-            LockoutEnd = user.LockoutEnd,
-            Profiles = user.Profiles?.Select(p => new UserProfileDetailViewModel
+            Id = profile.Id,
+            Email = profile.Email ?? string.Empty,
+            Profiles = [new UserProfileDetailViewModel
             {
-                Id = p.Id,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                Bio = p.Bio,
-                AvatarUrl = p.AvatarUrl,
-                Roles = p.Roles?.Select(r => r.Role).ToList() ?? []
-            }) ?? [],
-            BookingsCount = user.Profiles?.Sum(p => p.ClientBookings?.Count ?? 0) ?? 0,
-            ListingsCount = user.Profiles?.Sum(p => p.ServiceListings?.Count ?? 0) ?? 0
+                Id = profile.Id,
+                FirstName = profile.FirstName,
+                LastName = profile.LastName,
+                Bio = profile.Bio,
+                AvatarUrl = profile.AvatarUrl,
+                Roles = []
+            }]
         };
 
         return View(vm);
@@ -76,14 +58,15 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
-        if (user == null) return NotFound();
+        var profile = await _userService.GetUserByIdAsync(id, GetCallerUserId(), isAdmin: true);
+        if (profile == null) return NotFound();
 
+        var lockoutEnd = await GetLockoutEnd(profile);
         var vm = new UserEditViewModel
         {
-            Id = user.Id,
-            Email = user.Email,
-            LockoutEnd = user.LockoutEnd
+            Id = profile.Id,
+            Email = profile.Email ?? string.Empty,
+            LockoutEnd = lockoutEnd
         };
 
         return View(vm);
@@ -95,12 +78,10 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
-        var user = await _userService.GetUserByIdAsync(vm.Id);
-        if (user == null) return NotFound();
+        var profile = await _userService.GetUserByIdAsync(vm.Id, GetCallerUserId(), isAdmin: true);
+        if (profile == null) return NotFound();
 
-        user.Email = vm.Email;
-        user.LockoutEnd = vm.LockoutEnd;
-        await _userService.UpdateUserAsync(user);
+        await _userService.UpdateUserAsync(profile.AppUserId, vm.Email, vm.LockoutEnd);
 
         return RedirectToAction(nameof(Details), new { id = vm.Id });
     }
@@ -108,34 +89,20 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
+        var profile = await _userService.GetUserByIdAsync(id, GetCallerUserId(), isAdmin: true);
+        if (profile == null) return NotFound();
 
-        if (user == null) return NotFound();
-
-        var now = DateTime.UtcNow;
-        var vm = new UserListItemViewModel
-        {
-            Id = user.Id,
-            Email = user.Email,
-            ProfilesCount = user.Profiles?.Count ?? 0,
-            Roles = user.Profiles?
-                .SelectMany(p => p.Roles ?? [])
-                .Select(r => r.Role)
-                .Distinct()
-                .ToList() ?? [],
-            CreatedAt = user.CreatedAt,
-            IsLocked = user.LockoutEnd.HasValue && user.LockoutEnd.Value > now,
-            LockoutEnd = user.LockoutEnd
-        };
-
-        return View(vm);
+        return View(profile.ToUserListItem());
     }
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        await _userService.DeleteUserAsync(id);
+        var profile = await _userService.GetUserByIdAsync(id, GetCallerUserId(), isAdmin: true);
+        if (profile == null) return NotFound();
+
+        await _userService.DeleteUserAsync(profile.AppUserId);
         return RedirectToAction(nameof(Index));
     }
 
@@ -143,7 +110,10 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Lock(Guid id)
     {
-        await _userService.LockUserAsync(id);
+        var profile = await _userService.GetUserByIdAsync(id, GetCallerUserId(), isAdmin: true);
+        if (profile == null) return NotFound();
+
+        await _userService.LockUserAsync(profile.AppUserId);
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -151,7 +121,24 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Unlock(Guid id)
     {
-        await _userService.UnlockUserAsync(id);
+        var profile = await _userService.GetUserByIdAsync(id, GetCallerUserId(), isAdmin: true);
+        if (profile == null) return NotFound();
+
+        await _userService.UnlockUserAsync(profile.AppUserId);
         return RedirectToAction(nameof(Details), new { id });
+    }
+
+    private Guid? GetCallerUserId()
+    {
+        return Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId) ? userId : null;
+    }
+
+    private async Task<DateTime?> GetLockoutEnd(UserProfileDto profile)
+    {
+        if (string.IsNullOrWhiteSpace(profile.Email))
+            return null;
+
+        var user = await _userService.GetByEmailAsync(profile.Email);
+        return user?.LockoutEnd;
     }
 }

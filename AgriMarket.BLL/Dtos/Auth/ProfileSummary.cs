@@ -1,6 +1,6 @@
 using AgriMarket.Domain.Enums;
 
-namespace AgriMarket.Api.Dtos.Auth;
+namespace AgriMarket.BLL.Dtos.Auth;
 
 public sealed class ProfileSummary
 {

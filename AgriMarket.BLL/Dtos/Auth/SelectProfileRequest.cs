@@ -1,4 +1,4 @@
-namespace AgriMarket.Api.Dtos.Auth;
+namespace AgriMarket.BLL.Dtos.Auth;
 
 public sealed class SelectProfileRequest
 {

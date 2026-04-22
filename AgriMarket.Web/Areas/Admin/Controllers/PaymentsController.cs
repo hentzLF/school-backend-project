@@ -1,9 +1,8 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
@@ -11,25 +10,20 @@ namespace AgriMarket.Web.Areas.Admin.Controllers;
 [Authorize(Policy = "AdminOnly")]
 public class PaymentsController : Controller
 {
-    private readonly AppDbContext _db;
+    private readonly IPaymentService _paymentService;
 
-    public PaymentsController(AppDbContext db)
+    public PaymentsController(IPaymentService paymentService)
     {
-        _db = db;
+        _paymentService = paymentService;
     }
 
     public async Task<IActionResult> Index(PaymentStatus? status)
     {
-        var query = _db.Payments.AsQueryable();
-
-        if (status.HasValue)
-            query = query.Where(p => p.Status == status.Value);
-
-        var payments = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
+        var payments = await _paymentService.GetAllAsync(status);
 
         var vm = new PaymentListViewModel
         {
-            TotalCount = payments.Count,
+            TotalCount = payments.Count(),
             FilterStatus = status,
             Payments = payments.Select(p => new PaymentListItemViewModel
             {
@@ -48,13 +42,7 @@ public class PaymentsController : Controller
 
     public async Task<IActionResult> Details(Guid id)
     {
-        var payment = await _db.Payments
-            .Include(p => p.Booking)
-                .ThenInclude(b => b!.ClientProfile)
-            .Include(p => p.Booking)
-                .ThenInclude(b => b!.ServiceListing)
-                    .ThenInclude(l => l!.UserProfile)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var payment = await _paymentService.GetByIdAsync(id);
 
         if (payment == null) return NotFound();
 
@@ -94,7 +82,7 @@ public class PaymentsController : Controller
         if (!ModelState.IsValid)
             return RedirectToAction(nameof(Details), new { id = vm.PaymentId });
 
-        var payment = await _db.Payments.FindAsync(vm.PaymentId);
+        var payment = await _paymentService.GetByIdAsync(vm.PaymentId);
         if (payment == null) return NotFound();
 
         if (payment.Status != PaymentStatus.Disputed)
@@ -103,22 +91,13 @@ public class PaymentsController : Controller
             return RedirectToAction(nameof(Details), new { id = vm.PaymentId });
         }
 
-        if (vm.Resolution == "Release")
-        {
-            payment.Status = PaymentStatus.Released;
-            payment.ReleasedAt = DateTime.UtcNow;
-        }
-        else if (vm.Resolution == "Refund")
-        {
-            payment.Status = PaymentStatus.Refunded;
-        }
-        else
+        if (vm.Resolution != "Release" && vm.Resolution != "Refund")
         {
             TempData["Error"] = "Invalid resolution option";
             return RedirectToAction(nameof(Details), new { id = vm.PaymentId });
         }
 
-        await _db.SaveChangesAsync();
+        await _paymentService.ResolveDisputeAsync(vm.PaymentId, vm.Resolution);
 
         return RedirectToAction(nameof(Details), new { id = vm.PaymentId });
     }

@@ -15,7 +15,7 @@ public class AccountControllerTests
         using var db = TestDbContextFactory.Create(nameof(Login_WithAdminRole_RedirectsToDashboard));
         TestDbContextFactory.SeedClientUser(db, "admin@test.com", "password123", RoleType.Admin);
 
-        var controller = new AccountController(db);
+        var controller = new AccountController(new AgriMarket.BLL.Services.UserService(db));
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
 
         var result = await controller.Login(new LoginViewModel { Email = "admin@test.com", Password = "password123" });
@@ -33,7 +33,7 @@ public class AccountControllerTests
         using var db = TestDbContextFactory.Create(nameof(Login_WithClientRole_ReturnsViewWithError) + role);
         TestDbContextFactory.SeedClientUser(db, "client@test.com", "password123", role);
 
-        var controller = new AccountController(db);
+        var controller = new AccountController(new AgriMarket.BLL.Services.UserService(db));
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
 
         var result = await controller.Login(new LoginViewModel { Email = "client@test.com", Password = "password123" });

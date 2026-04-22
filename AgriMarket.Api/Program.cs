@@ -1,5 +1,6 @@
 using System.Text;
-using AgriMarket.Api.Services;
+using AgriMarket.BLL;
+using AgriMarket.BLL.Services;
 using AgriMarket.DAL;
 using AgriMarket.DAL.Seeding;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -48,8 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Dependency Inversion
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddBll();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
@@ -87,7 +87,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors();
 
-// 7.2 — authentication must come before authorization
 app.UseAuthentication();
 app.UseAuthorization();
 

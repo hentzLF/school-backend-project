@@ -1,10 +1,11 @@
-using AgriMarket.Api.Dtos.Auth;
+using AgriMarket.BLL.Dtos.Auth;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
-namespace AgriMarket.Api.Services;
+namespace AgriMarket.BLL.Services;
 
 public class AuthService : IAuthService
 {
@@ -166,7 +167,7 @@ public class AuthService : IAuthService
     private async Task<string> IssueRefreshTokenAsync(Guid userId)
     {
         var token = _tokenService.GenerateRefreshToken();
-        var expiryDays = _config.GetValue<int>("Jwt:RefreshTokenExpiryDays");
+        var expiryDays = int.Parse(_config["Jwt:RefreshTokenExpiryDays"] ?? "7");
 
         _db.RefreshTokens.Add(new RefreshToken
         {

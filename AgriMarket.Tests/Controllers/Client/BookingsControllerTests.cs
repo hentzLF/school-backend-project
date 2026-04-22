@@ -17,7 +17,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id);
 
-        var controller = new BookingsController(db);
+        var controller = new BookingsController(new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db));
         controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(requestorUser.Id);
 
         var result = await controller.Details(booking.Id);
@@ -34,7 +34,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id);
 
-        var controller = new BookingsController(db);
+        var controller = new BookingsController(new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db));
         controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(user.Id);
 
         var result = await controller.Details(booking.Id);
@@ -50,7 +50,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
 
-        var controller = new BookingsController(db);
+        var controller = new BookingsController(new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db));
         controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(user.Id);
 
         var result = await controller.ConfirmCompletion(booking.Id);
@@ -70,7 +70,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ProviderCompleted);
 
-        var controller = new BookingsController(db);
+        var controller = new BookingsController(new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db));
         controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(user.Id);
 
         var result = await controller.ConfirmCompletion(booking.Id);
@@ -91,7 +91,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id, BookingStatus.ProviderCompleted);
 
-        var controller = new BookingsController(db);
+        var controller = new BookingsController(new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db));
         controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(otherUser.Id);
 
         var result = await controller.ConfirmCompletion(booking.Id);

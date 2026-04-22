@@ -35,7 +35,7 @@ namespace AgriMarket.Tests.Controllers.Client
             
             var (listing, availability) = TestDbContextFactory.SeedListing(db, profile1.Id);
 
-            var controller = new MyListingsController(db)
+            var controller = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
             {
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider2.Id, "Provider")
             };
@@ -61,7 +61,7 @@ namespace AgriMarket.Tests.Controllers.Client
             availability.IsBooked = true;
             await db.SaveChangesAsync();
 
-            var controller = new MyListingsController(db)
+            var controller = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
             {
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider.Id, "Provider")
             };
@@ -82,7 +82,7 @@ namespace AgriMarket.Tests.Controllers.Client
             var (provider, profile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
             var (listing, _) = TestDbContextFactory.SeedListing(db, profile.Id);
 
-            var controller = new MyListingsController(db)
+            var controller = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
             {
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider.Id, "Provider")
             };
@@ -108,7 +108,7 @@ namespace AgriMarket.Tests.Controllers.Client
             var (provider, provProfile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
             var (farmer, farmProfile) = TestDbContextFactory.SeedClientUser(db, "f@t.c", "pwd", RoleType.Farmer);
 
-            var pController = new MyListingsController(db)
+            var pController = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
             {
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider.Id, "Provider")
             };

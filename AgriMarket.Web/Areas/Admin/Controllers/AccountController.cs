@@ -1,17 +1,16 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
-public class AccountController(AppDbContext db) : Controller
+public class AccountController(IUserService userService) : Controller
 {
 
     [HttpGet]
@@ -24,10 +23,7 @@ public class AccountController(AppDbContext db) : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await db.AppUsers
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.Roles)
-            .FirstOrDefaultAsync(u => u.Email == model.Email);
+        var user = await userService.GetByEmailAsync(model.Email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
         {
@@ -64,8 +60,8 @@ public class AccountController(AppDbContext db) : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var emailExists = await db.AppUsers.AnyAsync(u => u.Email == model.Email);
-        if (emailExists)
+        var existingUser = await userService.GetByEmailAsync(model.Email);
+        if (existingUser != null)
         {
             ModelState.AddModelError(string.Empty, "An account with this email already exists");
             return View(model);
@@ -87,17 +83,7 @@ public class AccountController(AppDbContext db) : Controller
             AppUserId = user.Id
         };
 
-        var role = new ProfileRole
-        {
-            Id = Guid.NewGuid(),
-            UserProfileId = profile.Id,
-            Role = RoleType.Admin
-        };
-
-        db.AppUsers.Add(user);
-        db.UserProfiles.Add(profile);
-        db.ProfileRoles.Add(role);
-        await db.SaveChangesAsync();
+        await userService.CreateUserWithProfileAsync(user, profile, RoleType.Admin);
 
         await SignInAsync(user, profile);
         return RedirectToAction("Index", "Dashboard", new { area = "Admin" });

@@ -1,26 +1,20 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Client.ViewModels.Bookings;
 using AgriMarket.Web.Areas.Client.ViewModels.Listings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
-public class ListingsController(AppDbContext db) : Controller
+public class ListingsController(IListingService listingService, IBookingService bookingService, IUserService userService) : Controller
 {
     public async Task<IActionResult> Index()
     {
-        var listings = await db.ServiceListings
-            .Where(l => l.IsActive)
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .OrderBy(l => l.Title)
-            .ToListAsync();
+        var listings = await listingService.GetActiveListingsAsync();
 
         var vm = new ListingIndexViewModel
         {
@@ -41,17 +35,12 @@ public class ListingsController(AppDbContext db) : Controller
 
     public async Task<IActionResult> Details(Guid id)
     {
-        var listing = await db.ServiceListings
-            .Where(l => l.Id == id && l.IsActive)
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .Include(l => l.Availabilities)
-            .FirstOrDefaultAsync();
+        var listing = await listingService.GetByIdAsync(id);
 
-        if (listing == null) return NotFound();
+        if (listing == null || !listing.IsActive) return NotFound();
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var isOwnListing = userId != null && listing.UserProfile?.AppUserId == Guid.Parse(userId);
+        var isOwnListing = userId != null && listing.UserProfile?.AppUserId.ToString() == userId;
 
         var vm = new ListingDetailsViewModel
         {
@@ -86,29 +75,21 @@ public class ListingsController(AppDbContext db) : Controller
         if (!ModelState.IsValid)
             return RedirectToAction(nameof(Details), new { id = model.ServiceListingId });
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return Unauthorized();
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdStr, out var userId)) return Unauthorized();
 
-        var clientProfile = await db.UserProfiles
-            .FirstOrDefaultAsync(p => p.AppUserId == Guid.Parse(userId));
-
+        var clientProfile = await userService.GetProfileByUserIdAsync(userId);
         if (clientProfile == null) return Unauthorized();
 
-        var listing = await db.ServiceListings
-            .Include(l => l.UserProfile)
-            .FirstOrDefaultAsync(l => l.Id == model.ServiceListingId && l.IsActive);
+        var listing = await listingService.GetByIdAsync(model.ServiceListingId);
+        if (listing == null || !listing.IsActive) return NotFound();
 
-        if (listing == null) return NotFound();
-
-        if (listing.UserProfile?.AppUserId == Guid.Parse(userId))
+        if (listing.UserProfile?.AppUserId == userId)
             return RedirectToAction(nameof(Details), new { id = model.ServiceListingId });
 
-        var availability = await db.Availabilities
-            .FirstOrDefaultAsync(a => a.Id == model.AvailabilityId
-                && a.ServiceListingId == model.ServiceListingId
-                && !a.IsBooked);
+        var availability = await listingService.GetAvailabilityByIdAsync(model.AvailabilityId);
 
-        if (availability == null)
+        if (availability == null || availability.ServiceListingId != model.ServiceListingId || availability.IsBooked)
         {
             ModelState.AddModelError(string.Empty, "The selected availability is no longer available.");
             return RedirectToAction(nameof(Details), new { id = model.ServiceListingId });
@@ -128,9 +109,9 @@ public class ListingsController(AppDbContext db) : Controller
         };
 
         availability.IsBooked = true;
-
-        db.Bookings.Add(booking);
-        await db.SaveChangesAsync();
+        await listingService.UpdateAvailabilityAsync(availability);
+        
+        await bookingService.CreateAsync(booking);
 
         return RedirectToAction("Details", "Bookings", new { area = "Client", id = booking.Id });
     }

@@ -1,10 +1,9 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
@@ -12,28 +11,20 @@ namespace AgriMarket.Web.Areas.Admin.Controllers;
 [Authorize(Policy = "AdminOnly")]
 public class BookingsController : Controller
 {
-    private readonly AppDbContext _db;
+    private readonly IBookingService _bookingService;
 
-    public BookingsController(AppDbContext db)
+    public BookingsController(IBookingService bookingService)
     {
-        _db = db;
+        _bookingService = bookingService;
     }
 
     public async Task<IActionResult> Index(BookingStatus? status)
     {
-        var query = _db.Bookings
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
-            .AsQueryable();
-
-        if (status.HasValue)
-            query = query.Where(b => b.Status == status.Value);
-
-        var bookings = await query.OrderByDescending(b => b.CreatedAt).ToListAsync();
+        var bookings = await _bookingService.GetAllAsync(status);
 
         var vm = new BookingListViewModel
         {
-            TotalCount = bookings.Count,
+            TotalCount = bookings.Count(),
             FilterStatus = status,
             Bookings = bookings.Select(b => new BookingListItemViewModel
             {
@@ -54,13 +45,7 @@ public class BookingsController : Controller
 
     public async Task<IActionResult> Details(Guid id)
     {
-        var booking = await _db.Bookings
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
-            .Include(b => b.Availability)
-            .Include(b => b.Payment)
-            .Include(b => b.Review)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await _bookingService.GetByIdAsync(id);
 
         if (booking == null) return NotFound();
 
@@ -95,10 +80,7 @@ public class BookingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
     {
-        var booking = await _db.Bookings
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await _bookingService.GetByIdAsync(id);
 
         if (booking == null) return NotFound();
 
@@ -126,11 +108,7 @@ public class BookingsController : Controller
             return View(vm);
         }
 
-        var booking = await _db.Bookings.FindAsync(vm.Id);
-        if (booking == null) return NotFound();
-
-        booking.Status = vm.Status;
-        await _db.SaveChangesAsync();
+        await _bookingService.UpdateStatusAsync(vm.Id, vm.Status);
 
         return RedirectToAction(nameof(Details), new { id = vm.Id });
     }
@@ -138,10 +116,7 @@ public class BookingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var booking = await _db.Bookings
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await _bookingService.GetByIdAsync(id);
 
         if (booking == null) return NotFound();
 
@@ -165,12 +140,7 @@ public class BookingsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        var booking = await _db.Bookings.FindAsync(id);
-        if (booking == null) return NotFound();
-
-        _db.Bookings.Remove(booking);
-        await _db.SaveChangesAsync();
-
+        await _bookingService.DeleteAsync(id);
         return RedirectToAction(nameof(Index));
     }
 

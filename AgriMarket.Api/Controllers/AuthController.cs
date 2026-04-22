@@ -1,5 +1,5 @@
-using AgriMarket.Api.Dtos.Auth;
-using AgriMarket.Api.Services;
+using AgriMarket.BLL.Dtos.Auth;
+using AgriMarket.BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgriMarket.Api.Controllers;

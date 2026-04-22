@@ -1,6 +1,6 @@
-using AgriMarket.Api.Dtos.Auth;
+using AgriMarket.BLL.Dtos.Auth;
 
-namespace AgriMarket.Api.Services;
+namespace AgriMarket.BLL.Services;
 
 public interface IAuthService
 {

@@ -1,7 +1,7 @@
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 
-namespace AgriMarket.Api.Services;
+namespace AgriMarket.BLL.Services;
 
 public interface ITokenService
 {

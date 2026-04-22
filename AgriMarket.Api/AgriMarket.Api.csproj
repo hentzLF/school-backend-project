@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AgriMarket.DAL\AgriMarket.DAL.csproj" />
     <ProjectReference Include="..\AgriMarket.Domain\AgriMarket.Domain.csproj" />
+    <ProjectReference Include="..\AgriMarket.BLL\AgriMarket.BLL.csproj" />
   </ItemGroup>
 
   <ItemGroup>

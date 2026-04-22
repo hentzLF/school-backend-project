@@ -1,38 +1,29 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Policy = "AdminOnly")]
-public class ListingsController : Controller
+public class ListingsController(IListingService listingService, ICategoryService categoryService, IBookingService bookingService) : Controller
 {
-    private readonly AppDbContext _db;
-
-    public ListingsController(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IActionResult> Index(bool? active)
     {
-        var query = _db.ServiceListings
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .AsQueryable();
+        var listings = active.HasValue && active.Value 
+            ? await listingService.GetActiveListingsAsync()
+            : await listingService.GetAllAsync();
 
-        if (active.HasValue)
-            query = query.Where(l => l.IsActive == active.Value);
+        if (active.HasValue && !active.Value)
+            listings = listings.Where(l => !l.IsActive).ToList();
 
-        var listings = await query.OrderBy(l => l.Title).ToListAsync();
+        listings = listings.OrderBy(l => l.Title).ToList();
 
         var vm = new ListingListViewModel
         {
-            TotalCount = listings.Count,
+            TotalCount = listings.Count(),
             FilterActive = active,
             Listings = listings.Select(l => new ListingListItemViewModel
             {
@@ -52,16 +43,11 @@ public class ListingsController : Controller
 
     public async Task<IActionResult> Details(Guid id)
     {
-        var listing = await _db.ServiceListings
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .Include(l => l.Equipments)
-            .Include(l => l.Availabilities)
-            .FirstOrDefaultAsync(l => l.Id == id);
+        var listing = await listingService.GetByIdAsync(id);
 
         if (listing == null) return NotFound();
 
-        var bookingsCount = await _db.Bookings.CountAsync(b => b.ServiceListingId == id);
+        var bookingsCount = await bookingService.GetCountByListingAsync(id);
 
         var vm = new ListingDetailViewModel
         {
@@ -97,7 +83,7 @@ public class ListingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
     {
-        var listing = await _db.ServiceListings.FindAsync(id);
+        var listing = await listingService.GetByIdAsync(id);
         if (listing == null) return NotFound();
 
         var vm = new ListingEditViewModel
@@ -124,7 +110,7 @@ public class ListingsController : Controller
             return View(vm);
         }
 
-        var listing = await _db.ServiceListings.FindAsync(vm.Id);
+        var listing = await listingService.GetByIdAsync(vm.Id);
         if (listing == null) return NotFound();
 
         listing.Title = vm.Title;
@@ -132,7 +118,7 @@ public class ListingsController : Controller
         listing.PricePerHectare = vm.PricePerHectare;
         listing.IsActive = vm.IsActive;
         listing.ServiceCategoryId = vm.ServiceCategoryId;
-        await _db.SaveChangesAsync();
+        await listingService.UpdateAsync(listing);
 
         return RedirectToAction(nameof(Details), new { id = vm.Id });
     }
@@ -140,10 +126,7 @@ public class ListingsController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var listing = await _db.ServiceListings
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .FirstOrDefaultAsync(l => l.Id == id);
+        var listing = await listingService.GetByIdAsync(id);
 
         if (listing == null) return NotFound();
 
@@ -166,11 +149,10 @@ public class ListingsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        var listing = await _db.ServiceListings.FindAsync(id);
+        var listing = await listingService.GetByIdAsync(id);
         if (listing == null) return NotFound();
 
-        _db.ServiceListings.Remove(listing);
-        await _db.SaveChangesAsync();
+        await listingService.DeleteAsync(id);
 
         return RedirectToAction(nameof(Index));
     }
@@ -179,19 +161,18 @@ public class ListingsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleActive(Guid id)
     {
-        var listing = await _db.ServiceListings.FindAsync(id);
+        var listing = await listingService.GetByIdAsync(id);
         if (listing == null) return NotFound();
 
-        listing.IsActive = !listing.IsActive;
-        await _db.SaveChangesAsync();
+        await listingService.ToggleActiveAsync(id);
 
         return RedirectToAction(nameof(Details), new { id });
     }
 
     private async Task<IEnumerable<SelectListItem>> GetCategorySelectList(Guid selectedId)
     {
-        var categories = await _db.ServiceCategories.OrderBy(c => c.Name).ToListAsync();
-        return categories.Select(c => new SelectListItem
+        var categories = await categoryService.GetAllAsync();
+        return categories.OrderBy(c => c.Name).Select(c => new SelectListItem
         {
             Value = c.Id.ToString(),
             Text = c.Name,

@@ -1,281 +1,283 @@
-using System;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Client.ViewModels.MyListings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
-namespace AgriMarket.Web.Areas.Client.Controllers
+namespace AgriMarket.Web.Areas.Client.Controllers;
+
+[Area("Client")]
+[Authorize(Policy = "ProviderOnly")]
+public class MyListingsController(IListingService listingService, ICategoryService categoryService, IBookingService bookingService, IUserService userService) : Controller
 {
-    [Area("Client")]
-    [Authorize(Policy = "ProviderOnly")]
-    public class MyListingsController : Controller
+    private async Task<UserProfile?> GetProviderProfileAsync()
     {
-        private readonly AppDbContext _context;
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdStr, out var userId)) return null;
+        return await userService.GetProfileByUserIdAsync(userId);
+    }
 
-        public MyListingsController(AppDbContext context)
-        {
-            _context = context;
-        }
+    public async Task<IActionResult> Index()
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
 
-        private async Task<UserProfile?> GetProviderProfileAsync()
+        var listings = await listingService.GetByProviderAsync(profile.Id);
+
+        var viewModel = new MyListingIndexViewModel
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!Guid.TryParse(userIdStr, out var userId))
+            Listings = listings.Select(l => new MyListingIndexItemViewModel
             {
-                return null;
-            }
+                Id = l.Id,
+                Title = l.Title,
+                CategoryName = l.ServiceCategory!.Name,
+                PricePerHectare = l.PricePerHectare,
+                IsActive = l.IsActive
+            }).ToList()
+        };
 
-            return await _context.UserProfiles.FirstOrDefaultAsync(u => u.AppUserId == userId);
+        return View(viewModel);
+    }
+
+    public async Task<IActionResult> Details(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        var bookingCount = await bookingService.GetCountByListingAsync(id);
+
+        var viewModel = new MyListingDetailsViewModel
+        {
+            Id = listing.Id,
+            Title = listing.Title,
+            Description = listing.Description,
+            CategoryName = listing.ServiceCategory!.Name,
+            PricePerHectare = listing.PricePerHectare,
+            IsActive = listing.IsActive,
+            TotalBookingCount = bookingCount
+        };
+
+        return View(viewModel);
+    }
+
+    public async Task<IActionResult> Create()
+    {
+        var categories = await categoryService.GetAllAsync();
+
+        var viewModel = new MyListingCreateViewModel
+        {
+            Categories = categories.OrderBy(c => c.Name)
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList()
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(MyListingCreateViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            var categories = await categoryService.GetAllAsync();
+            model.Categories = categories.OrderBy(c => c.Name)
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
+            return View(model);
         }
 
-        public async Task<IActionResult> Index()
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = new ServiceListing
         {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
+            Id = Guid.NewGuid(),
+            Title = model.Title,
+            Description = model.Description,
+            ServiceCategoryId = model.ServiceCategoryId,
+            PricePerHectare = model.PricePerHectare,
+            UserProfileId = profile.Id,
+            IsActive = false
+        };
 
-            var listings = await _context.ServiceListings
-                .Include(l => l.ServiceCategory)
-                .Where(l => l.UserProfileId == profile.Id)
-                .OrderBy(l => l.Title)
-                .Select(l => new MyListingIndexItemViewModel
-                {
-                    Id = l.Id,
-                    Title = l.Title,
-                    CategoryName = l.ServiceCategory!.Name,
-                    PricePerHectare = l.PricePerHectare,
-                    IsActive = l.IsActive
-                })
-                .ToListAsync();
+        await listingService.CreateAsync(listing);
 
-            var viewModel = new MyListingIndexViewModel
+        return RedirectToAction(nameof(Details), new { id = listing.Id });
+    }
+
+    public async Task<IActionResult> Edit(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        var categories = await categoryService.GetAllAsync();
+
+        var viewModel = new MyListingEditViewModel
+        {
+            Id = listing.Id,
+            Title = listing.Title,
+            Description = listing.Description,
+            ServiceCategoryId = listing.ServiceCategoryId,
+            PricePerHectare = listing.PricePerHectare,
+            IsActive = listing.IsActive,
+            Categories = categories.OrderBy(c => c.Name)
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList()
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Guid id, MyListingEditViewModel model)
+    {
+        if (id != model.Id) return BadRequest();
+
+        if (!ModelState.IsValid)
+        {
+            var categories = await categoryService.GetAllAsync();
+            model.Categories = categories.OrderBy(c => c.Name)
+                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
+            return View(model);
+        }
+
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        listing.Title = model.Title;
+        listing.Description = model.Description;
+        listing.ServiceCategoryId = model.ServiceCategoryId;
+        listing.PricePerHectare = model.PricePerHectare;
+        listing.IsActive = model.IsActive;
+
+        await listingService.UpdateAsync(listing);
+
+        return RedirectToAction(nameof(Details), new { id = listing.Id });
+    }
+
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        var hasActiveBookings = await bookingService.HasActiveBookingsAsync(id);
+
+        ViewBag.HasActiveBookings = hasActiveBookings;
+
+        return View(listing);
+    }
+
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        var hasActiveBookings = await bookingService.HasActiveBookingsAsync(id);
+
+        if (hasActiveBookings)
+        {
+            ViewBag.HasActiveBookings = true;
+            return View("Delete", listing);
+        }
+
+        await listingService.DeleteAsync(listing.Id);
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleActive(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        await listingService.ToggleActiveAsync(id);
+
+        return RedirectToAction(nameof(Details), new { id = listing.Id });
+    }
+
+    public async Task<IActionResult> Availabilities(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        var availabilities = (listing.Availabilities ?? new List<Availability>())
+            .OrderBy(a => a.StartTime)
+            .Select(a => new AvailabilityItemViewModel
             {
-                Listings = listings
-            };
+                Id = a.Id,
+                StartTime = a.StartTime,
+                EndTime = a.EndTime,
+                IsBooked = a.IsBooked
+            })
+            .ToList();
 
-            return View(viewModel);
+        var viewModel = new ManageAvailabilitiesViewModel
+        {
+            ListingId = listing.Id,
+            ListingTitle = listing.Title,
+            Availabilities = availabilities,
+            AddStartTime = DateTime.Today.AddDays(1).AddHours(8),
+            AddEndTime = DateTime.Today.AddDays(1).AddHours(17)
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddAvailability(Guid listingId, ManageAvailabilitiesViewModel model)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(listingId);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        if (model.AddStartTime >= model.AddEndTime)
+        {
+            ModelState.AddModelError(string.Empty, "Start time must be before end time.");
         }
 
-        public async Task<IActionResult> Details(Guid id)
+        if (!ModelState.IsValid)
         {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .Include(l => l.ServiceCategory)
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            var bookingCount = await _context.Bookings
-                .CountAsync(b => b.ServiceListingId == id);
-
-            var viewModel = new MyListingDetailsViewModel
-            {
-                Id = listing.Id,
-                Title = listing.Title,
-                Description = listing.Description,
-                CategoryName = listing.ServiceCategory!.Name,
-                PricePerHectare = listing.PricePerHectare,
-                IsActive = listing.IsActive,
-                TotalBookingCount = bookingCount
-            };
-
-            return View(viewModel);
-        }
-
-        public async Task<IActionResult> Create()
-        {
-            var categories = await _context.ServiceCategories
-                .OrderBy(c => c.Name)
-                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
-                .ToListAsync();
-
-            var viewModel = new MyListingCreateViewModel
-            {
-                Categories = categories
-            };
-
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MyListingCreateViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                model.Categories = await _context.ServiceCategories
-                    .OrderBy(c => c.Name)
-                    .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
-                    .ToListAsync();
-                return View(model);
-            }
-
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = new ServiceListing
-            {
-                Id = Guid.NewGuid(),
-                Title = model.Title,
-                Description = model.Description,
-                ServiceCategoryId = model.ServiceCategoryId,
-                PricePerHectare = model.PricePerHectare,
-                UserProfileId = profile.Id,
-                IsActive = false
-            };
-
-            _context.ServiceListings.Add(listing);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Details), new { id = listing.Id });
-        }
-
-        public async Task<IActionResult> Edit(Guid id)
-        {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            var categories = await _context.ServiceCategories
-                .OrderBy(c => c.Name)
-                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
-                .ToListAsync();
-
-            var viewModel = new MyListingEditViewModel
-            {
-                Id = listing.Id,
-                Title = listing.Title,
-                Description = listing.Description,
-                ServiceCategoryId = listing.ServiceCategoryId,
-                PricePerHectare = listing.PricePerHectare,
-                IsActive = listing.IsActive,
-                Categories = categories
-            };
-
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, MyListingEditViewModel model)
-        {
-            if (id != model.Id) return BadRequest();
-
-            if (!ModelState.IsValid)
-            {
-                model.Categories = await _context.ServiceCategories
-                    .OrderBy(c => c.Name)
-                    .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name })
-                    .ToListAsync();
-                return View(model);
-            }
-
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            listing.Title = model.Title;
-            listing.Description = model.Description;
-            listing.ServiceCategoryId = model.ServiceCategoryId;
-            listing.PricePerHectare = model.PricePerHectare;
-            listing.IsActive = model.IsActive;
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Details), new { id = listing.Id });
-        }
-
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            var hasActiveBookings = await _context.Bookings
-                .AnyAsync(b => b.ServiceListingId == id && !new[] { BookingStatus.Archived, BookingStatus.Cancelled, BookingStatus.ClientConfirmed }.Contains(b.Status));
-
-            ViewBag.HasActiveBookings = hasActiveBookings;
-
-            return View(listing);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            var hasActiveBookings = await _context.Bookings
-                .AnyAsync(b => b.ServiceListingId == id && !new[] { BookingStatus.Archived, BookingStatus.Cancelled, BookingStatus.ClientConfirmed }.Contains(b.Status));
-
-            if (hasActiveBookings)
-            {
-                ViewBag.HasActiveBookings = true;
-                return View("Delete", listing);
-            }
-
-            _context.ServiceListings.Remove(listing);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleActive(Guid id)
-        {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            listing.IsActive = !listing.IsActive;
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Details), new { id = listing.Id });
-        }
-
-        public async Task<IActionResult> Availabilities(Guid id)
-        {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .Include(l => l.Availabilities)
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            var availabilities = (listing.Availabilities ?? new List<Availability>())
+            // Reload list to re-render
+            var listingToReload = await listingService.GetByIdAsync(listingId);
+            var availabilities = (listingToReload?.Availabilities ?? new List<Availability>())
                 .OrderBy(a => a.StartTime)
                 .Select(a => new AvailabilityItemViewModel
                 {
@@ -285,134 +287,79 @@ namespace AgriMarket.Web.Areas.Client.Controllers
                     IsBooked = a.IsBooked
                 })
                 .ToList();
+            
+            model.ListingId = listing.Id;
+            model.ListingTitle = listing.Title;
+            model.Availabilities = availabilities;
 
-            var viewModel = new ManageAvailabilitiesViewModel
-            {
-                ListingId = listing.Id,
-                ListingTitle = listing.Title,
-                Availabilities = availabilities,
-                AddStartTime = DateTime.Today.AddDays(1).AddHours(8),
-                AddEndTime = DateTime.Today.AddDays(1).AddHours(17)
-            };
-
-            return View(viewModel);
+            return View("Availabilities", model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddAvailability(Guid listingId, ManageAvailabilitiesViewModel model)
+        var availability = new Availability
         {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
+            Id = Guid.NewGuid(),
+            ServiceListingId = listingId,
+            StartTime = DateTime.SpecifyKind(model.AddStartTime, DateTimeKind.Utc),
+            EndTime = DateTime.SpecifyKind(model.AddEndTime, DateTimeKind.Utc),
+            IsBooked = false
+        };
 
-            var listing = await _context.ServiceListings
-                .FirstOrDefaultAsync(l => l.Id == listingId && l.UserProfileId == profile.Id);
+        await listingService.AddAvailabilityAsync(availability);
 
-            if (listing == null) return NotFound();
+        return RedirectToAction(nameof(Availabilities), new { id = listingId });
+    }
 
-            if (model.AddStartTime >= model.AddEndTime)
-            {
-                ModelState.AddModelError(string.Empty, "Start time must be before end time.");
-            }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAvailability(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
 
-            if (!ModelState.IsValid)
-            {
-                // Reload list to re-render
-                var availabilities = await _context.Availabilities
-                    .Where(a => a.ServiceListingId == listingId)
-                    .OrderBy(a => a.StartTime)
-                    .Select(a => new AvailabilityItemViewModel
-                    {
-                        Id = a.Id,
-                        StartTime = a.StartTime,
-                        EndTime = a.EndTime,
-                        IsBooked = a.IsBooked
-                    })
-                    .ToListAsync();
-                
-                model.ListingId = listing.Id;
-                model.ListingTitle = listing.Title;
-                model.Availabilities = availabilities;
+        var availability = await listingService.GetAvailabilityByIdAsync(id);
 
-                return View("Availabilities", model);
-            }
-
-            var availability = new Availability
-            {
-                Id = Guid.NewGuid(),
-                ServiceListingId = listingId,
-                StartTime = DateTime.SpecifyKind(model.AddStartTime, DateTimeKind.Utc),
-                EndTime = DateTime.SpecifyKind(model.AddEndTime, DateTimeKind.Utc),
-                IsBooked = false
-            };
-
-            _context.Availabilities.Add(availability);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Availabilities), new { id = listingId });
+        if (availability == null || availability.ServiceListing!.UserProfileId != profile.Id)
+        {
+            return NotFound();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteAvailability(Guid id)
+        if (availability.IsBooked)
         {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var availability = await _context.Availabilities
-                .Include(a => a.ServiceListing)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (availability == null || availability.ServiceListing!.UserProfileId != profile.Id)
-            {
-                return NotFound();
-            }
-
-            if (availability.IsBooked)
-            {
-                TempData["ErrorMessage"] = "Cannot delete a booked availability slot.";
-                return RedirectToAction(nameof(Availabilities), new { id = availability.ServiceListingId });
-            }
-
-            _context.Availabilities.Remove(availability);
-            await _context.SaveChangesAsync();
-
+            TempData["ErrorMessage"] = "Cannot delete a booked availability slot.";
             return RedirectToAction(nameof(Availabilities), new { id = availability.ServiceListingId });
         }
 
-        public async Task<IActionResult> Bookings(Guid id)
+        await listingService.DeleteAvailabilityAsync(id);
+
+        return RedirectToAction(nameof(Availabilities), new { id = availability.ServiceListingId });
+    }
+
+    public async Task<IActionResult> Bookings(Guid id)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return NotFound();
+
+        var listing = await listingService.GetByIdAsync(id);
+
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        var bookings = await bookingService.GetByListingAsync(id);
+
+        var viewModel = new BookingsForListingViewModel
         {
-            var profile = await GetProviderProfileAsync();
-            if (profile == null) return NotFound();
-
-            var listing = await _context.ServiceListings
-                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
-
-            if (listing == null) return NotFound();
-
-            var bookings = await _context.Bookings
-                .Include(b => b.ClientProfile)
-                .Where(b => b.ServiceListingId == id)
-                .OrderByDescending(b => b.CreatedAt)
-                .Select(b => new BookingsForListingItemViewModel
-                {
-                    Id = b.Id,
-                    ClientName = b.ClientProfile!.FirstName + " " + b.ClientProfile.LastName,
-                    Status = b.Status.ToString(),
-                    AreaInHectares = b.AreaInHectares,
-                    TotalPrice = b.TotalPrice,
-                    CreatedAt = b.CreatedAt
-                })
-                .ToListAsync();
-
-            var viewModel = new BookingsForListingViewModel
+            ListingId = listing.Id,
+            ListingTitle = listing.Title,
+            Bookings = bookings.Select(b => new BookingsForListingItemViewModel
             {
-                ListingId = listing.Id,
-                ListingTitle = listing.Title,
-                Bookings = bookings
-            };
+                Id = b.Id,
+                ClientName = b.ClientProfile!.FirstName + " " + b.ClientProfile.LastName,
+                Status = b.Status.ToString(),
+                AreaInHectares = b.AreaInHectares,
+                TotalPrice = b.TotalPrice,
+                CreatedAt = b.CreatedAt
+            }).ToList()
+        };
 
-            return View(viewModel);
-        }
+        return View(viewModel);
     }
 }

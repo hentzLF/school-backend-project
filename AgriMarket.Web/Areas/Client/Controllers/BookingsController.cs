@@ -1,27 +1,22 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Client.ViewModels.Bookings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
 [Authorize(Policy = "ClientOnly")]
-public class BookingsController(AppDbContext db) : Controller
+public class BookingsController(IBookingService bookingService, IUserService userService) : Controller
 {
     public async Task<IActionResult> Index()
     {
         var clientProfile = await GetClientProfileAsync();
         if (clientProfile == null) return Unauthorized();
 
-        var bookings = await db.Bookings
-            .Where(b => b.ClientProfileId == clientProfile.Id)
-            .Include(b => b.ServiceListing)
-            .OrderByDescending(b => b.CreatedAt)
-            .ToListAsync();
+        var bookings = await bookingService.GetByClientAsync(clientProfile.Id);
 
         var vm = new BookingIndexViewModel
         {
@@ -44,10 +39,7 @@ public class BookingsController(AppDbContext db) : Controller
         var clientProfile = await GetClientProfileAsync();
         if (clientProfile == null) return Unauthorized();
 
-        var booking = await db.Bookings
-            .Include(b => b.ServiceListing)
-            .Include(b => b.Availability)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await bookingService.GetByIdAsync(id);
 
         if (booking == null) return NotFound();
 
@@ -78,8 +70,7 @@ public class BookingsController(AppDbContext db) : Controller
         var clientProfile = await GetClientProfileAsync();
         if (clientProfile == null) return Unauthorized();
 
-        var booking = await db.Bookings
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await bookingService.GetByIdAsync(id);
 
         if (booking == null) return NotFound();
 
@@ -89,16 +80,15 @@ public class BookingsController(AppDbContext db) : Controller
         if (booking.Status != BookingStatus.ProviderCompleted)
             return RedirectToAction(nameof(Details), new { id });
 
-        booking.Status = BookingStatus.ClientConfirmed;
-        await db.SaveChangesAsync();
+        await bookingService.UpdateStatusAsync(id, BookingStatus.ClientConfirmed);
 
         return RedirectToAction(nameof(Details), new { id });
     }
 
     private async Task<Domain.Entities.UserProfile?> GetClientProfileAsync()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return null;
-        return await db.UserProfiles.FirstOrDefaultAsync(p => p.AppUserId == Guid.Parse(userId));
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdStr, out var userId)) return null;
+        return await userService.GetProfileByUserIdAsync(userId);
     }
 }

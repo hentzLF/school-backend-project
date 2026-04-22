@@ -1,9 +1,8 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
@@ -11,24 +10,21 @@ namespace AgriMarket.Web.Areas.Admin.Controllers;
 [Authorize(Policy = "AdminOnly")]
 public class CategoriesController : Controller
 {
-    private readonly AppDbContext _db;
+    private readonly ICategoryService _categoryService;
 
-    public CategoriesController(AppDbContext db)
+    public CategoriesController(ICategoryService categoryService)
     {
-        _db = db;
+        _categoryService = categoryService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var categories = await _db.ServiceCategories.OrderBy(c => c.Name).ToListAsync();
-        var listingCounts = await _db.ServiceListings
-            .GroupBy(l => l.ServiceCategoryId)
-            .Select(g => new { CategoryId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(g => g.CategoryId, g => g.Count);
+        var categories = await _categoryService.GetAllAsync();
+        var listingCounts = await _categoryService.GetListingCountsAsync();
 
         var vm = new CategoryListViewModel
         {
-            TotalCount = categories.Count,
+            TotalCount = categories.Count(),
             Categories = categories.Select(c => new CategoryListItemViewModel
             {
                 Id = c.Id,
@@ -60,8 +56,7 @@ public class CategoriesController : Controller
             Description = vm.Description
         };
 
-        _db.ServiceCategories.Add(category);
-        await _db.SaveChangesAsync();
+        await _categoryService.CreateAsync(category);
 
         return RedirectToAction(nameof(Index));
     }
@@ -69,7 +64,7 @@ public class CategoriesController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
     {
-        var category = await _db.ServiceCategories.FindAsync(id);
+        var category = await _categoryService.GetByIdAsync(id);
         if (category == null) return NotFound();
 
         var vm = new CategoryEditViewModel
@@ -88,12 +83,12 @@ public class CategoriesController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
-        var category = await _db.ServiceCategories.FindAsync(vm.Id);
+        var category = await _categoryService.GetByIdAsync(vm.Id);
         if (category == null) return NotFound();
 
         category.Name = vm.Name;
         category.Description = vm.Description;
-        await _db.SaveChangesAsync();
+        await _categoryService.UpdateAsync(category);
 
         return RedirectToAction(nameof(Index));
     }
@@ -101,10 +96,10 @@ public class CategoriesController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var category = await _db.ServiceCategories.FindAsync(id);
+        var category = await _categoryService.GetByIdAsync(id);
         if (category == null) return NotFound();
 
-        var listingsCount = await _db.ServiceListings.CountAsync(l => l.ServiceCategoryId == id);
+        var listingsCount = await _categoryService.GetListingCountAsync(id);
 
         var vm = new CategoryListItemViewModel
         {
@@ -121,11 +116,11 @@ public class CategoriesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        var listingsCount = await _db.ServiceListings.CountAsync(l => l.ServiceCategoryId == id);
+        var listingsCount = await _categoryService.GetListingCountAsync(id);
         if (listingsCount > 0)
         {
             ModelState.AddModelError(string.Empty, "Cannot delete category with existing listings");
-            var category = await _db.ServiceCategories.FindAsync(id);
+            var category = await _categoryService.GetByIdAsync(id);
             return View("Delete", new CategoryListItemViewModel
             {
                 Id = id,
@@ -135,11 +130,7 @@ public class CategoriesController : Controller
             });
         }
 
-        var cat = await _db.ServiceCategories.FindAsync(id);
-        if (cat == null) return NotFound();
-
-        _db.ServiceCategories.Remove(cat);
-        await _db.SaveChangesAsync();
+        await _categoryService.DeleteAsync(id);
 
         return RedirectToAction(nameof(Index));
     }

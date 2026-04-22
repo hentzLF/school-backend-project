@@ -4,9 +4,10 @@ using System.Security.Cryptography;
 using System.Text;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AgriMarket.Api.Services;
+namespace AgriMarket.BLL.Services;
 
 public class TokenService : ITokenService
 {
@@ -26,7 +27,8 @@ public class TokenService : ITokenService
             new Claim("role", role.ToString()),
         };
 
-        return CreateJwt(claims, TimeSpan.FromMinutes(_config.GetValue<int>("Jwt:AccessTokenExpiryMinutes")));
+        var expiryMinutes = int.Parse(_config["Jwt:AccessTokenExpiryMinutes"] ?? "60");
+        return CreateJwt(claims, TimeSpan.FromMinutes(expiryMinutes));
     }
 
     public string GenerateSessionToken(Guid userId)
@@ -63,9 +65,9 @@ public class TokenService : ITokenService
         try
         {
             var principal = new JwtSecurityTokenHandler().ValidateToken(token, validationParams, out _);
-            var sub = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            var sub = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
 
-            if (sub is null || principal.FindFirstValue("profileId") is not null)
+            if (sub is null || principal.FindFirst("profileId") is not null)
                 return null;
 
             return Guid.TryParse(sub, out var userId) ? userId : null;

@@ -1,8 +1,7 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
@@ -10,25 +9,21 @@ namespace AgriMarket.Web.Areas.Admin.Controllers;
 [Authorize(Policy = "AdminOnly")]
 public class UsersController : Controller
 {
-    private readonly AppDbContext _db;
+    private readonly IUserService _userService;
 
-    public UsersController(AppDbContext db)
+    public UsersController(IUserService userService)
     {
-        _db = db;
+        _userService = userService;
     }
 
     public async Task<IActionResult> Index()
     {
-        var users = await _db.AppUsers
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.Roles)
-            .OrderByDescending(u => u.CreatedAt)
-            .ToListAsync();
+        var users = await _userService.GetAllUsersAsync();
 
         var now = DateTime.UtcNow;
         var vm = new UserListViewModel
         {
-            TotalCount = users.Count,
+            TotalCount = users.Count(),
             Users = users.Select(u => new UserListItemViewModel
             {
                 Id = u.Id,
@@ -50,14 +45,7 @@ public class UsersController : Controller
 
     public async Task<IActionResult> Details(Guid id)
     {
-        var user = await _db.AppUsers
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.Roles)
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.ClientBookings)
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.ServiceListings)
-            .FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _userService.GetUserByIdAsync(id);
 
         if (user == null) return NotFound();
 
@@ -88,7 +76,7 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> Edit(Guid id)
     {
-        var user = await _db.AppUsers.FindAsync(id);
+        var user = await _userService.GetUserByIdAsync(id);
         if (user == null) return NotFound();
 
         var vm = new UserEditViewModel
@@ -107,12 +95,12 @@ public class UsersController : Controller
     {
         if (!ModelState.IsValid) return View(vm);
 
-        var user = await _db.AppUsers.FindAsync(vm.Id);
+        var user = await _userService.GetUserByIdAsync(vm.Id);
         if (user == null) return NotFound();
 
         user.Email = vm.Email;
         user.LockoutEnd = vm.LockoutEnd;
-        await _db.SaveChangesAsync();
+        await _userService.UpdateUserAsync(user);
 
         return RedirectToAction(nameof(Details), new { id = vm.Id });
     }
@@ -120,10 +108,7 @@ public class UsersController : Controller
     [HttpGet]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var user = await _db.AppUsers
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.Roles)
-            .FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _userService.GetUserByIdAsync(id);
 
         if (user == null) return NotFound();
 
@@ -150,12 +135,7 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        var user = await _db.AppUsers.FindAsync(id);
-        if (user == null) return NotFound();
-
-        _db.AppUsers.Remove(user);
-        await _db.SaveChangesAsync();
-
+        await _userService.DeleteUserAsync(id);
         return RedirectToAction(nameof(Index));
     }
 
@@ -163,12 +143,7 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Lock(Guid id)
     {
-        var user = await _db.AppUsers.FindAsync(id);
-        if (user == null) return NotFound();
-
-        user.LockoutEnd = DateTime.UtcNow.AddYears(100);
-        await _db.SaveChangesAsync();
-
+        await _userService.LockUserAsync(id);
         return RedirectToAction(nameof(Details), new { id });
     }
 
@@ -176,12 +151,7 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Unlock(Guid id)
     {
-        var user = await _db.AppUsers.FindAsync(id);
-        if (user == null) return NotFound();
-
-        user.LockoutEnd = null;
-        await _db.SaveChangesAsync();
-
+        await _userService.UnlockUserAsync(id);
         return RedirectToAction(nameof(Details), new { id });
     }
 }

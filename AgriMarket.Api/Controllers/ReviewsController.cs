@@ -3,20 +3,14 @@ using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/reviews")]
-public class ReviewsController : ControllerBase
+public class ReviewsController(IReviewService reviewService) : ApiControllerBase
 {
-    private readonly IReviewService _reviewService;
-
-    public ReviewsController(IReviewService reviewService)
-    {
-        _reviewService = reviewService;
-    }
+    private readonly IReviewService _reviewService = reviewService;
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -60,9 +54,4 @@ public class ReviewsController : ControllerBase
         }
     }
 
-    private bool TryGetUserId(out Guid userId)
-    {
-        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        return Guid.TryParse(sub, out userId);
-    }
 }

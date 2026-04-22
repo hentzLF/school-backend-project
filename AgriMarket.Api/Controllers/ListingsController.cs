@@ -4,20 +4,14 @@ using AgriMarket.BLL.Dtos.Listings;
 using AgriMarket.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/listings")]
-public class ListingsController : ControllerBase
+public class ListingsController(IListingService listingService) : ApiControllerBase
 {
-    private readonly IListingService _listingService;
-
-    public ListingsController(IListingService listingService)
-    {
-        _listingService = listingService;
-    }
+    private readonly IListingService _listingService = listingService;
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -105,9 +99,4 @@ public class ListingsController : ControllerBase
         }
     }
 
-    private bool TryGetUserId(out Guid userId)
-    {
-        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        return Guid.TryParse(sub, out userId);
-    }
 }

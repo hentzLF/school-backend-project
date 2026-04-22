@@ -3,20 +3,14 @@ using AgriMarket.BLL.Dtos.Bookings;
 using AgriMarket.BLL.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/bookings")]
-public class BookingsController : ControllerBase
+public class BookingsController(IBookingService bookingService) : ApiControllerBase
 {
-    private readonly IBookingService _bookingService;
-
-    public BookingsController(IBookingService bookingService)
-    {
-        _bookingService = bookingService;
-    }
+    private readonly IBookingService _bookingService = bookingService;
 
     [Authorize]
     [HttpGet]
@@ -97,15 +91,4 @@ public class BookingsController : ControllerBase
         }
     }
 
-    private bool TryGetProfileId(out Guid profileId)
-    {
-        var value = User.FindFirst("profileId")?.Value;
-        return Guid.TryParse(value, out profileId);
-    }
-
-    private bool TryGetUserId(out Guid userId)
-    {
-        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        return Guid.TryParse(sub, out userId);
-    }
 }

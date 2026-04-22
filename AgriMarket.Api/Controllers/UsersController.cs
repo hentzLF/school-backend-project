@@ -2,21 +2,15 @@ using AgriMarket.Api.Mappers;
 using AgriMarket.BLL.Dtos.Users;
 using AgriMarket.BLL.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
-public class UsersController : ControllerBase
+public class UsersController(IUserService userService) : ApiControllerBase
 {
-    private readonly IUserService _userService;
-
-    public UsersController(IUserService userService)
-    {
-        _userService = userService;
-    }
+    private readonly IUserService _userService = userService;
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -43,9 +37,4 @@ public class UsersController : ControllerBase
         return Ok(profile);
     }
 
-    private Guid? GetCallerUserId()
-    {
-        var sub = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-        return Guid.TryParse(sub, out var userId) ? userId : null;
-    }
 }

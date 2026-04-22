@@ -7,29 +7,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.BLL.Services;
 
-public class ReviewService : IReviewService
+public class ReviewService(
+    IRepository<Review> reviews,
+    IRepository<UserProfile> userProfiles,
+    IRepository<Booking> bookings,
+    IUnitOfWork uow) : IReviewService
 {
-    private readonly AppDbContext _db;
-
-    public ReviewService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<ReviewDto>> GetByBookingAsync(Guid bookingId)
     {
-        var reviews = await _db.Reviews
+        var items = await reviews.Query()
             .AsNoTracking()
             .Where(r => r.BookingId == bookingId)
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
-        return reviews.Select(ToReviewDto);
+        return items.Select(ToReviewDto);
     }
 
     public async Task<(IEnumerable<ReviewDto> Items, int TotalCount)> GetAllAsync(int page, int pageSize)
     {
-        var query = _db.Reviews.AsNoTracking();
+        var query = reviews.Query().AsNoTracking();
         var totalCount = await query.CountAsync();
         var items = await query
             .OrderByDescending(r => r.CreatedAt)
@@ -42,17 +39,17 @@ public class ReviewService : IReviewService
 
     public async Task<ReviewDto?> GetByIdAsync(Guid id)
     {
-        var review = await _db.Reviews.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
+        var review = await reviews.Query().AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
         return review is null ? null : ToReviewDto(review);
     }
 
     public async Task<ReviewDto> CreateAsync(Guid userId, CreateReviewDto dto)
     {
-        var reviewerProfile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var reviewerProfile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (reviewerProfile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var booking = await _db.Bookings.AsNoTracking().FirstOrDefaultAsync(b => b.Id == dto.BookingId);
+        var booking = await bookings.Query().AsNoTracking().FirstOrDefaultAsync(b => b.Id == dto.BookingId);
         if (booking == null)
             throw new KeyNotFoundException("Booking not found.");
 
@@ -69,8 +66,8 @@ public class ReviewService : IReviewService
             ReviewerProfileId = reviewerProfile.Id
         };
 
-        _db.Reviews.Add(review);
-        await _db.SaveChangesAsync();
+        reviews.Add(review);
+        await uow.SaveChangesAsync();
         return ToReviewDto(review);
     }
 

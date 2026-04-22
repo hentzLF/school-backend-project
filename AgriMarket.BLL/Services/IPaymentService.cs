@@ -7,5 +7,5 @@ public interface IPaymentService
 {
     Task<IEnumerable<Payment>> GetAllAsync(PaymentStatus? status);
     Task<Payment?> GetByIdAsync(Guid id);
-    Task ResolveDisputeAsync(Guid paymentId, string resolution);
+    Task ResolveDisputeAsync(Guid paymentId, PaymentResolution resolution);
 }

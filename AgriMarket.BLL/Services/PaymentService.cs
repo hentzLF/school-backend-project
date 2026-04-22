@@ -32,17 +32,17 @@ public class PaymentService(
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    public async Task ResolveDisputeAsync(Guid paymentId, string resolution)
+    public async Task ResolveDisputeAsync(Guid paymentId, PaymentResolution resolution)
     {
         var payment = await payments.GetByIdAsync(paymentId);
         if (payment != null && payment.Status == PaymentStatus.Disputed)
         {
-            if (resolution == "Release")
+            if (resolution == PaymentResolution.Release)
             {
                 payment.Status = PaymentStatus.Released;
                 payment.ReleasedAt = DateTime.UtcNow;
             }
-            else if (resolution == "Refund")
+            else if (resolution == PaymentResolution.Refund)
             {
                 payment.Status = PaymentStatus.Refunded;
             }

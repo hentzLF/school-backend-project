@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AgriMarket.Domain.Enums;
 
 namespace AgriMarket.Web.Areas.Admin.ViewModels;
 
@@ -7,5 +8,5 @@ public class DisputeResolveViewModel
     public Guid PaymentId { get; set; }
 
     [Required]
-    public string Resolution { get; set; } = default!; // "Release" or "Refund"
+    public PaymentResolution Resolution { get; set; }
 }

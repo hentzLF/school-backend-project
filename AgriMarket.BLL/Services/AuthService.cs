@@ -67,7 +67,8 @@ public class AuthService(
         if (profiles.Count == 1)
         {
             var profile = profiles[0];
-            var role = profile.Roles!.First().Role;
+            var role = profile.Roles?.FirstOrDefault()?.Role
+                ?? throw new InvalidOperationException("Profile has no assigned role.");
             var refreshToken = await IssueRefreshTokenAsync(user.Id);
 
             return new LoginResult
@@ -89,7 +90,7 @@ public class AuthService(
                 {
                     ProfileId = p.Id,
                     FullName = $"{p.FirstName} {p.LastName}",
-                    Role = p.Roles!.First().Role,
+                    Role = p.Roles?.FirstOrDefault()?.Role ?? throw new InvalidOperationException("Profile has no assigned role."),
                 }).ToList(),
             },
         };
@@ -113,7 +114,8 @@ public class AuthService(
         if (profile is null)
             throw new UnauthorizedAccessException("Profile does not belong to this user.");
 
-        var role = profile.Roles!.First().Role;
+        var role = profile.Roles?.FirstOrDefault()?.Role
+            ?? throw new InvalidOperationException("Profile has no assigned role.");
         var refreshToken = await IssueRefreshTokenAsync(user.Id);
 
         return new TokenResponse
@@ -137,8 +139,10 @@ public class AuthService(
         stored.IsRevoked = true;
 
         var user = stored.AppUser;
-        var profile = user.Profiles!.First();
-        var role = profile.Roles!.First().Role;
+        var profile = user.Profiles?.FirstOrDefault()
+            ?? throw new InvalidOperationException("User has no profile.");
+        var role = profile.Roles?.FirstOrDefault()?.Role
+            ?? throw new InvalidOperationException("Profile has no assigned role.");
         var newRefreshToken = await IssueRefreshTokenAsync(user.Id);
 
         await uow.SaveChangesAsync();

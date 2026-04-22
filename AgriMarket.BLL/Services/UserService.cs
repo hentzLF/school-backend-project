@@ -38,43 +38,35 @@ public class UserService(
 
     public async Task UpdateUserAsync(Guid appUserId, string email, DateTime? lockoutEnd)
     {
-        var existing = await appUsers.GetByIdAsync(appUserId);
-        if (existing != null)
-        {
-            existing.Email = email;
-            existing.LockoutEnd = lockoutEnd;
-            await uow.SaveChangesAsync();
-        }
+        var existing = await appUsers.GetByIdAsync(appUserId)
+            ?? throw new KeyNotFoundException($"AppUser {appUserId} not found.");
+        existing.Email = email;
+        existing.LockoutEnd = lockoutEnd;
+        await uow.SaveChangesAsync();
     }
 
     public async Task DeleteUserAsync(Guid id)
     {
-        var user = await appUsers.GetByIdAsync(id);
-        if (user != null)
-        {
-            appUsers.Remove(user);
-            await uow.SaveChangesAsync();
-        }
+        var user = await appUsers.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException($"AppUser {id} not found.");
+        appUsers.Remove(user);
+        await uow.SaveChangesAsync();
     }
 
     public async Task LockUserAsync(Guid id)
     {
-        var user = await appUsers.GetByIdAsync(id);
-        if (user != null)
-        {
-            user.LockoutEnd = DateTime.UtcNow.AddYears(100);
-            await uow.SaveChangesAsync();
-        }
+        var user = await appUsers.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException($"AppUser {id} not found.");
+        user.LockoutEnd = DateTime.UtcNow.AddYears(100);
+        await uow.SaveChangesAsync();
     }
 
     public async Task UnlockUserAsync(Guid id)
     {
-        var user = await appUsers.GetByIdAsync(id);
-        if (user != null)
-        {
-            user.LockoutEnd = null;
-            await uow.SaveChangesAsync();
-        }
+        var user = await appUsers.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException($"AppUser {id} not found.");
+        user.LockoutEnd = null;
+        await uow.SaveChangesAsync();
     }
 
     public async Task<UserProfileDto?> GetProfileByUserIdAsync(Guid appUserId)

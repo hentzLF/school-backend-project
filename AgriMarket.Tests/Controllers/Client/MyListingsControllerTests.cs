@@ -11,6 +11,7 @@ using AgriMarket.Web.Areas.Client.ViewModels.MyListings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -20,10 +21,10 @@ namespace AgriMarket.Tests.Controllers.Client
     {
         private static MyListingsController CreateController(AppDbContext db, Guid userId, string role = "Provider") =>
             new(
-                new AgriMarket.BLL.Services.ListingService(new EfRepository<ServiceListing>(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db)),
-                new AgriMarket.BLL.Services.CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db)),
-                new AgriMarket.BLL.Services.BookingService(new EfRepository<Booking>(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db)),
-                new AgriMarket.BLL.Services.UserService(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db)))
+                new AgriMarket.BLL.Services.ListingService(new EfRepository<ServiceListing>(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.ListingService>.Instance),
+                new AgriMarket.BLL.Services.CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.CategoryService>.Instance),
+                new AgriMarket.BLL.Services.BookingService(new EfRepository<Booking>(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.BookingService>.Instance),
+                new AgriMarket.BLL.Services.UserService(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance))
             {
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId, role)
             };

@@ -5,6 +5,7 @@ using AgriMarket.Tests.Helpers;
 using AgriMarket.Web.Areas.Admin.Controllers;
 using AgriMarket.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace AgriMarket.Tests.Controllers.Admin;
@@ -12,7 +13,7 @@ namespace AgriMarket.Tests.Controllers.Admin;
 public class AccountControllerTests
 {
     private static AgriMarket.BLL.Services.UserService CreateUserService(AppDbContext db) =>
-        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db));
+        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
 
     [Fact]
     public async Task Login_WithAdminRole_RedirectsToDashboard()

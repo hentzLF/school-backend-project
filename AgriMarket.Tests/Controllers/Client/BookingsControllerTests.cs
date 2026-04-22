@@ -4,6 +4,7 @@ using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
 using AgriMarket.Web.Areas.Client.Controllers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace AgriMarket.Tests.Controllers.Client;
@@ -11,10 +12,10 @@ namespace AgriMarket.Tests.Controllers.Client;
 public class BookingsControllerTests
 {
     private static AgriMarket.BLL.Services.BookingService CreateBookingService(AppDbContext db) =>
-        new(new EfRepository<Booking>(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db));
+        new(new EfRepository<Booking>(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.BookingService>.Instance);
 
     private static AgriMarket.BLL.Services.UserService CreateUserService(AppDbContext db) =>
-        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db));
+        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
 
     [Fact]
     public async Task Details_WithDifferentOwner_RedirectsToAccessDenied()

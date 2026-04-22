@@ -5,6 +5,7 @@ using AgriMarket.Tests.Helpers;
 using AgriMarket.Web.Areas.Client.Controllers;
 using AgriMarket.Web.Areas.Client.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace AgriMarket.Tests.Controllers.Client;
@@ -12,7 +13,7 @@ namespace AgriMarket.Tests.Controllers.Client;
 public class AccountControllerTests
 {
     private static AgriMarket.BLL.Services.UserService CreateUserService(AppDbContext db) =>
-        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db));
+        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
 
     [Theory]
     [InlineData(RoleType.Farmer)]

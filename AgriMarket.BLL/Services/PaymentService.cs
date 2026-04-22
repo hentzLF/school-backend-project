@@ -5,18 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.BLL.Services;
 
-public class PaymentService : IPaymentService
+public class PaymentService(
+    IRepository<Payment> payments,
+    IUnitOfWork uow) : IPaymentService
 {
-    private readonly AppDbContext _db;
-
-    public PaymentService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<Payment>> GetAllAsync(PaymentStatus? status)
     {
-        var query = _db.Payments.AsQueryable();
+        var query = payments.Query();
 
         if (status.HasValue)
             query = query.Where(p => p.Status == status.Value);
@@ -26,7 +21,7 @@ public class PaymentService : IPaymentService
 
     public async Task<Payment?> GetByIdAsync(Guid id)
     {
-        return await _db.Payments
+        return await payments.Query()
             .Include(p => p.Booking)
                 .ThenInclude(b => b!.ClientProfile)
             .Include(p => p.Booking)
@@ -37,7 +32,7 @@ public class PaymentService : IPaymentService
 
     public async Task ResolveDisputeAsync(Guid paymentId, string resolution)
     {
-        var payment = await _db.Payments.FindAsync(paymentId);
+        var payment = await payments.GetByIdAsync(paymentId);
         if (payment != null && payment.Status == PaymentStatus.Disputed)
         {
             if (resolution == "Release")
@@ -49,7 +44,7 @@ public class PaymentService : IPaymentService
             {
                 payment.Status = PaymentStatus.Refunded;
             }
-            await _db.SaveChangesAsync();
+            await uow.SaveChangesAsync();
         }
     }
 }

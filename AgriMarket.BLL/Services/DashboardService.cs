@@ -13,6 +13,7 @@ public class DashboardService(
     IRepository<Payment> payments,
     ILogger<DashboardService> logger) : IDashboardService
 {
+    private const int RecentBookingsCount = 10;
     public async Task<DashboardStats> GetDashboardStatsAsync()
     {
         var now = DateTime.UtcNow;
@@ -49,7 +50,7 @@ public class DashboardService(
             .Include(b => b.ClientProfile)
             .Include(b => b.ServiceListing)
             .OrderByDescending(b => b.CreatedAt)
-            .Take(10)
+            .Take(RecentBookingsCount)
             .ToListAsync();
 
         return new DashboardStats

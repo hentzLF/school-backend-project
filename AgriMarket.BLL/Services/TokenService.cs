@@ -41,7 +41,8 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
         };
 
-        return CreateJwt(claims, TimeSpan.FromMinutes(2));
+        var sessionMinutes = int.Parse(_config["Jwt:SessionTokenExpiryMinutes"] ?? "2");
+        return CreateJwt(claims, TimeSpan.FromMinutes(sessionMinutes));
     }
 
     public string GenerateRefreshToken()

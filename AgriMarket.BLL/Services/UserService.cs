@@ -59,7 +59,7 @@ public class UserService(
     {
         var user = await appUsers.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"AppUser {id} not found.");
-        user.LockoutEnd = DateTime.UtcNow.AddYears(100);
+        user.LockoutEnd = DateTime.MaxValue;
         await uow.SaveChangesAsync();
     }
 

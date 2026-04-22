@@ -4,7 +4,8 @@
       "Bash(openspec status *)",
       "Read(//k/Folder/development/taltech/htiits-cscript/**)",
       "Bash(openspec instructions *)",
-      "Bash(dotnet build *)"
+      "Bash(dotnet build *)",
+      "Bash(openspec new *)"
     ]
   }
 }

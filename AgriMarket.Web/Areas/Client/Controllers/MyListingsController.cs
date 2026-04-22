@@ -264,6 +264,122 @@ namespace AgriMarket.Web.Areas.Client.Controllers
             return RedirectToAction(nameof(Details), new { id = listing.Id });
         }
 
+        public async Task<IActionResult> Availabilities(Guid id)
+        {
+            var profile = await GetProviderProfileAsync();
+            if (profile == null) return NotFound();
+
+            var listing = await _context.ServiceListings
+                .Include(l => l.Availabilities)
+                .FirstOrDefaultAsync(l => l.Id == id && l.UserProfileId == profile.Id);
+
+            if (listing == null) return NotFound();
+
+            var availabilities = (listing.Availabilities ?? new List<Availability>())
+                .OrderBy(a => a.StartTime)
+                .Select(a => new AvailabilityItemViewModel
+                {
+                    Id = a.Id,
+                    StartTime = a.StartTime,
+                    EndTime = a.EndTime,
+                    IsBooked = a.IsBooked
+                })
+                .ToList();
+
+            var viewModel = new ManageAvailabilitiesViewModel
+            {
+                ListingId = listing.Id,
+                ListingTitle = listing.Title,
+                Availabilities = availabilities,
+                AddStartTime = DateTime.Today.AddDays(1).AddHours(8),
+                AddEndTime = DateTime.Today.AddDays(1).AddHours(17)
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddAvailability(Guid listingId, ManageAvailabilitiesViewModel model)
+        {
+            var profile = await GetProviderProfileAsync();
+            if (profile == null) return NotFound();
+
+            var listing = await _context.ServiceListings
+                .FirstOrDefaultAsync(l => l.Id == listingId && l.UserProfileId == profile.Id);
+
+            if (listing == null) return NotFound();
+
+            if (model.AddStartTime >= model.AddEndTime)
+            {
+                ModelState.AddModelError(string.Empty, "Start time must be before end time.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Reload list to re-render
+                var availabilities = await _context.Availabilities
+                    .Where(a => a.ServiceListingId == listingId)
+                    .OrderBy(a => a.StartTime)
+                    .Select(a => new AvailabilityItemViewModel
+                    {
+                        Id = a.Id,
+                        StartTime = a.StartTime,
+                        EndTime = a.EndTime,
+                        IsBooked = a.IsBooked
+                    })
+                    .ToListAsync();
+                
+                model.ListingId = listing.Id;
+                model.ListingTitle = listing.Title;
+                model.Availabilities = availabilities;
+
+                return View("Availabilities", model);
+            }
+
+            var availability = new Availability
+            {
+                Id = Guid.NewGuid(),
+                ServiceListingId = listingId,
+                StartTime = DateTime.SpecifyKind(model.AddStartTime, DateTimeKind.Utc),
+                EndTime = DateTime.SpecifyKind(model.AddEndTime, DateTimeKind.Utc),
+                IsBooked = false
+            };
+
+            _context.Availabilities.Add(availability);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Availabilities), new { id = listingId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAvailability(Guid id)
+        {
+            var profile = await GetProviderProfileAsync();
+            if (profile == null) return NotFound();
+
+            var availability = await _context.Availabilities
+                .Include(a => a.ServiceListing)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (availability == null || availability.ServiceListing!.UserProfileId != profile.Id)
+            {
+                return NotFound();
+            }
+
+            if (availability.IsBooked)
+            {
+                TempData["ErrorMessage"] = "Cannot delete a booked availability slot.";
+                return RedirectToAction(nameof(Availabilities), new { id = availability.ServiceListingId });
+            }
+
+            _context.Availabilities.Remove(availability);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Availabilities), new { id = availability.ServiceListingId });
+        }
+
         public async Task<IActionResult> Bookings(Guid id)
         {
             var profile = await GetProviderProfileAsync();

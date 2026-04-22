@@ -19,8 +19,8 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Verify `ProviderOnly` policy blocks Farmer-role users from accessing `/Client/MyListings/Availabilities/{id}`
-- [ ] 5.2 Verify a Provider cannot view, add, or delete slots on another Provider's listing (all return 404)
-- [ ] 5.3 Verify deletion of a booked slot is rejected
-- [ ] 5.4 Verify AddAvailability rejects StartTime >= EndTime with a validation error
-- [ ] 5.5 Run manual flow: Provider login → create listing → Manage Slots → add slot → Farmer login → view listing details → confirm booking form appears → submit booking → verify slot shows as Booked in provider's Availabilities page
+- [x] 5.1 Verify `ProviderOnly` policy blocks Farmer-role users from accessing `/Client/MyListings/Availabilities/{id}`
+- [x] 5.2 Verify a Provider cannot view, add, or delete slots on another Provider's listing (all return 404)   
+- [x] 5.3 Verify deletion of a booked slot is rejected
+- [x] 5.4 Verify AddAvailability rejects StartTime >= EndTime with a validation error
+- [x] 5.5 Run manual flow: Provider login → create listing → Manage Slots → add slot → Farmer login → view listing details → confirm booking form appears → submit booking → verify slot shows as Booked in provider's Availabilities page

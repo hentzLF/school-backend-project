@@ -1,6 +1,6 @@
-@model AgriMarket.Web.ViewModels.RegisterViewModel
+@model AgriMarket.Web.ViewModels.LoginViewModel
 @{
-    ViewData["Title"] = "Admin Registration";
+    ViewData["Title"] = "Admin Login";
     Layout = null;
 }
 <!DOCTYPE html>
@@ -14,25 +14,13 @@
 <body class="bg-light">
 <div class="container">
     <div class="row justify-content-center mt-5">
-        <div class="col-md-5">
+        <div class="col-md-4">
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <h4 class="card-title mb-4 text-center">Create Admin Account</h4>
-                    <form asp-action="Register" method="post">
+                    <h4 class="card-title mb-4 text-center">AgriMarket Admin</h4>
+                    <form asp-area="Admin" asp-controller="Account" asp-action="Login" method="post">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label asp-for="FirstName" class="form-label">First Name</label>
-                                <input asp-for="FirstName" class="form-control" />
-                                <span asp-validation-for="FirstName" class="text-danger"></span>
-                            </div>
-                            <div class="col">
-                                <label asp-for="LastName" class="form-label">Last Name</label>
-                                <input asp-for="LastName" class="form-control" />
-                                <span asp-validation-for="LastName" class="text-danger"></span>
-                            </div>
-                        </div>
                         <div class="mb-3">
                             <label asp-for="Email" class="form-label">Email</label>
                             <input asp-for="Email" class="form-control" autocomplete="email" />
@@ -40,14 +28,14 @@
                         </div>
                         <div class="mb-3">
                             <label asp-for="Password" class="form-label">Password</label>
-                            <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                            <input asp-for="Password" class="form-control" autocomplete="current-password" />
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">Create Account</button>
+                        <button type="submit" class="btn btn-primary w-100">Sign In</button>
                     </form>
                     <hr />
                     <p class="text-center mb-0 small">
-                        Already have an account? <a asp-action="Login">Sign In</a>
+                        No account? <a asp-area="Admin" asp-controller="Account" asp-action="Register">Register</a>
                     </p>
                 </div>
             </div>

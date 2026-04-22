@@ -1,6 +1,6 @@
-@model AgriMarket.Web.ViewModels.LoginViewModel
+@model AgriMarket.Web.Areas.Client.ViewModels.LoginViewModel
 @{
-    ViewData["Title"] = "Admin Login";
+    ViewData["Title"] = "Sign In";
     Layout = null;
 }
 <!DOCTYPE html>
@@ -17,8 +17,8 @@
         <div class="col-md-4">
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <h4 class="card-title mb-4 text-center">AgriMarket Admin</h4>
-                    <form asp-action="Login" method="post">
+                    <h4 class="card-title mb-4 text-center">AgriMarket</h4>
+                    <form asp-area="Client" asp-controller="Account" asp-action="Login" method="post">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
                         <div class="mb-3">
@@ -31,11 +31,11 @@
                             <input asp-for="Password" class="form-control" autocomplete="current-password" />
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                        <button type="submit" class="btn btn-success w-100">Sign In</button>
                     </form>
                     <hr />
                     <p class="text-center mb-0 small">
-                        No account? <a asp-action="Register">Register</a>
+                        No account? <a asp-area="Client" asp-controller="Account" asp-action="Register">Register</a>
                     </p>
                 </div>
             </div>

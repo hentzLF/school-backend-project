@@ -93,7 +93,7 @@
     <div class="admin-main">
         <div class="admin-topbar">
             <span class="text-muted small">@User.Identity?.Name</span>
-            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="mb-0">
+            <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post" class="mb-0">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button>
             </form>

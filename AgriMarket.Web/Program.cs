@@ -15,10 +15,29 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.LoginPath = "/Client/Account/Login";
+        options.AccessDeniedPath = "/Client/Account/AccessDenied";
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = ctx =>
+            {
+                var redirect = ctx.Request.Path.StartsWithSegments("/Admin")
+                    ? "/Admin/Account/Login"
+                    : "/Client/Account/Login";
+                ctx.Response.Redirect(redirect + ctx.Request.QueryString);
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = ctx =>
+            {
+                var redirect = ctx.Request.Path.StartsWithSegments("/Admin")
+                    ? "/Admin/Account/AccessDenied"
+                    : "/Client/Account/AccessDenied";
+                ctx.Response.Redirect(redirect);
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(options =>

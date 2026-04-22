@@ -8,16 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace AgriMarket.Web.Controllers;
+namespace AgriMarket.Web.Areas.Admin.Controllers;
 
-public class AccountController : Controller
+[Area("Admin")]
+public class AccountController(AppDbContext db) : Controller
 {
-    private readonly AppDbContext _db;
-
-    public AccountController(AppDbContext db)
-    {
-        _db = db;
-    }
 
     [HttpGet]
     public IActionResult Login() => View(new LoginViewModel());
@@ -29,7 +24,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await _db.AppUsers
+        var user = await db.AppUsers
             .Include(u => u.Profiles!)
                 .ThenInclude(p => p.Roles)
             .FirstOrDefaultAsync(u => u.Email == model.Email);
@@ -69,7 +64,7 @@ public class AccountController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var emailExists = await _db.AppUsers.AnyAsync(u => u.Email == model.Email);
+        var emailExists = await db.AppUsers.AnyAsync(u => u.Email == model.Email);
         if (emailExists)
         {
             ModelState.AddModelError(string.Empty, "An account with this email already exists");
@@ -99,10 +94,10 @@ public class AccountController : Controller
             Role = RoleType.Admin
         };
 
-        _db.AppUsers.Add(user);
-        _db.UserProfiles.Add(profile);
-        _db.ProfileRoles.Add(role);
-        await _db.SaveChangesAsync();
+        db.AppUsers.Add(user);
+        db.UserProfiles.Add(profile);
+        db.ProfileRoles.Add(role);
+        await db.SaveChangesAsync();
 
         await SignInAsync(user, profile);
         return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
@@ -113,7 +108,7 @@ public class AccountController : Controller
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return RedirectToAction("Login");
+        return RedirectToAction("Login", "Account", new { area = "Admin" });
     }
 
     public IActionResult AccessDenied() => View();
@@ -122,10 +117,10 @@ public class AccountController : Controller
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, $"{profile.FirstName} {profile.LastName}"),
-            new Claim(ClaimTypes.Role, "Admin")
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Name, $"{profile.FirstName} {profile.LastName}"),
+            new(ClaimTypes.Role, "Admin")
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

@@ -91,7 +91,7 @@ public class PaymentsController : Controller
             return RedirectToAction(nameof(Details), new { id = vm.PaymentId });
         }
 
-        if (vm.Resolution != "Release" && vm.Resolution != "Refund")
+        if (!Enum.IsDefined(vm.Resolution))
         {
             TempData["Error"] = "Invalid resolution option";
             return RedirectToAction(nameof(Details), new { id = vm.PaymentId });

@@ -162,18 +162,8 @@ public class AppDbContext : DbContext
         .HasForeignKey(sl => sl.LocationId)
         .OnDelete(DeleteBehavior.SetNull);
 
-    // Seed data: teenuskategooriad
-    modelBuilder.Entity<ServiceCategory>().HasData(
-        new ServiceCategory { Id = Guid.Parse("a1b2c3d4-0001-0000-0000-000000000001"), Name = "Hay Baling", Description = "Round and square baling services" },
-        new ServiceCategory { Id = Guid.Parse("a1b2c3d4-0002-0000-0000-000000000002"), Name = "Combine Harvesting", Description = "Grain and cereal harvesting" },
-        new ServiceCategory { Id = Guid.Parse("a1b2c3d4-0003-0000-0000-000000000003"), Name = "Spraying", Description = "Crop protection and fertilizer spraying" },
-        new ServiceCategory { Id = Guid.Parse("a1b2c3d4-0004-0000-0000-000000000004"), Name = "Soil Preparation", Description = "Ploughing, discing, and cultivating" },
-        new ServiceCategory { Id = Guid.Parse("a1b2c3d4-0005-0000-0000-000000000005"), Name = "Seeding", Description = "Precision and broadcast seeding" },
-        new ServiceCategory { Id = Guid.Parse("a1b2c3d4-0006-0000-0000-000000000006"), Name = "Mowing", Description = "Grass and hay mowing services" },
-        new ServiceCategory { Id = Guid.Parse("a1b2c3d4-0007-0000-0000-000000000007"), Name = "Transport", Description = "Agricultural cargo transport" }
-    );
-
 }
+
 
     public DbSet<AppUser> AppUsers {get; set;} = default!;
     public DbSet<UserProfile> UserProfiles {get; set;} = default!;

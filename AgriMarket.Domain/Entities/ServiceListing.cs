@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using AgriMarket.Domain.Enums;
 
 namespace AgriMarket.Domain.Entities;
@@ -7,6 +8,7 @@ public class ServiceListing
     public Guid Id {get; set;}
     public string Title {get; set;} = default!;
     public string? Description {get; set;}
+    [Range(0.01, (double)decimal.MaxValue)]
     public decimal PricePerHectare {get; set;}
     public bool IsActive {get; set;}
 

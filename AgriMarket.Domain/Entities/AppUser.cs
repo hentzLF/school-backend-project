@@ -1,9 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace AgriMarket.Domain.Entities;
 
 public class AppUser
 {
     public Guid Id { get; set;}
 
+    [EmailAddress]
     public string Email { get; set;} = default!;
 
     public string PasswordHash { get; set; } = default!;

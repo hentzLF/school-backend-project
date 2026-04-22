@@ -15,4 +15,6 @@ public interface IUserService
     Task UpdateProfileAsync(UserProfile profile);
     Task<AppUser?> GetByEmailAsync(string email);
     Task<AppUser> CreateUserWithProfileAsync(AppUser user, UserProfile profile, RoleType role);
+    Task<(IEnumerable<UserProfile> Items, int TotalCount)> GetAllProfilesAsync(int page, int pageSize);
+    Task<UserProfile?> GetProfileByIdAsync(Guid id);
 }

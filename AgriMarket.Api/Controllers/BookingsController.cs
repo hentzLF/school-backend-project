@@ -1,10 +1,9 @@
 using AgriMarket.Api.Dtos.Bookings;
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
@@ -13,11 +12,11 @@ namespace AgriMarket.Api.Controllers;
 [Route("api/bookings")]
 public class BookingsController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IBookingService _bookingService;
 
-    public BookingsController(AppDbContext db)
+    public BookingsController(IBookingService bookingService)
     {
-        _db = db;
+        _bookingService = bookingService;
     }
 
     [Authorize]
@@ -29,30 +28,22 @@ public class BookingsController : ControllerBase
 
         var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
 
-        var query = _db.Bookings.AsNoTracking()
-            .Include(b => b.ServiceListing)
-            .Where(b => b.ClientProfileId == callerProfileId
-                     || b.ServiceListing!.UserProfileId == callerProfileId);
+        var result = await _bookingService.GetAllForProfileAsync(callerProfileId, page, pageSize);
 
-        var totalCount = await query.CountAsync();
-        var items = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(b => new BookingResponse
-            {
-                Id = b.Id,
-                Status = b.Status,
-                TotalPrice = b.TotalPrice,
-                AreaInHectares = b.AreaInHectares,
-                CreatedAt = b.CreatedAt,
-                Notes = b.Notes,
-                ServiceListingId = b.ServiceListingId,
-                ClientProfileId = b.ClientProfileId,
-                AvailabilityId = b.AvailabilityId
-            })
-            .ToListAsync();
+        var items = result.Items.Select(b => new BookingResponse
+        {
+            Id = b.Id,
+            Status = b.Status,
+            TotalPrice = b.TotalPrice,
+            AreaInHectares = b.AreaInHectares,
+            CreatedAt = b.CreatedAt,
+            Notes = b.Notes,
+            ServiceListingId = b.ServiceListingId,
+            ClientProfileId = b.ClientProfileId,
+            AvailabilityId = b.AvailabilityId
+        });
 
-        return Ok(new { items, page, pageSize, totalCount });
+        return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
     }
 
     [Authorize]
@@ -61,10 +52,7 @@ public class BookingsController : ControllerBase
     {
         var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
 
-        var booking = await _db.Bookings.AsNoTracking()
-            .Include(b => b.ServiceListing)
-            .Where(b => b.Id == id)
-            .FirstOrDefaultAsync();
+        var booking = await _bookingService.GetByIdAsync(id);
 
         if (booking is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"Booking {id} not found.");
@@ -106,8 +94,14 @@ public class BookingsController : ControllerBase
             AvailabilityId = req.AvailabilityId
         };
 
-        _db.Bookings.Add(booking);
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _bookingService.CreateAsync(booking);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
+        }
 
         var response = new BookingResponse
         {
@@ -131,26 +125,24 @@ public class BookingsController : ControllerBase
     {
         var callerProfileId = Guid.Parse(User.FindFirstValue("profileId")!);
 
-        var booking = await _db.Bookings
-            .Include(b => b.ServiceListing)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await _bookingService.GetByIdAsync(id);
 
         if (booking is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"Booking {id} not found.");
 
-        var isClient = booking.ClientProfileId == callerProfileId;
-        var isProvider = booking.ServiceListing?.UserProfileId == callerProfileId;
-
-        if (!isClient && !isProvider)
-            return Problem(statusCode: 403, title: "Forbidden", detail: "You are not a party to this booking.");
-
-        var allowed = GetAllowedTransitions(booking.Status, isClient, isProvider);
-        if (!allowed.Contains(req.Status))
-            return Problem(statusCode: 422, title: "Unprocessable Entity",
-                detail: $"Transition from {booking.Status} to {req.Status} is not permitted for your role.");
-
-        booking.Status = req.Status;
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _bookingService.UpdateStatusAsync(id, req.Status, callerProfileId);
+            booking.Status = req.Status;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Problem(statusCode: 403, title: "Forbidden", detail: ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
+        }
 
         return Ok(new BookingResponse
         {
@@ -164,32 +156,5 @@ public class BookingsController : ControllerBase
             ClientProfileId = booking.ClientProfileId,
             AvailabilityId = booking.AvailabilityId
         });
-    }
-
-    private static IReadOnlySet<BookingStatus> GetAllowedTransitions(BookingStatus current, bool isClient, bool isProvider)
-    {
-        var result = new HashSet<BookingStatus>();
-
-        if (isClient)
-        {
-            if (current == BookingStatus.Pending) result.Add(BookingStatus.Cancelled);
-            if (current == BookingStatus.Confirmed) result.Add(BookingStatus.Cancelled);
-            if (current == BookingStatus.ProviderCompleted) result.Add(BookingStatus.ClientConfirmed);
-        }
-
-        if (isProvider)
-        {
-            if (current == BookingStatus.Pending)
-            {
-                result.Add(BookingStatus.Confirmed);
-                result.Add(BookingStatus.Cancelled);
-            }
-            if (current == BookingStatus.Confirmed) result.Add(BookingStatus.InProgress);
-            if (current == BookingStatus.InProgress) result.Add(BookingStatus.ProviderCompleted);
-            var terminal = new[] { BookingStatus.Cancelled, BookingStatus.ClientConfirmed, BookingStatus.Disputed };
-            if (!terminal.Contains(current)) result.Add(BookingStatus.Disputed);
-        }
-
-        return result;
     }
 }

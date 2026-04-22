@@ -1,7 +1,6 @@
 using AgriMarket.Api.Dtos.Users;
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
@@ -10,11 +9,11 @@ namespace AgriMarket.Api.Controllers;
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IUserService _userService;
 
-    public UsersController(AppDbContext db)
+    public UsersController(IUserService userService)
     {
-        _db = db;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -23,23 +22,18 @@ public class UsersController : ControllerBase
         if (pageSize > 100) pageSize = 100;
         if (page < 1) page = 1;
 
-        var query = _db.UserProfiles.AsNoTracking();
-        var totalCount = await query.CountAsync();
-        var items = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(up => new UserProfileResponse
-            {
-                Id = up.Id,
-                FirstName = up.FirstName,
-                LastName = up.LastName,
-                Bio = up.Bio,
-                AvatarUrl = up.AvatarUrl,
-                AppUserId = up.AppUserId
-            })
-            .ToListAsync();
+        var result = await _userService.GetAllProfilesAsync(page, pageSize);
+        var items = result.Items.Select(up => new UserProfileResponse
+        {
+            Id = up.Id,
+            FirstName = up.FirstName,
+            LastName = up.LastName,
+            Bio = up.Bio,
+            AvatarUrl = up.AvatarUrl,
+            AppUserId = up.AppUserId
+        });
 
-        return Ok(new { items, page, pageSize, totalCount });
+        return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
     }
 
     [HttpGet("{id:guid}")]
@@ -47,10 +41,7 @@ public class UsersController : ControllerBase
     {
         var callerUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var profile = await _db.UserProfiles.AsNoTracking()
-            .Include(up => up.AppUser)
-            .Where(up => up.Id == id)
-            .FirstOrDefaultAsync();
+        var profile = await _userService.GetProfileByIdAsync(id);
 
         if (profile is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"UserProfile {id} not found.");

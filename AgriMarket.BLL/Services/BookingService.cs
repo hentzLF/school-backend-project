@@ -70,14 +70,57 @@ public class BookingService : IBookingService
         return booking;
     }
 
-    public async Task UpdateStatusAsync(Guid id, BookingStatus status)
+    public async Task UpdateStatusAsync(Guid id, BookingStatus status, Guid? callerProfileId = null)
     {
-        var booking = await _db.Bookings.FindAsync(id);
+        var booking = await _db.Bookings
+            .Include(b => b.ServiceListing)
+            .FirstOrDefaultAsync(b => b.Id == id);
+            
         if (booking != null)
         {
+            if (callerProfileId.HasValue)
+            {
+                var isClient = booking.ClientProfileId == callerProfileId.Value;
+                var isProvider = booking.ServiceListing?.UserProfileId == callerProfileId.Value;
+
+                if (!isClient && !isProvider)
+                    throw new UnauthorizedAccessException("You are not a party to this booking.");
+
+                var allowed = GetAllowedTransitions(booking.Status, isClient, isProvider);
+                if (!allowed.Contains(status))
+                    throw new InvalidOperationException($"Transition from {booking.Status} to {status} is not permitted for your role.");
+            }
+
             booking.Status = status;
             await _db.SaveChangesAsync();
         }
+    }
+
+    private static IReadOnlySet<BookingStatus> GetAllowedTransitions(BookingStatus current, bool isClient, bool isProvider)
+    {
+        var result = new HashSet<BookingStatus>();
+
+        if (isClient)
+        {
+            if (current == BookingStatus.Pending) result.Add(BookingStatus.Cancelled);
+            if (current == BookingStatus.Confirmed) result.Add(BookingStatus.Cancelled);
+            if (current == BookingStatus.ProviderCompleted) result.Add(BookingStatus.ClientConfirmed);
+        }
+
+        if (isProvider)
+        {
+            if (current == BookingStatus.Pending)
+            {
+                result.Add(BookingStatus.Confirmed);
+                result.Add(BookingStatus.Cancelled);
+            }
+            if (current == BookingStatus.Confirmed) result.Add(BookingStatus.InProgress);
+            if (current == BookingStatus.InProgress) result.Add(BookingStatus.ProviderCompleted);
+            var terminal = new[] { BookingStatus.Cancelled, BookingStatus.ClientConfirmed, BookingStatus.Disputed };
+            if (!terminal.Contains(current)) result.Add(BookingStatus.Disputed);
+        }
+
+        return result;
     }
 
     public async Task DeleteAsync(Guid id)
@@ -108,5 +151,21 @@ public class BookingService : IBookingService
             .Where(b => b.ServiceListingId == listingId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
+    }
+
+    public async Task<(IEnumerable<Booking> Items, int TotalCount)> GetAllForProfileAsync(Guid profileId, int page, int pageSize)
+    {
+        var query = _db.Bookings
+            .Include(b => b.ServiceListing)
+            .Where(b => b.ClientProfileId == profileId || b.ServiceListing!.UserProfileId == profileId)
+            .AsNoTracking();
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 }

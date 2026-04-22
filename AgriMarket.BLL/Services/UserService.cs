@@ -112,4 +112,23 @@ public class UserService : IUserService
         await _db.SaveChangesAsync();
         return user;
     }
+
+    public async Task<(IEnumerable<UserProfile> Items, int TotalCount)> GetAllProfilesAsync(int page, int pageSize)
+    {
+        var query = _db.UserProfiles.AsNoTracking();
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+            
+        return (items, totalCount);
+    }
+
+    public async Task<UserProfile?> GetProfileByIdAsync(Guid id)
+    {
+        return await _db.UserProfiles.AsNoTracking()
+            .Include(up => up.AppUser)
+            .FirstOrDefaultAsync(up => up.Id == id);
+    }
 }

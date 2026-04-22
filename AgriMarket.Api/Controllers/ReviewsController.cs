@@ -1,9 +1,8 @@
 using AgriMarket.Api.Dtos.Reviews;
-using AgriMarket.DAL;
+using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
@@ -12,11 +11,11 @@ namespace AgriMarket.Api.Controllers;
 [Route("api/reviews")]
 public class ReviewsController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IReviewService _reviewService;
 
-    public ReviewsController(AppDbContext db)
+    public ReviewsController(IReviewService reviewService)
     {
-        _db = db;
+        _reviewService = reviewService;
     }
 
     [HttpGet]
@@ -25,45 +24,37 @@ public class ReviewsController : ControllerBase
         if (pageSize > 100) pageSize = 100;
         if (page < 1) page = 1;
 
-        var query = _db.Reviews.AsNoTracking();
-        var totalCount = await query.CountAsync();
-        var items = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(r => new ReviewResponse
-            {
-                Id = r.Id,
-                Rating = r.Rating,
-                Comment = r.Comment,
-                CreatedAt = r.CreatedAt,
-                BookingId = r.BookingId,
-                ReviewerProfileId = r.ReviewerProfileId
-            })
-            .ToListAsync();
+        var result = await _reviewService.GetAllAsync(page, pageSize);
+        var items = result.Items.Select(r => new ReviewResponse
+        {
+            Id = r.Id,
+            Rating = r.Rating,
+            Comment = r.Comment,
+            CreatedAt = r.CreatedAt,
+            BookingId = r.BookingId,
+            ReviewerProfileId = r.ReviewerProfileId
+        });
 
-        return Ok(new { items, page, pageSize, totalCount });
+        return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
     }
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var review = await _db.Reviews.AsNoTracking()
-            .Where(r => r.Id == id)
-            .Select(r => new ReviewResponse
-            {
-                Id = r.Id,
-                Rating = r.Rating,
-                Comment = r.Comment,
-                CreatedAt = r.CreatedAt,
-                BookingId = r.BookingId,
-                ReviewerProfileId = r.ReviewerProfileId
-            })
-            .FirstOrDefaultAsync();
+        var review = await _reviewService.GetByIdAsync(id);
 
         if (review is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"Review {id} not found.");
 
-        return Ok(review);
+        return Ok(new ReviewResponse
+        {
+            Id = review.Id,
+            Rating = review.Rating,
+            Comment = review.Comment,
+            CreatedAt = review.CreatedAt,
+            BookingId = review.BookingId,
+            ReviewerProfileId = review.ReviewerProfileId
+        });
     }
 
     [Authorize]
@@ -82,8 +73,18 @@ public class ReviewsController : ControllerBase
             ReviewerProfileId = callerProfileId
         };
 
-        _db.Reviews.Add(review);
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _reviewService.CreateAsync(review);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
+        }
 
         var response = new ReviewResponse
         {

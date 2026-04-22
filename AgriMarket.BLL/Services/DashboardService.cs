@@ -19,41 +19,60 @@ public class DashboardService : IDashboardService
         var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var startOfWeek = now.AddDays(-7);
 
-        var users = await _db.AppUsers.ToListAsync();
-        var listings = await _db.ServiceListings.ToListAsync();
-        var bookings = await _db.Bookings
+        var totalUsers = await _db.AppUsers.CountAsync();
+        var newUsersThisMonth = await _db.AppUsers.CountAsync(u => u.CreatedAt >= startOfMonth);
+        var newUsersThisWeek = await _db.AppUsers.CountAsync(u => u.CreatedAt >= startOfWeek);
+
+        var totalListings = await _db.ServiceListings.CountAsync();
+        var activeListings = await _db.ServiceListings.CountAsync(l => l.IsActive);
+        var inactiveListings = await _db.ServiceListings.CountAsync(l => !l.IsActive);
+
+        var totalBookings = await _db.Bookings.CountAsync();
+        var bookingsStatusCounts = await _db.Bookings
+            .GroupBy(b => b.Status)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync();
+        
+        var bookingsByStatus = Enum.GetValues<BookingStatus>()
+            .ToDictionary(s => s, s => bookingsStatusCounts.FirstOrDefault(b => b.Key == s)?.Count ?? 0);
+
+        var totalRevenue = await _db.Payments.SumAsync(p => p.Amount);
+        var totalPlatformFees = await _db.Payments.SumAsync(p => p.PlatformFee);
+        var revenueThisMonth = await _db.Payments
+            .Where(p => p.CreatedAt >= startOfMonth)
+            .SumAsync(p => p.Amount);
+
+        var activeDisputes = await _db.Payments.CountAsync(p => p.Status == PaymentStatus.Disputed);
+        var resolvedDisputes = await _db.Payments.CountAsync(p => p.Status == PaymentStatus.Released || p.Status == PaymentStatus.Refunded);
+
+        var recentBookings = await _db.Bookings
             .Include(b => b.ClientProfile)
             .Include(b => b.ServiceListing)
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(10)
             .ToListAsync();
-        var payments = await _db.Payments.ToListAsync();
 
         return new DashboardStats
         {
-            TotalUsers = users.Count,
-            NewUsersThisMonth = users.Count(u => u.CreatedAt >= startOfMonth),
-            NewUsersThisWeek = users.Count(u => u.CreatedAt >= startOfWeek),
+            TotalUsers = totalUsers,
+            NewUsersThisMonth = newUsersThisMonth,
+            NewUsersThisWeek = newUsersThisWeek,
 
-            TotalListings = listings.Count,
-            ActiveListings = listings.Count(l => l.IsActive),
-            InactiveListings = listings.Count(l => !l.IsActive),
+            TotalListings = totalListings,
+            ActiveListings = activeListings,
+            InactiveListings = inactiveListings,
 
-            TotalBookings = bookings.Count,
-            BookingsByStatus = Enum.GetValues<BookingStatus>()
-                .ToDictionary(s => s, s => bookings.Count(b => b.Status == s)),
+            TotalBookings = totalBookings,
+            BookingsByStatus = bookingsByStatus,
 
-            TotalRevenue = payments.Sum(p => p.Amount),
-            TotalPlatformFees = payments.Sum(p => p.PlatformFee),
-            RevenueThisMonth = payments
-                .Where(p => p.CreatedAt >= startOfMonth)
-                .Sum(p => p.Amount),
+            TotalRevenue = totalRevenue,
+            TotalPlatformFees = totalPlatformFees,
+            RevenueThisMonth = revenueThisMonth,
 
-            ActiveDisputes = payments.Count(p => p.Status == PaymentStatus.Disputed),
-            ResolvedDisputes = payments.Count(p =>
-                p.Status == PaymentStatus.Released || p.Status == PaymentStatus.Refunded),
+            ActiveDisputes = activeDisputes,
+            ResolvedDisputes = resolvedDisputes,
 
-            RecentBookings = bookings
-                .OrderByDescending(b => b.CreatedAt)
-                .Take(10)
+            RecentBookings = recentBookings
         };
     }
 }

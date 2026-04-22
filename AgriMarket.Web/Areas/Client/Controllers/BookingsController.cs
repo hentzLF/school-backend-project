@@ -80,7 +80,7 @@ public class BookingsController(IBookingService bookingService, IUserService use
         if (booking.Status != BookingStatus.ProviderCompleted)
             return RedirectToAction(nameof(Details), new { id });
 
-        await bookingService.UpdateStatusAsync(id, BookingStatus.ClientConfirmed);
+        await bookingService.UpdateStatusAsync(id, BookingStatus.ClientConfirmed, clientProfile.Id);
 
         return RedirectToAction(nameof(Details), new { id });
     }

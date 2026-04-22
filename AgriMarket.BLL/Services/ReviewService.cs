@@ -22,6 +22,23 @@ public class ReviewService : IReviewService
             .ToListAsync();
     }
 
+    public async Task<(IEnumerable<Review> Items, int TotalCount)> GetAllAsync(int page, int pageSize)
+    {
+        var query = _db.Reviews.AsNoTracking();
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+            
+        return (items, totalCount);
+    }
+
+    public async Task<Review?> GetByIdAsync(Guid id)
+    {
+        return await _db.Reviews.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
+    }
+
     public async Task<Review> CreateAsync(Review review)
     {
         var booking = await _db.Bookings.FindAsync(review.BookingId);

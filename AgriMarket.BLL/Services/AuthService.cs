@@ -48,10 +48,20 @@ public class AuthService(
             Role = request.Role,
         };
 
-        appUsers.Add(user);
-        userProfiles.Add(profile);
-        profileRoles.Add(role);
-        await uow.SaveChangesAsync();
+        await uow.BeginTransactionAsync();
+        try
+        {
+            appUsers.Add(user);
+            userProfiles.Add(profile);
+            profileRoles.Add(role);
+            await uow.SaveChangesAsync();
+            await uow.CommitTransactionAsync();
+        }
+        catch
+        {
+            await uow.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task<LoginResult> LoginAsync(LoginRequest request)
@@ -141,22 +151,32 @@ public class AuthService(
         if (stored is null || stored.IsRevoked || stored.ExpiresAt <= DateTime.UtcNow || stored.AppUser is null)
             throw new UnauthorizedAccessException("Invalid or expired refresh token.");
 
-        stored.IsRevoked = true;
-
-        var user = stored.AppUser;
-        var profile = user.Profiles?.FirstOrDefault()
-            ?? throw new InvalidOperationException("User has no profile.");
-        var role = profile.Roles?.FirstOrDefault()?.Role
-            ?? throw new InvalidOperationException("Profile has no assigned role.");
-        var newRefreshToken = await IssueRefreshTokenAsync(user.Id);
-
-        await uow.SaveChangesAsync();
-
-        return new TokenResponse
+        await uow.BeginTransactionAsync();
+        try
         {
-            AccessToken = tokenService.GenerateAccessToken(user, profile, role),
-            RefreshToken = newRefreshToken,
-        };
+            stored.IsRevoked = true;
+
+            var user = stored.AppUser;
+            var profile = user.Profiles?.FirstOrDefault()
+                ?? throw new InvalidOperationException("User has no profile.");
+            var role = profile.Roles?.FirstOrDefault()?.Role
+                ?? throw new InvalidOperationException("Profile has no assigned role.");
+            var newRefreshToken = await IssueRefreshTokenAsync(user.Id);
+
+            await uow.SaveChangesAsync();
+            await uow.CommitTransactionAsync();
+
+            return new TokenResponse
+            {
+                AccessToken = tokenService.GenerateAccessToken(user, profile, role),
+                RefreshToken = newRefreshToken,
+            };
+        }
+        catch
+        {
+            await uow.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task LogoutAsync(string refreshToken)

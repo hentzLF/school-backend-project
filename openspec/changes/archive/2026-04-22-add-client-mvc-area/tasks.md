@@ -19,15 +19,15 @@
 
 ## 4. Client Booking and Profile Management
 
-- [ ] 4.1 Implement `BookingsController.Index` listing only bookings owned by the authenticated client, with status and key metadata. Include empty-state message when no bookings exist.
-- [ ] 4.2 Implement `BookingsController.Details` with ownership check; return 403/redirect if the authenticated client does not own the requested booking.
-- [ ] 4.3 Implement booking completion confirmation POST (`ProviderCompleted` → `ClientConfirmed`) with status guard: reject the action and preserve current status if booking is not in `ProviderCompleted`.
-- [ ] 4.4 Implement `ProfileController` view (GET) and edit (GET/POST) for `UserProfile` name and contact fields. Display assigned role as read-only. Return validation errors on invalid input; show success message on persist.
+- [x] 4.1 Implement `BookingsController.Index` listing only bookings owned by the authenticated client, with status and key metadata. Include empty-state message when no bookings exist.
+- [x] 4.2 Implement `BookingsController.Details` with ownership check; return 403/redirect if the authenticated client does not own the requested booking.
+- [x] 4.3 Implement booking completion confirmation POST (`ProviderCompleted` → `ClientConfirmed`) with status guard: reject the action and preserve current status if booking is not in `ProviderCompleted`.
+- [x] 4.4 Implement `ProfileController` view (GET) and edit (GET/POST) for `UserProfile` name and contact fields. Display assigned role as read-only. Return validation errors on invalid input; show success message on persist.
 
 ## 5. Verification and Regression Safety
 
-- [ ] 5.1 Validate admin area authentication and navigation still function after the auth controller split: admin login, access-denied redirect, and all existing admin routes resolve correctly.
-- [ ] 5.2 Validate client area access control: unauthenticated users are redirected to `/Client/Account/Login`; a user with only `RoleType.Admin` is redirected to `/Client/Account/AccessDenied` when accessing a protected client route.
-- [ ] 5.3 Add tests for: (a) client login succeeds with Farmer/Provider role and fails with Admin role; (b) admin login succeeds with Admin role and fails with Farmer/Provider role; (c) booking ownership check blocks access to a booking owned by a different client; (d) completion confirmation is rejected when booking status is not `ProviderCompleted`.
-- [ ] 5.4 Run a final manual flow pass: client register as Farmer → login → browse listings (unauthenticated view) → login → view listing details → create booking → view booking details → confirm completion → view profile → edit profile → logout.
+- [x] 5.1 Validate admin area authentication and navigation still function after the auth controller split: admin login, access-denied redirect, and all existing admin routes resolve correctly.
+- [x] 5.2 Validate client area access control: unauthenticated users are redirected to `/Client/Account/Login`; a user with only `RoleType.Admin` is redirected to `/Client/Account/AccessDenied` when accessing a protected client route.
+- [x] 5.3 Add tests for: (a) client login succeeds with Farmer/Provider role and fails with Admin role; (b) admin login succeeds with Admin role and fails with Farmer/Provider role; (c) booking ownership check blocks access to a booking owned by a different client; (d) completion confirmation is rejected when booking status is not `ProviderCompleted`.
+- [x] 5.4 Run a final manual flow pass: client register as Farmer → login → browse listings (unauthenticated view) → login → view listing details → create booking → view booking details → confirm completion → view profile → edit profile → logout.
 

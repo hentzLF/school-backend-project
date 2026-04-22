@@ -1,0 +1,55 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.MyListings.MyListingIndexViewModel
+
+@{
+    ViewData["Title"] = "My Listings";
+}
+
+<h1>My Listings</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Listing</a>
+</p>
+
+@if (!Model.Listings.Any())
+{
+    <div class="alert alert-info">
+        You don't have any listings yet.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Price / Hectare</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Listings)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.CategoryName</td>
+                    <td>@item.PricePerHectare.ToString("C")</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

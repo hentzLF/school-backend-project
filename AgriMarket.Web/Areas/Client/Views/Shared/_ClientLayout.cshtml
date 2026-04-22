@@ -24,6 +24,15 @@
                 </li>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
+                    @if (User.HasClaim(System.Security.Claims.ClaimTypes.Role, "Provider"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "MyListings" ? "active" : "")"
+                               asp-area="Client" asp-controller="MyListings" asp-action="Index">
+                                My Listings
+                            </a>
+                        </li>
+                    }
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bookings" ? "active" : "")"
                            asp-area="Client" asp-controller="Bookings" asp-action="Index">

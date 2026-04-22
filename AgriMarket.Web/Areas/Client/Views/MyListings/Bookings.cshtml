@@ -1,0 +1,46 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.MyListings.BookingsForListingViewModel
+
+@{
+    ViewData["Title"] = "Bookings for " + Model.ListingTitle;
+}
+
+<h1>Bookings for @Model.ListingTitle</h1>
+
+<p>
+    <a asp-action="Details" asp-route-id="@Model.ListingId" class="btn btn-secondary">Back to Listing</a>
+</p>
+
+@if (!Model.Bookings.Any())
+{
+    <div class="alert alert-info">
+        No bookings found for this listing.
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Status</th>
+                <th>Area (Hectares)</th>
+                <th>Total Price</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Bookings)
+            {
+                <tr>
+                    <td>@item.ClientName</td>
+                    <td>
+                        <span class="badge bg-secondary">@item.Status</span>
+                    </td>
+                    <td>@item.AreaInHectares</td>
+                    <td>@item.TotalPrice.ToString("C")</td>
+                    <td>@item.CreatedAt.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

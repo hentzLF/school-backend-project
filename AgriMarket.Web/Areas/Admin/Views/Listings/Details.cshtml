@@ -4,44 +4,44 @@
 <div class="d-flex align-items-center justify-content-between mb-4">
     <h4 class="mb-0">@Model.Title</h4>
     <div class="d-flex gap-2">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">@Localizer["Edit"]</a>
         <form asp-action="ToggleActive" asp-route-id="@Model.Id" method="post" class="d-inline">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-sm @(Model.IsActive ? "btn-outline-warning" : "btn-outline-success")">
-                @(Model.IsActive ? "Deactivate" : "Activate")
+                @(Model.IsActive ? Localizer["Deactivate"] : Localizer["Activate"])
             </button>
         </form>
-        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger">Delete</a>
-        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Back</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger">@Localizer["Delete"]</a>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">@Localizer["Back"]</a>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header">Listing Info</div>
+            <div class="card-header">@Localizer["ListingInfo"]</div>
             <div class="card-body">
                 <dl class="row mb-0">
-                    <dt class="col-sm-4">Status</dt>
+                    <dt class="col-sm-4">@Localizer["Status"]</dt>
                     <dd class="col-sm-8">
                         @if (Model.IsActive)
                         {
-                            <span class="badge text-bg-success">Active</span>
+                            <span class="badge text-bg-success">@Localizer["Active"]</span>
                         }
                         else
                         {
-                            <span class="badge text-bg-secondary">Inactive</span>
+                            <span class="badge text-bg-secondary">@Localizer["Inactive"]</span>
                         }
                     </dd>
-                    <dt class="col-sm-4">Category</dt>
+                    <dt class="col-sm-4">@Localizer["Category"]</dt>
                     <dd class="col-sm-8">@Model.CategoryName</dd>
-                    <dt class="col-sm-4">Price/ha</dt>
-                    <dd class="col-sm-8">€@Model.PricePerHectare.ToString("0.00")</dd>
-                    <dt class="col-sm-4">Provider</dt>
+                    <dt class="col-sm-4">@Localizer["PricePerHa"]</dt>
+                    <dd class="col-sm-8">&euro;@Model.PricePerHectare.ToString("0.00")</dd>
+                    <dt class="col-sm-4">@Localizer["Provider"]</dt>
                     <dd class="col-sm-8">@Model.ProviderName</dd>
-                    <dt class="col-sm-4">Bookings</dt>
+                    <dt class="col-sm-4">@Localizer["Bookings"]</dt>
                     <dd class="col-sm-8">@Model.BookingsCount</dd>
-                    <dt class="col-sm-4">Description</dt>
+                    <dt class="col-sm-4">@Localizer["Description"]</dt>
                     <dd class="col-sm-8">@(Model.Description ?? "—")</dd>
                 </dl>
             </div>
@@ -50,11 +50,11 @@
 
     <div class="col-md-6">
         <div class="card mb-4">
-            <div class="card-header">Equipment (@Model.Equipments.Count())</div>
+            <div class="card-header">@Localizer["Equipment"] (@Model.Equipments.Count())</div>
             <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
-                        <tr><th>Name</th><th>Model</th><th>Year</th></tr>
+                        <tr><th>@Localizer["Name"]</th><th>@Localizer["Model"]</th><th>@Localizer["Year"]</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var eq in Model.Equipments)
@@ -67,7 +67,7 @@
                         }
                         @if (!Model.Equipments.Any())
                         {
-                            <tr><td colspan="3" class="text-muted text-center py-2">No equipment</td></tr>
+                            <tr><td colspan="3" class="text-muted text-center py-2">@Localizer["NoEquipment"]</td></tr>
                         }
                     </tbody>
                 </table>
@@ -75,11 +75,11 @@
         </div>
 
         <div class="card">
-            <div class="card-header">Availabilities (@Model.Availabilities.Count())</div>
+            <div class="card-header">@Localizer["Availabilities"] (@Model.Availabilities.Count())</div>
             <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
-                        <tr><th>Start</th><th>End</th><th>Booked</th></tr>
+                        <tr><th>@Localizer["Start"]</th><th>@Localizer["End"]</th><th>@Localizer["Booked"]</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var av in Model.Availabilities)
@@ -90,18 +90,18 @@
                                 <td>
                                     @if (av.IsBooked)
                                     {
-                                        <span class="badge text-bg-warning">Booked</span>
+                                        <span class="badge text-bg-warning">@Localizer["Booked"]</span>
                                     }
                                     else
                                     {
-                                        <span class="badge text-bg-success">Free</span>
+                                        <span class="badge text-bg-success">@Localizer["Free"]</span>
                                     }
                                 </td>
                             </tr>
                         }
                         @if (!Model.Availabilities.Any())
                         {
-                            <tr><td colspan="3" class="text-muted text-center py-2">No availabilities</td></tr>
+                            <tr><td colspan="3" class="text-muted text-center py-2">@Localizer["NoAvailabilities"]</td></tr>
                         }
                     </tbody>
                 </table>

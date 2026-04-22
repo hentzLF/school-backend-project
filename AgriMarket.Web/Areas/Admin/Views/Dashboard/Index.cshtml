@@ -1,51 +1,51 @@
 @model DashboardViewModel
-@{ ViewData["Title"] = "Dashboard"; }
+@{ ViewData["Title"] = Localizer["Dashboard"].Value; }
 
-<h4 class="mb-4">Dashboard</h4>
+<h4 class="mb-4">@Localizer["Dashboard"]</h4>
 
 <div class="row g-3 mb-4">
     <div class="col-sm-4">
         <div class="card text-bg-primary">
             <div class="card-body">
-                <div class="card-title small">Total Users</div>
+                <div class="card-title small">@Localizer["TotalUsers"]</div>
                 <div class="fs-3 fw-bold">@Model.TotalUsers</div>
-                <div class="small">+@Model.NewUsersThisWeek this week &nbsp;·&nbsp; +@Model.NewUsersThisMonth this month</div>
+                <div class="small">+@Model.NewUsersThisWeek @Localizer["ThisWeek"] &nbsp;·&nbsp; +@Model.NewUsersThisMonth @Localizer["ThisMonth"]</div>
             </div>
         </div>
     </div>
     <div class="col-sm-4">
         <div class="card text-bg-success">
             <div class="card-body">
-                <div class="card-title small">Listings</div>
+                <div class="card-title small">@Localizer["Listings"]</div>
                 <div class="fs-3 fw-bold">@Model.TotalListings</div>
-                <div class="small">@Model.ActiveListings active &nbsp;·&nbsp; @Model.InactiveListings inactive</div>
+                <div class="small">@Model.ActiveListings @Localizer["ActiveLower"] &nbsp;·&nbsp; @Model.InactiveListings @Localizer["InactiveLower"]</div>
             </div>
         </div>
     </div>
     <div class="col-sm-4">
         <div class="card text-bg-info">
             <div class="card-body">
-                <div class="card-title small">Bookings</div>
+                <div class="card-title small">@Localizer["Bookings"]</div>
                 <div class="fs-3 fw-bold">@Model.TotalBookings</div>
-                <div class="small">@Model.BookingsByStatus.GetValueOrDefault(AgriMarket.Domain.Enums.BookingStatus.Pending) pending</div>
+                <div class="small">@Model.BookingsByStatus.GetValueOrDefault(AgriMarket.Domain.Enums.BookingStatus.Pending) @Localizer["PendingLower"]</div>
             </div>
         </div>
     </div>
     <div class="col-sm-4">
         <div class="card text-bg-dark">
             <div class="card-body">
-                <div class="card-title small">Revenue</div>
-                <div class="fs-3 fw-bold">€@Model.TotalRevenue.ToString("N2")</div>
-                <div class="small">€@Model.TotalPlatformFees.ToString("N2") platform fees &nbsp;·&nbsp; €@Model.RevenueThisMonth.ToString("N2") this month</div>
+                <div class="card-title small">@Localizer["Revenue"]</div>
+                <div class="fs-3 fw-bold">&euro;@Model.TotalRevenue.ToString("N2")</div>
+                <div class="small">&euro;@Model.TotalPlatformFees.ToString("N2") @Localizer["PlatformFees"] &nbsp;·&nbsp; &euro;@Model.RevenueThisMonth.ToString("N2") @Localizer["ThisMonth"]</div>
             </div>
         </div>
     </div>
     <div class="col-sm-4">
         <div class="card @(Model.ActiveDisputes > 0 ? "text-bg-danger" : "text-bg-secondary")">
             <div class="card-body">
-                <div class="card-title small">Disputes</div>
-                <div class="fs-3 fw-bold">@Model.ActiveDisputes active</div>
-                <div class="small">@Model.ResolvedDisputes resolved</div>
+                <div class="card-title small">@Localizer["Disputes"]</div>
+                <div class="fs-3 fw-bold">@Model.ActiveDisputes @Localizer["ActiveLower"]</div>
+                <div class="small">@Model.ResolvedDisputes @Localizer["Resolved"]</div>
             </div>
         </div>
     </div>
@@ -54,11 +54,11 @@
 <div class="row g-3 mb-4">
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header">Bookings by Status</div>
+            <div class="card-header">@Localizer["BookingsByStatus"]</div>
             <div class="card-body p-0">
                 <table class="table table-sm mb-0">
                     <thead class="table-light">
-                        <tr><th>Status</th><th class="text-end">Count</th></tr>
+                        <tr><th>@Localizer["Status"]</th><th class="text-end">@Localizer["Count"]</th></tr>
                     </thead>
                     <tbody>
                         @foreach (var (status, count) in Model.BookingsByStatus)
@@ -76,16 +76,16 @@
 </div>
 
 <div class="card">
-    <div class="card-header">Recent Bookings</div>
+    <div class="card-header">@Localizer["RecentBookings"]</div>
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Client</th>
-                    <th>Listing</th>
-                    <th>Status</th>
-                    <th class="text-end">Price</th>
-                    <th>Date</th>
+                    <th>@Localizer["Client"]</th>
+                    <th>@Localizer["Listing"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th class="text-end">@Localizer["Price"]</th>
+                    <th>@Localizer["Date"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -95,13 +95,13 @@
                         <td>@b.ClientName</td>
                         <td>@b.ListingTitle</td>
                         <td><span class="badge text-bg-secondary">@b.Status</span></td>
-                        <td class="text-end">€@b.TotalPrice.ToString("N2")</td>
+                        <td class="text-end">&euro;@b.TotalPrice.ToString("N2")</td>
                         <td>@b.CreatedAt.ToString("dd MMM yyyy")</td>
                     </tr>
                 }
                 @if (!Model.RecentBookings.Any())
                 {
-                    <tr><td colspan="5" class="text-muted text-center py-3">No bookings yet</td></tr>
+                    <tr><td colspan="5" class="text-muted text-center py-3">@Localizer["NoBookingsYet"]</td></tr>
                 }
             </tbody>
         </table>

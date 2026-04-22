@@ -1,3 +1,5 @@
+using AgriMarket.DAL;
+using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
 using AgriMarket.Web.Areas.Admin.Controllers;
@@ -9,13 +11,16 @@ namespace AgriMarket.Tests.Controllers.Admin;
 
 public class AccountControllerTests
 {
+    private static AgriMarket.BLL.Services.UserService CreateUserService(AppDbContext db) =>
+        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db));
+
     [Fact]
     public async Task Login_WithAdminRole_RedirectsToDashboard()
     {
         using var db = TestDbContextFactory.Create(nameof(Login_WithAdminRole_RedirectsToDashboard));
         TestDbContextFactory.SeedClientUser(db, "admin@test.com", "password123", RoleType.Admin);
 
-        var controller = new AccountController(new AgriMarket.BLL.Services.UserService(db));
+        var controller = new AccountController(CreateUserService(db));
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
 
         var result = await controller.Login(new LoginViewModel { Email = "admin@test.com", Password = "password123" });
@@ -33,7 +38,7 @@ public class AccountControllerTests
         using var db = TestDbContextFactory.Create(nameof(Login_WithClientRole_ReturnsViewWithError) + role);
         TestDbContextFactory.SeedClientUser(db, "client@test.com", "password123", role);
 
-        var controller = new AccountController(new AgriMarket.BLL.Services.UserService(db));
+        var controller = new AccountController(CreateUserService(db));
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
 
         var result = await controller.Login(new LoginViewModel { Email = "client@test.com", Password = "password123" });

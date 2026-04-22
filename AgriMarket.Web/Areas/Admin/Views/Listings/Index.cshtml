@@ -1,12 +1,12 @@
 @model ListingListViewModel
-@{ ViewData["Title"] = "Listings"; }
+@{ ViewData["Title"] = Localizer["Listings"].Value; }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">Listings <span class="badge text-bg-secondary fs-6">@Model.TotalCount</span></h4>
+    <h4 class="mb-0">@Localizer["Listings"] <span class="badge text-bg-secondary fs-6">@Model.TotalCount</span></h4>
     <div class="d-flex gap-2">
-        <a asp-action="Index" class="btn btn-sm @(Model.FilterActive == null ? "btn-secondary" : "btn-outline-secondary")">All</a>
-        <a asp-action="Index" asp-route-active="true" class="btn btn-sm @(Model.FilterActive == true ? "btn-success" : "btn-outline-success")">Active</a>
-        <a asp-action="Index" asp-route-active="false" class="btn btn-sm @(Model.FilterActive == false ? "btn-danger" : "btn-outline-danger")">Inactive</a>
+        <a asp-action="Index" class="btn btn-sm @(Model.FilterActive == null ? "btn-secondary" : "btn-outline-secondary")">@Localizer["All"]</a>
+        <a asp-action="Index" asp-route-active="true" class="btn btn-sm @(Model.FilterActive == true ? "btn-success" : "btn-outline-success")">@Localizer["Active"]</a>
+        <a asp-action="Index" asp-route-active="false" class="btn btn-sm @(Model.FilterActive == false ? "btn-danger" : "btn-outline-danger")">@Localizer["Inactive"]</a>
     </div>
 </div>
 
@@ -15,11 +15,11 @@
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Title</th>
-                    <th>Provider</th>
-                    <th>Category</th>
-                    <th>Price/ha</th>
-                    <th>Status</th>
+                    <th>@Localizer["Title"]</th>
+                    <th>@Localizer["Provider"]</th>
+                    <th>@Localizer["Category"]</th>
+                    <th>@Localizer["PricePerHa"]</th>
+                    <th>@Localizer["Status"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -30,25 +30,25 @@
                         <td>@listing.Title</td>
                         <td>@listing.ProviderName</td>
                         <td>@listing.CategoryName</td>
-                        <td>€@listing.PricePerHectare.ToString("0.00")</td>
+                        <td>&euro;@listing.PricePerHectare.ToString("0.00")</td>
                         <td>
                             @if (listing.IsActive)
                             {
-                                <span class="badge text-bg-success">Active</span>
+                                <span class="badge text-bg-success">@Localizer["Active"]</span>
                             }
                             else
                             {
-                                <span class="badge text-bg-secondary">Inactive</span>
+                                <span class="badge text-bg-secondary">@Localizer["Inactive"]</span>
                             }
                         </td>
                         <td class="text-end">
-                            <a asp-action="Details" asp-route-id="@listing.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                            <a asp-action="Details" asp-route-id="@listing.Id" class="btn btn-sm btn-outline-secondary">@Localizer["Details"]</a>
                         </td>
                     </tr>
                 }
                 @if (!Model.Listings.Any())
                 {
-                    <tr><td colspan="6" class="text-muted text-center py-3">No listings found</td></tr>
+                    <tr><td colspan="6" class="text-muted text-center py-3">@Localizer["NoListingsFound"]</td></tr>
                 }
             </tbody>
         </table>

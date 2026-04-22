@@ -1,16 +1,31 @@
 using AgriMarket.BLL;
 using AgriMarket.DAL;
 using AgriMarket.DAL.Seeding;
+using AgriMarket.Resources;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix);
+builder.Services.AddLocalization();
 builder.Services.AddDal();
 builder.Services.AddBll();
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { new CultureInfo("en"), new CultureInfo("et") };
+    options.DefaultRequestCulture = new RequestCulture("en");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -73,6 +88,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseRequestLocalization();
 
 app.UseAuthentication();
 app.UseAuthorization();

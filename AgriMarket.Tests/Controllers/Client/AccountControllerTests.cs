@@ -1,3 +1,5 @@
+using AgriMarket.DAL;
+using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
 using AgriMarket.Web.Areas.Client.Controllers;
@@ -9,6 +11,9 @@ namespace AgriMarket.Tests.Controllers.Client;
 
 public class AccountControllerTests
 {
+    private static AgriMarket.BLL.Services.UserService CreateUserService(AppDbContext db) =>
+        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db));
+
     [Theory]
     [InlineData(RoleType.Farmer)]
     [InlineData(RoleType.Provider)]
@@ -17,7 +22,7 @@ public class AccountControllerTests
         using var db = TestDbContextFactory.Create(nameof(Login_WithClientRole_RedirectsToListings) + role);
         TestDbContextFactory.SeedClientUser(db, "farmer@test.com", "password123", role);
 
-        var controller = new AccountController(new AgriMarket.BLL.Services.UserService(db));
+        var controller = new AccountController(CreateUserService(db));
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
 
         var result = await controller.Login(new LoginViewModel { Email = "farmer@test.com", Password = "password123" });
@@ -33,7 +38,7 @@ public class AccountControllerTests
         using var db = TestDbContextFactory.Create(nameof(Login_WithAdminRole_ReturnsViewWithError));
         TestDbContextFactory.SeedClientUser(db, "admin@test.com", "password123", RoleType.Admin);
 
-        var controller = new AccountController(new AgriMarket.BLL.Services.UserService(db));
+        var controller = new AccountController(CreateUserService(db));
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
 
         var result = await controller.Login(new LoginViewModel { Email = "admin@test.com", Password = "password123" });
@@ -49,7 +54,7 @@ public class AccountControllerTests
         using var db = TestDbContextFactory.Create(nameof(Login_WithWrongPassword_ReturnsViewWithError));
         TestDbContextFactory.SeedClientUser(db, "user@test.com", "correct", RoleType.Farmer);
 
-        var controller = new AccountController(new AgriMarket.BLL.Services.UserService(db));
+        var controller = new AccountController(CreateUserService(db));
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
 
         var result = await controller.Login(new LoginViewModel { Email = "user@test.com", Password = "wrong" });

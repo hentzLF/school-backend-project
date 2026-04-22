@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AgriMarket.DAL\AgriMarket.DAL.csproj" />
     <ProjectReference Include="..\AgriMarket.BLL\AgriMarket.BLL.csproj" />
+    <ProjectReference Include="..\AgriMarket.Resources\AgriMarket.Resources.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -11,6 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Localization" Version="10.0.7" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
   </ItemGroup>
 

@@ -1,10 +1,13 @@
+@using Microsoft.Extensions.Localization
+@using AgriMarket.Resources
+@inject IStringLocalizer<SharedResource> Localizer
 @model AgriMarket.Web.Areas.Client.ViewModels.LoginViewModel
 @{
-    ViewData["Title"] = "Sign In";
+    ViewData["Title"] = Localizer["SignIn"].Value;
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,23 +25,23 @@
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
                         <div class="mb-3">
-                            <label asp-for="Email" class="form-label">Email</label>
+                            <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
                             <input asp-for="Email" class="form-control" autocomplete="email" />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                         <div class="mb-3">
-                            <label asp-for="Password" class="form-label">Password</label>
+                            <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
                             <input asp-for="Password" class="form-control" autocomplete="current-password" />
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">Sign In</button>
+                        <button type="submit" class="btn btn-success w-100">@Localizer["SignIn"]</button>
                     </form>
                     <hr />
                     <p class="text-center mb-2 small">
-                        No account? <a asp-area="Client" asp-controller="Account" asp-action="Register">Register</a>
+                        @Localizer["NoAccount"] <a asp-area="Client" asp-controller="Account" asp-action="Register">@Localizer["Register"]</a>
                     </p>
                     <div class="text-center mt-3">
-                        <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none small">← Back to main page</a>
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none small">&larr; @Localizer["BackToMainPage"]</a>
                     </div>
                 </div>
             </div>

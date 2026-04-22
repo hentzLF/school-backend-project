@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -55,47 +55,48 @@
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
                    asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-                    Dashboard
+                    @Localizer["Dashboard"]
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
                    asp-area="Admin" asp-controller="Users" asp-action="Index">
-                    Users
+                    @Localizer["Users"]
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Listings" ? "active" : "")"
                    asp-area="Admin" asp-controller="Listings" asp-action="Index">
-                    Listings
+                    @Localizer["Listings"]
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bookings" ? "active" : "")"
                    asp-area="Admin" asp-controller="Bookings" asp-action="Index">
-                    Bookings
+                    @Localizer["Bookings"]
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")"
                    asp-area="Admin" asp-controller="Categories" asp-action="Index">
-                    Categories
+                    @Localizer["Categories"]
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Payments" ? "active" : "")"
                    asp-area="Admin" asp-controller="Payments" asp-action="Index">
-                    Payments
+                    @Localizer["Payments"]
                 </a>
             </li>
         </ul>
     </nav>
     <div class="admin-main">
         <div class="admin-topbar">
+            <partial name="_LanguageSwitcher" />
             <span class="text-muted small">@User.Identity?.Name</span>
             <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post" class="mb-0">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Sign out</button>
+                <button type="submit" class="btn btn-sm btn-outline-secondary">@Localizer["SignOut"]</button>
             </form>
         </div>
         <div class="admin-content">

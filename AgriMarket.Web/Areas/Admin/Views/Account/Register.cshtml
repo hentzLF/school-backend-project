@@ -1,10 +1,13 @@
+@using Microsoft.Extensions.Localization
+@using AgriMarket.Resources
+@inject IStringLocalizer<SharedResource> Localizer
 @model AgriMarket.Web.ViewModels.RegisterViewModel
 @{
-    ViewData["Title"] = "Admin Registration";
+    ViewData["Title"] = Localizer["AdminRegistration"].Value;
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -17,40 +20,40 @@
         <div class="col-md-5">
             <div class="card shadow-sm">
                 <div class="card-body p-4">
-                    <h4 class="card-title mb-4 text-center">Create Admin Account</h4>
+                    <h4 class="card-title mb-4 text-center">@Localizer["CreateAdminAccount"]</h4>
                     <form asp-area="Admin" asp-controller="Account" asp-action="Register" method="post">
                         @Html.AntiForgeryToken()
                         <div asp-validation-summary="All" class="text-danger mb-3"></div>
                         <div class="row mb-3">
                             <div class="col">
-                                <label asp-for="FirstName" class="form-label">First Name</label>
+                                <label asp-for="FirstName" class="form-label">@Localizer["FirstName"]</label>
                                 <input asp-for="FirstName" class="form-control" />
                                 <span asp-validation-for="FirstName" class="text-danger"></span>
                             </div>
                             <div class="col">
-                                <label asp-for="LastName" class="form-label">Last Name</label>
+                                <label asp-for="LastName" class="form-label">@Localizer["LastName"]</label>
                                 <input asp-for="LastName" class="form-control" />
                                 <span asp-validation-for="LastName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label asp-for="Email" class="form-label">Email</label>
+                            <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
                             <input asp-for="Email" class="form-control" autocomplete="email" />
                             <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                         <div class="mb-3">
-                            <label asp-for="Password" class="form-label">Password</label>
+                            <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
                             <input asp-for="Password" class="form-control" autocomplete="new-password" />
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
-                        <button type="submit" class="btn btn-success w-100">Create Account</button>
+                        <button type="submit" class="btn btn-success w-100">@Localizer["CreateAccount"]</button>
                     </form>
                     <hr />
                     <p class="text-center mb-2 small">
-                        Already have an account? <a asp-area="Admin" asp-controller="Account" asp-action="Login">Sign In</a>
+                        @Localizer["AlreadyHaveAccount"] <a asp-area="Admin" asp-controller="Account" asp-action="Login">@Localizer["SignIn"]</a>
                     </p>
                     <div class="text-center mt-3">
-                        <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none small">← Back to main page</a>
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none small">&larr; @Localizer["BackToMainPage"]</a>
                     </div>
                 </div>
             </div>

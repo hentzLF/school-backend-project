@@ -1,12 +1,12 @@
 @model AgriMarket.Web.Areas.Client.ViewModels.Profile.ProfileViewModel
 @{
-    ViewData["Title"] = "My Profile";
+    ViewData["Title"] = Localizer["MyProfile"].Value;
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">My Profile</h4>
+    <h4 class="mb-0">@Localizer["MyProfile"]</h4>
     <a asp-area="Client" asp-controller="Profile" asp-action="Edit" class="btn btn-sm btn-outline-primary">
-        Edit Profile
+        @Localizer["EditProfile"]
     </a>
 </div>
 
@@ -21,21 +21,21 @@
 <div class="card" style="max-width: 540px;">
     <div class="card-body">
         <dl class="row mb-0">
-            <dt class="col-sm-4">First Name</dt>
+            <dt class="col-sm-4">@Localizer["FirstName"]</dt>
             <dd class="col-sm-8">@Model.FirstName</dd>
 
-            <dt class="col-sm-4">Last Name</dt>
+            <dt class="col-sm-4">@Localizer["LastName"]</dt>
             <dd class="col-sm-8">@Model.LastName</dd>
 
-            <dt class="col-sm-4">Role</dt>
+            <dt class="col-sm-4">@Localizer["Role"]</dt>
             <dd class="col-sm-8">
                 <span class="badge text-bg-success">@Model.Role</span>
             </dd>
 
-            <dt class="col-sm-4">Bio</dt>
+            <dt class="col-sm-4">@Localizer["Bio"]</dt>
             <dd class="col-sm-8">@(Model.Bio ?? "—")</dd>
 
-            <dt class="col-sm-4">Avatar URL</dt>
+            <dt class="col-sm-4">@Localizer["AvatarUrl"]</dt>
             <dd class="col-sm-8">
                 @if (!string.IsNullOrWhiteSpace(Model.AvatarUrl))
                 {

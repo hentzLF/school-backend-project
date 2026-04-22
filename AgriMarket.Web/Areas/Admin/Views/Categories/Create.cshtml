@@ -1,9 +1,9 @@
 @model CategoryCreateViewModel
-@{ ViewData["Title"] = "Create Category"; }
+@{ ViewData["Title"] = Localizer["CreateCategory"].Value; }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">New Category</h4>
-    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Cancel</a>
+    <h4 class="mb-0">@Localizer["NewCategoryTitle"]</h4>
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">@Localizer["Cancel"]</a>
 </div>
 
 <div class="card" style="max-width: 480px;">
@@ -22,7 +22,7 @@
                 <textarea asp-for="Description" class="form-control" rows="3"></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="submit" class="btn btn-primary">@Localizer["Create"]</button>
         </form>
     </div>
 </div>

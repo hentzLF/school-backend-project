@@ -1,8 +1,8 @@
 @model UserListViewModel
-@{ ViewData["Title"] = "Users"; }
+@{ ViewData["Title"] = Localizer["Users"].Value; }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">Users <span class="badge text-bg-secondary fs-6">@Model.TotalCount</span></h4>
+    <h4 class="mb-0">@Localizer["Users"] <span class="badge text-bg-secondary fs-6">@Model.TotalCount</span></h4>
 </div>
 
 <div class="card">
@@ -10,11 +10,11 @@
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Email</th>
-                    <th>Profiles</th>
-                    <th>Roles</th>
-                    <th>Created</th>
-                    <th>Status</th>
+                    <th>@Localizer["Email"]</th>
+                    <th>@Localizer["Profiles"]</th>
+                    <th>@Localizer["Roles"]</th>
+                    <th>@Localizer["Created"]</th>
+                    <th>@Localizer["Status"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -34,21 +34,21 @@
                         <td>
                             @if (user.IsLocked)
                             {
-                                <span class="badge text-bg-danger">Locked</span>
+                                <span class="badge text-bg-danger">@Localizer["Locked"]</span>
                             }
                             else
                             {
-                                <span class="badge text-bg-success">Active</span>
+                                <span class="badge text-bg-success">@Localizer["Active"]</span>
                             }
                         </td>
                         <td class="text-end">
-                            <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-outline-secondary">Details</a>
+                            <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-sm btn-outline-secondary">@Localizer["Details"]</a>
                         </td>
                     </tr>
                 }
                 @if (!Model.Users.Any())
                 {
-                    <tr><td colspan="6" class="text-muted text-center py-3">No users found</td></tr>
+                    <tr><td colspan="6" class="text-muted text-center py-3">@Localizer["NoUsersFound"]</td></tr>
                 }
             </tbody>
         </table>

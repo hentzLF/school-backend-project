@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AgriMarket.DAL;
+using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
 using AgriMarket.Web.Areas.Client.Controllers;
@@ -16,6 +18,15 @@ namespace AgriMarket.Tests.Controllers.Client
 {
     public class MyListingsControllerTests
     {
+        private static MyListingsController CreateController(AppDbContext db, Guid userId, string role = "Provider") =>
+            new(
+                new AgriMarket.BLL.Services.ListingService(new EfRepository<ServiceListing>(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db)),
+                new AgriMarket.BLL.Services.CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db)),
+                new AgriMarket.BLL.Services.BookingService(new EfRepository<Booking>(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db)),
+                new AgriMarket.BLL.Services.UserService(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db)))
+            {
+                ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId, role)
+            };
         [Fact]
         public void Controller_HasProviderOnlyPolicy()
         {
@@ -35,10 +46,7 @@ namespace AgriMarket.Tests.Controllers.Client
             
             var (listing, availability) = TestDbContextFactory.SeedListing(db, profile1.Id);
 
-            var controller = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
-            {
-                ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider2.Id, "Provider")
-            };
+            var controller = CreateController(db, provider2.Id);
 
             var getResult = await controller.Availabilities(listing.Id);
             Assert.IsType<NotFoundResult>(getResult);
@@ -57,14 +65,11 @@ namespace AgriMarket.Tests.Controllers.Client
             using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
             var (provider, profile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
             var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
-            
+
             availability.IsBooked = true;
             await db.SaveChangesAsync();
 
-            var controller = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
-            {
-                ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider.Id, "Provider")
-            };
+            var controller = CreateController(db, provider.Id);
             var tempDataMock = new Mock<ITempDataDictionary>();
             controller.TempData = tempDataMock.Object;
 
@@ -82,10 +87,7 @@ namespace AgriMarket.Tests.Controllers.Client
             var (provider, profile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
             var (listing, _) = TestDbContextFactory.SeedListing(db, profile.Id);
 
-            var controller = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
-            {
-                ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider.Id, "Provider")
-            };
+            var controller = CreateController(db, provider.Id);
 
             var model = new ManageAvailabilitiesViewModel
             {
@@ -108,10 +110,7 @@ namespace AgriMarket.Tests.Controllers.Client
             var (provider, provProfile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
             var (farmer, farmProfile) = TestDbContextFactory.SeedClientUser(db, "f@t.c", "pwd", RoleType.Farmer);
 
-            var pController = new MyListingsController(new AgriMarket.BLL.Services.ListingService(db), new AgriMarket.BLL.Services.CategoryService(db), new AgriMarket.BLL.Services.BookingService(db), new AgriMarket.BLL.Services.UserService(db))
-            {
-                ControllerContext = ControllerContextFactory.WithAuthenticatedUser(provider.Id, "Provider")
-            };
+            var pController = CreateController(db, provider.Id);
 
             var categoryId = Guid.Parse("a1b2c3d4-0001-0000-0000-000000000001");
             var createRes = await pController.Create(new MyListingCreateViewModel 

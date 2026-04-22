@@ -1,13 +1,13 @@
 @model AgriMarket.Web.Areas.Client.ViewModels.Listings.ListingIndexViewModel
 @{
-    ViewData["Title"] = "Listings";
+    ViewData["Title"] = Localizer["Listings"].Value;
 }
 
-<h2 class="mb-4">Available Services</h2>
+<h2 class="mb-4">@Localizer["AvailableServices"]</h2>
 
 @if (!Model.Listings.Any())
 {
-    <div class="alert alert-info">No active listings are available at this time. Please check back later.</div>
+    <div class="alert alert-info">@Localizer["NoActiveListings"]</div>
 }
 else
 {
@@ -22,13 +22,13 @@ else
                             <span class="badge bg-secondary">@listing.CategoryName</span>
                         </p>
                         <p class="card-text">
-                            <small class="text-muted">Provider: @listing.ProviderName</small>
+                            <small class="text-muted">@Localizer["Provider"]: @listing.ProviderName</small>
                         </p>
-                        <p class="card-text fw-bold">@listing.PricePerHectare.ToString("C") / ha</p>
+                        <p class="card-text fw-bold">&euro;@listing.PricePerHectare.ToString("N2") / ha</p>
                     </div>
                     <div class="card-footer bg-transparent border-0">
                         <a asp-area="Client" asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id"
-                           class="btn btn-outline-success btn-sm w-100">View Details</a>
+                           class="btn btn-outline-success btn-sm w-100">@Localizer["ViewDetails"]</a>
                     </div>
                 </div>
             </div>

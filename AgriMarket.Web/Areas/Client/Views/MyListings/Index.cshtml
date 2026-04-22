@@ -1,19 +1,19 @@
 @model AgriMarket.Web.Areas.Client.ViewModels.MyListings.MyListingIndexViewModel
 
 @{
-    ViewData["Title"] = "My Listings";
+    ViewData["Title"] = Localizer["MyListings"].Value;
 }
 
-<h1>My Listings</h1>
+<h1>@Localizer["MyListings"]</h1>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Create New Listing</a>
+    <a asp-action="Create" class="btn btn-primary">@Localizer["CreateNewListing"]</a>
 </p>
 
 @if (!Model.Listings.Any())
 {
     <div class="alert alert-info">
-        You don't have any listings yet.
+        @Localizer["NoListingsYet"]
     </div>
 }
 else
@@ -21,11 +21,11 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Price / Hectare</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>@Localizer["Title"]</th>
+                <th>@Localizer["Category"]</th>
+                <th>@Localizer["PriceSlashHectare"]</th>
+                <th>@Localizer["Status"]</th>
+                <th>@Localizer["Actions"]</th>
             </tr>
         </thead>
         <tbody>
@@ -34,19 +34,19 @@ else
                 <tr>
                     <td>@item.Title</td>
                     <td>@item.CategoryName</td>
-                    <td>@item.PricePerHectare.ToString("C")</td>
+                    <td>&euro;@item.PricePerHectare.ToString("N2")</td>
                     <td>
                         @if (item.IsActive)
                         {
-                            <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">@Localizer["Active"]</span>
                         }
                         else
                         {
-                            <span class="badge bg-secondary">Inactive</span>
+                            <span class="badge bg-secondary">@Localizer["Inactive"]</span>
                         }
                     </td>
                     <td>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">@Localizer["Details"]</a>
                     </td>
                 </tr>
             }

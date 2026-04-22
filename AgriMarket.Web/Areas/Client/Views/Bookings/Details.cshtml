@@ -1,40 +1,40 @@
 @model AgriMarket.Web.Areas.Client.ViewModels.Bookings.BookingDetailsViewModel
 @{
-    ViewData["Title"] = "Booking Details";
+    ViewData["Title"] = Localizer["BookingDetails"].Value;
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">Booking Details</h4>
+    <h4 class="mb-0">@Localizer["BookingDetails"]</h4>
     <a asp-area="Client" asp-controller="Bookings" asp-action="Index" class="btn btn-sm btn-outline-secondary">
-        Back to My Bookings
+        @Localizer["BackToMyBookings"]
     </a>
 </div>
 
 <div class="row g-4">
     <div class="col-md-7">
         <div class="card">
-            <div class="card-header">Booking Info</div>
+            <div class="card-header">@Localizer["BookingInfo"]</div>
             <div class="card-body">
                 <dl class="row mb-0">
-                    <dt class="col-sm-5">Listing</dt>
+                    <dt class="col-sm-5">@Localizer["Listing"]</dt>
                     <dd class="col-sm-7">
                         <a asp-area="Client" asp-controller="Listings" asp-action="Details"
                            asp-route-id="@Model.ListingId">@Model.ListingTitle</a>
                     </dd>
-                    <dt class="col-sm-5">Status</dt>
+                    <dt class="col-sm-5">@Localizer["Status"]</dt>
                     <dd class="col-sm-7"><span class="badge text-bg-primary">@Model.Status</span></dd>
-                    <dt class="col-sm-5">Area</dt>
+                    <dt class="col-sm-5">@Localizer["Area"]</dt>
                     <dd class="col-sm-7">@Model.AreaInHectares.ToString("0.00") ha</dd>
-                    <dt class="col-sm-5">Total Price</dt>
-                    <dd class="col-sm-7 fw-bold text-success">€@Model.TotalPrice.ToString("0.00")</dd>
-                    <dt class="col-sm-5">Availability</dt>
+                    <dt class="col-sm-5">@Localizer["TotalPrice"]</dt>
+                    <dd class="col-sm-7 fw-bold text-success">&euro;@Model.TotalPrice.ToString("0.00")</dd>
+                    <dt class="col-sm-5">@Localizer["Availability"]</dt>
                     <dd class="col-sm-7">
                         @Model.AvailabilityStart.ToString("dd MMM yyyy HH:mm") &ndash;
                         @Model.AvailabilityEnd.ToString("dd MMM yyyy HH:mm")
                     </dd>
-                    <dt class="col-sm-5">Created</dt>
+                    <dt class="col-sm-5">@Localizer["Created"]</dt>
                     <dd class="col-sm-7">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
-                    <dt class="col-sm-5">Notes</dt>
+                    <dt class="col-sm-5">@Localizer["Notes"]</dt>
                     <dd class="col-sm-7">@(Model.Notes ?? "—")</dd>
                 </dl>
             </div>
@@ -45,15 +45,15 @@
         @if (Model.CanConfirmCompletion)
         {
             <div class="card border-success">
-                <div class="card-header bg-success text-white">Confirm Completion</div>
+                <div class="card-header bg-success text-white">@Localizer["ConfirmCompletion"]</div>
                 <div class="card-body">
                     <p class="card-text">
-                        The provider has marked this booking as completed. Please confirm to finalise it.
+                        @Localizer["ConfirmCompletionDescription"]
                     </p>
                     <form asp-area="Client" asp-controller="Bookings" asp-action="ConfirmCompletion"
                           asp-route-id="@Model.Id" method="post">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-success w-100">Confirm Completion</button>
+                        <button type="submit" class="btn btn-success w-100">@Localizer["ConfirmCompletion"]</button>
                     </form>
                 </div>
             </div>
@@ -62,7 +62,7 @@
         {
             <div class="card">
                 <div class="card-body text-muted">
-                    <p class="mb-0">No actions available for the current booking status.</p>
+                    <p class="mb-0">@Localizer["NoActionsAvailable"]</p>
                 </div>
             </div>
         }

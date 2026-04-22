@@ -1,9 +1,9 @@
 @model CategoryListViewModel
-@{ ViewData["Title"] = "Categories"; }
+@{ ViewData["Title"] = Localizer["Categories"].Value; }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">Categories <span class="badge text-bg-secondary fs-6">@Model.TotalCount</span></h4>
-    <a asp-action="Create" class="btn btn-sm btn-primary">+ New Category</a>
+    <h4 class="mb-0">@Localizer["Categories"] <span class="badge text-bg-secondary fs-6">@Model.TotalCount</span></h4>
+    <a asp-action="Create" class="btn btn-sm btn-primary">@Localizer["NewCategory"]</a>
 </div>
 
 <div class="card">
@@ -11,9 +11,9 @@
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Listings</th>
+                    <th>@Localizer["Name"]</th>
+                    <th>@Localizer["Description"]</th>
+                    <th>@Localizer["Listings"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -25,14 +25,14 @@
                         <td>@(cat.Description ?? "—")</td>
                         <td>@cat.ListingsCount</td>
                         <td class="text-end">
-                            <a asp-action="Edit" asp-route-id="@cat.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <a asp-action="Delete" asp-route-id="@cat.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                            <a asp-action="Edit" asp-route-id="@cat.Id" class="btn btn-sm btn-outline-primary">@Localizer["Edit"]</a>
+                            <a asp-action="Delete" asp-route-id="@cat.Id" class="btn btn-sm btn-outline-danger">@Localizer["Delete"]</a>
                         </td>
                     </tr>
                 }
                 @if (!Model.Categories.Any())
                 {
-                    <tr><td colspan="4" class="text-muted text-center py-3">No categories found</td></tr>
+                    <tr><td colspan="4" class="text-muted text-center py-3">@Localizer["NoCategoriesFound"]</td></tr>
                 }
             </tbody>
         </table>

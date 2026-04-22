@@ -1,44 +1,44 @@
 @model BookingDetailViewModel
-@{ ViewData["Title"] = "Booking Details"; }
+@{ ViewData["Title"] = Localizer["BookingDetails"].Value; }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">Booking Details</h4>
+    <h4 class="mb-0">@Localizer["BookingDetails"]</h4>
     <div class="d-flex gap-2">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">Edit Status</a>
-        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger">Delete</a>
-        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Back</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">@Localizer["EditStatus"]</a>
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger">@Localizer["Delete"]</a>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">@Localizer["Back"]</a>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-md-6">
         <div class="card mb-4">
-            <div class="card-header">Booking Info</div>
+            <div class="card-header">@Localizer["BookingInfo"]</div>
             <div class="card-body">
                 <dl class="row mb-0">
-                    <dt class="col-sm-5">Status</dt>
+                    <dt class="col-sm-5">@Localizer["Status"]</dt>
                     <dd class="col-sm-7"><span class="badge text-bg-primary">@Model.Status</span></dd>
-                    <dt class="col-sm-5">Total Price</dt>
-                    <dd class="col-sm-7">€@Model.TotalPrice.ToString("0.00")</dd>
-                    <dt class="col-sm-5">Area</dt>
+                    <dt class="col-sm-5">@Localizer["TotalPrice"]</dt>
+                    <dd class="col-sm-7">&euro;@Model.TotalPrice.ToString("0.00")</dd>
+                    <dt class="col-sm-5">@Localizer["Area"]</dt>
                     <dd class="col-sm-7">@Model.AreaInHectares.ToString("0.00") ha</dd>
-                    <dt class="col-sm-5">Created</dt>
+                    <dt class="col-sm-5">@Localizer["Created"]</dt>
                     <dd class="col-sm-7">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
-                    <dt class="col-sm-5">Notes</dt>
+                    <dt class="col-sm-5">@Localizer["Notes"]</dt>
                     <dd class="col-sm-7">@(Model.Notes ?? "—")</dd>
-                    <dt class="col-sm-5">Availability</dt>
+                    <dt class="col-sm-5">@Localizer["Availability"]</dt>
                     <dd class="col-sm-7">@Model.AvailabilityStart.ToString("dd MMM yyyy") – @Model.AvailabilityEnd.ToString("dd MMM yyyy")</dd>
                 </dl>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Client &amp; Listing</div>
+            <div class="card-header">@Localizer["ClientAndListing"]</div>
             <div class="card-body">
                 <dl class="row mb-0">
-                    <dt class="col-sm-5">Client</dt>
+                    <dt class="col-sm-5">@Localizer["Client"]</dt>
                     <dd class="col-sm-7">@Model.ClientName</dd>
-                    <dt class="col-sm-5">Listing</dt>
+                    <dt class="col-sm-5">@Localizer["Listing"]</dt>
                     <dd class="col-sm-7">
                         <a asp-controller="Listings" asp-action="Details" asp-route-id="@Model.ListingId">@Model.ListingTitle</a>
                     </dd>
@@ -51,17 +51,17 @@
         @if (Model.PaymentId.HasValue)
         {
             <div class="card mb-4">
-                <div class="card-header">Payment</div>
+                <div class="card-header">@Localizer["Payment"]</div>
                 <div class="card-body">
                     <dl class="row mb-0">
-                        <dt class="col-sm-5">Status</dt>
+                        <dt class="col-sm-5">@Localizer["Status"]</dt>
                         <dd class="col-sm-7"><span class="badge text-bg-info">@Model.PaymentStatus</span></dd>
-                        <dt class="col-sm-5">Amount</dt>
-                        <dd class="col-sm-7">€@Model.PaymentAmount?.ToString("0.00")</dd>
-                        <dt class="col-sm-5">Platform Fee</dt>
-                        <dd class="col-sm-7">€@Model.PlatformFee?.ToString("0.00")</dd>
+                        <dt class="col-sm-5">@Localizer["Amount"]</dt>
+                        <dd class="col-sm-7">&euro;@Model.PaymentAmount?.ToString("0.00")</dd>
+                        <dt class="col-sm-5">@Localizer["PlatformFee"]</dt>
+                        <dd class="col-sm-7">&euro;@Model.PlatformFee?.ToString("0.00")</dd>
                     </dl>
-                    <a asp-controller="Payments" asp-action="Details" asp-route-id="@Model.PaymentId" class="btn btn-sm btn-outline-info mt-2">View Payment</a>
+                    <a asp-controller="Payments" asp-action="Details" asp-route-id="@Model.PaymentId" class="btn btn-sm btn-outline-info mt-2">@Localizer["ViewPayment"]</a>
                 </div>
             </div>
         }
@@ -69,14 +69,14 @@
         @if (Model.ReviewRating.HasValue)
         {
             <div class="card">
-                <div class="card-header">Review</div>
+                <div class="card-header">@Localizer["Review"]</div>
                 <div class="card-body">
                     <dl class="row mb-0">
-                        <dt class="col-sm-5">Rating</dt>
+                        <dt class="col-sm-5">@Localizer["Rating"]</dt>
                         <dd class="col-sm-7">@Model.ReviewRating / 5</dd>
-                        <dt class="col-sm-5">Comment</dt>
+                        <dt class="col-sm-5">@Localizer["Comment"]</dt>
                         <dd class="col-sm-7">@(Model.ReviewComment ?? "—")</dd>
-                        <dt class="col-sm-5">Date</dt>
+                        <dt class="col-sm-5">@Localizer["Date"]</dt>
                         <dd class="col-sm-7">@Model.ReviewCreatedAt?.ToString("dd MMM yyyy")</dd>
                     </dl>
                 </div>

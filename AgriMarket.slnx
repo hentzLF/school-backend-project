@@ -3,5 +3,6 @@
   <Project Path="AgriMarket.BLL/AgriMarket.BLL.csproj" />
   <Project Path="AgriMarket.DAL/AgriMarket.DAL.csproj" />
   <Project Path="AgriMarket.Domain/AgriMarket.Domain.csproj" />
+  <Project Path="AgriMarket.Resources/AgriMarket.Resources.csproj" />
   <Project Path="AgriMarket.Web/AgriMarket.Web.csproj" />
 </Solution>

@@ -2,12 +2,12 @@
 @model AgriMarket.Web.Areas.Client.ViewModels.MyListings.BookingsForListingViewModel
 
 @{
-    ViewData["Title"] = "Bookings for " + Model.ListingTitle;
+    ViewData["Title"] = Localizer["BookingsFor", Model.ListingTitle].Value;
 }
 
 <div class="d-flex align-items-center justify-content-between mb-4">
-    <h4 class="mb-0">Bookings for @Model.ListingTitle</h4>
-    <a asp-action="Details" asp-route-id="@Model.ListingId" class="btn btn-sm btn-outline-secondary">Back to Listing</a>
+    <h4 class="mb-0">@Localizer["BookingsFor", Model.ListingTitle]</h4>
+    <a asp-action="Details" asp-route-id="@Model.ListingId" class="btn btn-sm btn-outline-secondary">@Localizer["BackToListing"]</a>
 </div>
 
 @if (TempData["ErrorMessage"] != null)
@@ -20,7 +20,7 @@
 
 @if (!Model.Bookings.Any())
 {
-    <div class="alert alert-info">No bookings found for this listing.</div>
+    <div class="alert alert-info">@Localizer["NoBookingsForListing"]</div>
 }
 else
 {
@@ -28,12 +28,12 @@ else
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
-                    <th>Client</th>
-                    <th>Status</th>
-                    <th>Area (ha)</th>
-                    <th>Total Price</th>
-                    <th>Date</th>
-                    <th>Actions</th>
+                    <th>@Localizer["Client"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th>@Localizer["AreaHa"]</th>
+                    <th>@Localizer["TotalPrice"]</th>
+                    <th>@Localizer["Date"]</th>
+                    <th>@Localizer["Actions"]</th>
                 </tr>
             </thead>
             <tbody>
@@ -43,7 +43,7 @@ else
                         <td>@item.ClientName</td>
                         <td><span class="badge bg-secondary">@item.Status</span></td>
                         <td>@item.AreaInHectares.ToString("0.00")</td>
-                        <td>€@item.TotalPrice.ToString("0.00")</td>
+                        <td>&euro;@item.TotalPrice.ToString("0.00")</td>
                         <td>@item.CreatedAt.ToShortDateString()</td>
                         <td>
                             @if (item.Status == BookingStatus.Pending)
@@ -53,14 +53,14 @@ else
                                     <input type="hidden" name="bookingId" value="@item.Id" />
                                     <input type="hidden" name="listingId" value="@Model.ListingId" />
                                     <input type="hidden" name="status" value="@((int)BookingStatus.Confirmed)" />
-                                    <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                    <button type="submit" class="btn btn-sm btn-success">@Localizer["Accept"]</button>
                                 </form>
                                 <form asp-action="UpdateBookingStatus" method="post" class="d-inline ms-1">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="bookingId" value="@item.Id" />
                                     <input type="hidden" name="listingId" value="@Model.ListingId" />
                                     <input type="hidden" name="status" value="@((int)BookingStatus.Cancelled)" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@Localizer["Reject"]</button>
                                 </form>
                             }
                             else if (item.Status == BookingStatus.Confirmed)
@@ -70,7 +70,7 @@ else
                                     <input type="hidden" name="bookingId" value="@item.Id" />
                                     <input type="hidden" name="listingId" value="@Model.ListingId" />
                                     <input type="hidden" name="status" value="@((int)BookingStatus.InProgress)" />
-                                    <button type="submit" class="btn btn-sm btn-primary">Start Work</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">@Localizer["StartWork"]</button>
                                 </form>
                             }
                             else if (item.Status == BookingStatus.InProgress)
@@ -80,7 +80,7 @@ else
                                     <input type="hidden" name="bookingId" value="@item.Id" />
                                     <input type="hidden" name="listingId" value="@Model.ListingId" />
                                     <input type="hidden" name="status" value="@((int)BookingStatus.ProviderCompleted)" />
-                                    <button type="submit" class="btn btn-sm btn-success">Mark Complete</button>
+                                    <button type="submit" class="btn btn-sm btn-success">@Localizer["MarkComplete"]</button>
                                 </form>
                             }
                             else

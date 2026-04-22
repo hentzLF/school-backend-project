@@ -4,6 +4,7 @@ using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
@@ -14,7 +15,8 @@ public class AuthService(
     IRepository<RefreshToken> refreshTokens,
     IUnitOfWork uow,
     ITokenService tokenService,
-    IConfiguration config) : IAuthService
+    IConfiguration config,
+    ILogger<AuthService> logger) : IAuthService
 {
     public async Task RegisterAsync(RegisterRequest request)
     {
@@ -60,7 +62,10 @@ public class AuthService(
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        {
+            logger.LogWarning("Failed login attempt for email {Email}", request.Email);
             throw new UnauthorizedAccessException("Invalid credentials.");
+        }
 
         var profiles = user.Profiles!.ToList();
 

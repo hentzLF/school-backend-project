@@ -3,6 +3,7 @@ using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
@@ -10,7 +11,8 @@ public class UserService(
     IRepository<AppUser> appUsers,
     IRepository<UserProfile> userProfiles,
     IRepository<ProfileRole> profileRoles,
-    IUnitOfWork uow) : IUserService
+    IUnitOfWork uow,
+    ILogger<UserService> logger) : IUserService
 {
     public async Task<IEnumerable<UserProfileDto>> GetAllUsersAsync()
     {

@@ -2,6 +2,7 @@ using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
@@ -9,7 +10,8 @@ public class DashboardService(
     IRepository<AppUser> appUsers,
     IRepository<ServiceListing> serviceListings,
     IRepository<Booking> bookings,
-    IRepository<Payment> payments) : IDashboardService
+    IRepository<Payment> payments,
+    ILogger<DashboardService> logger) : IDashboardService
 {
     public async Task<DashboardStats> GetDashboardStatsAsync()
     {

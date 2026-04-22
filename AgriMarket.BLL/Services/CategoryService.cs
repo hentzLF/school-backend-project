@@ -1,13 +1,15 @@
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
 public class CategoryService(
     IRepository<ServiceCategory> categories,
     IRepository<ServiceListing> listings,
-    IUnitOfWork uow) : ICategoryService
+    IUnitOfWork uow,
+    ILogger<CategoryService> logger) : ICategoryService
 {
     public async Task<IEnumerable<ServiceCategory>> GetAllAsync()
     {

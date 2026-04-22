@@ -2,12 +2,14 @@ using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
 public class PaymentService(
     IRepository<Payment> payments,
-    IUnitOfWork uow) : IPaymentService
+    IUnitOfWork uow,
+    ILogger<PaymentService> logger) : IPaymentService
 {
     public async Task<IEnumerable<Payment>> GetAllAsync(PaymentStatus? status)
     {

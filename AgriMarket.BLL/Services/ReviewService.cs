@@ -4,6 +4,7 @@ using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
@@ -11,7 +12,8 @@ public class ReviewService(
     IRepository<Review> reviews,
     IRepository<UserProfile> userProfiles,
     IRepository<Booking> bookings,
-    IUnitOfWork uow) : IReviewService
+    IUnitOfWork uow,
+    ILogger<ReviewService> logger) : IReviewService
 {
     public async Task<IEnumerable<ReviewDto>> GetByBookingAsync(Guid bookingId)
     {

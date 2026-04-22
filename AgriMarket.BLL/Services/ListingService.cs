@@ -4,6 +4,7 @@ using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
@@ -12,7 +13,8 @@ public class ListingService(
     IRepository<UserProfile> userProfiles,
     IRepository<Booking> bookings,
     IRepository<Availability> availabilities,
-    IUnitOfWork uow) : IListingService
+    IUnitOfWork uow,
+    ILogger<ListingService> logger) : IListingService
 {
     private static readonly BookingStatus[] ActiveBookingStatuses =
     [

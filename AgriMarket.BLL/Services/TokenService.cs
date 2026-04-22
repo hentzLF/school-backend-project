@@ -5,6 +5,7 @@ using System.Text;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AgriMarket.BLL.Services;
@@ -12,10 +13,12 @@ namespace AgriMarket.BLL.Services;
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<TokenService> _logger;
 
-    public TokenService(IConfiguration config)
+    public TokenService(IConfiguration config, ILogger<TokenService> logger)
     {
         _config = config;
+        _logger = logger;
     }
 
     public string GenerateAccessToken(AppUser user, UserProfile profile, RoleType role)
@@ -72,8 +75,9 @@ public class TokenService : ITokenService
 
             return Guid.TryParse(sub, out var userId) ? userId : null;
         }
-        catch (SecurityTokenException)
+        catch (SecurityTokenException ex)
         {
+            _logger.LogWarning(ex, "Session token validation failed");
             return null;
         }
     }

@@ -4,6 +4,7 @@ using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
@@ -12,7 +13,8 @@ public class BookingService(
     IRepository<UserProfile> userProfiles,
     IRepository<ServiceListing> serviceListings,
     IRepository<Availability> availabilities,
-    IUnitOfWork uow) : IBookingService
+    IUnitOfWork uow,
+    ILogger<BookingService> logger) : IBookingService
 {
     public async Task<IEnumerable<BookingDto>> GetAllAsync(BookingStatus? status = null)
     {

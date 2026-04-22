@@ -18,10 +18,12 @@ public class UserService(
     {
         var profiles = await userProfiles.Query()
             .AsNoTracking()
+            .Include(p => p.AppUser)
+            .Include(p => p.Roles)
             .OrderByDescending(p => p.Id)
             .ToListAsync();
 
-        return profiles.Select(p => ToUserProfileDto(p, null));
+        return profiles.Select(p => ToUserProfileDto(p, p.AppUser?.Email));
     }
 
     public async Task<UserProfileDto?> GetUserByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
@@ -155,7 +157,11 @@ public class UserService(
             Bio = profile.Bio,
             AvatarUrl = profile.AvatarUrl,
             AppUserId = profile.AppUserId,
-            Email = email
+            Email = email,
+            CreatedAt = profile.AppUser?.CreatedAt ?? default,
+            IsLocked = profile.AppUser?.LockoutEnd > DateTime.UtcNow,
+            LockoutEnd = profile.AppUser?.LockoutEnd,
+            Roles = profile.Roles?.Select(r => r.Role).ToList() ?? []
         };
     }
 }

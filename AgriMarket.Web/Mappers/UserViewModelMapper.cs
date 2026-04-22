@@ -37,10 +37,10 @@ public static class UserViewModelMapper
             Id = dto.Id,
             Email = dto.Email ?? string.Empty,
             ProfilesCount = 1,
-            Roles = [],
-            CreatedAt = default,
-            IsLocked = false,
-            LockoutEnd = null
+            Roles = dto.Roles,
+            CreatedAt = dto.CreatedAt,
+            IsLocked = dto.IsLocked,
+            LockoutEnd = dto.LockoutEnd
         };
     }
 }

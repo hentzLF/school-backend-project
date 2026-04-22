@@ -11,6 +11,7 @@ public class ListingDetailsViewModel
     public string CategoryName { get; set; } = default!;
     public string ProviderName { get; set; } = default!;
     public IEnumerable<AvailabilityOptionViewModel> Availabilities { get; set; } = [];
+    public bool IsOwnListing { get; set; }
 }
 
 public class AvailabilityOptionViewModel

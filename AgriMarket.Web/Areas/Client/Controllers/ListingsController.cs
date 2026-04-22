@@ -50,6 +50,9 @@ public class ListingsController(AppDbContext db) : Controller
 
         if (listing == null) return NotFound();
 
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isOwnListing = userId != null && listing.UserProfile?.AppUserId == Guid.Parse(userId);
+
         var vm = new ListingDetailsViewModel
         {
             Id = listing.Id,
@@ -60,6 +63,7 @@ public class ListingsController(AppDbContext db) : Controller
             ProviderName = listing.UserProfile != null
                 ? $"{listing.UserProfile.FirstName} {listing.UserProfile.LastName}"
                 : "Unknown",
+            IsOwnListing = isOwnListing,
             Availabilities = listing.Availabilities?
                 .Where(a => !a.IsBooked)
                 .OrderBy(a => a.StartTime)
@@ -91,9 +95,13 @@ public class ListingsController(AppDbContext db) : Controller
         if (clientProfile == null) return Unauthorized();
 
         var listing = await db.ServiceListings
+            .Include(l => l.UserProfile)
             .FirstOrDefaultAsync(l => l.Id == model.ServiceListingId && l.IsActive);
 
         if (listing == null) return NotFound();
+
+        if (listing.UserProfile?.AppUserId == Guid.Parse(userId))
+            return RedirectToAction(nameof(Details), new { id = model.ServiceListingId });
 
         var availability = await db.Availabilities
             .FirstOrDefaultAsync(a => a.Id == model.AvailabilityId

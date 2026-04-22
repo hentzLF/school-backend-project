@@ -1,4 +1,5 @@
 using AgriMarket.BLL.Dtos.Reviews;
+using AgriMarket.BLL.Mappers;
 using AgriMarket.BLL;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
@@ -24,7 +25,7 @@ public class ReviewService : IReviewService
             .OrderByDescending(r => r.CreatedAt)
             .ToListAsync();
 
-        return reviews.Select(ToReviewDto);
+        return reviews.Select(r => r.ToReviewDto());
     }
 
     public async Task<(IEnumerable<ReviewDto> Items, int TotalCount)> GetAllAsync(int page, int pageSize)
@@ -37,13 +38,13 @@ public class ReviewService : IReviewService
             .Take(pageSize)
             .ToListAsync();
 
-        return (items.Select(ToReviewDto), totalCount);
+        return (items.Select(r => r.ToReviewDto()), totalCount);
     }
 
     public async Task<ReviewDto?> GetByIdAsync(Guid id)
     {
         var review = await _db.Reviews.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
-        return review is null ? null : ToReviewDto(review);
+        return review?.ToReviewDto();
     }
 
     public async Task<ReviewDto> CreateAsync(Guid userId, CreateReviewDto dto)
@@ -71,19 +72,6 @@ public class ReviewService : IReviewService
 
         _db.Reviews.Add(review);
         await _db.SaveChangesAsync();
-        return ToReviewDto(review);
-    }
-
-    private static ReviewDto ToReviewDto(Review review)
-    {
-        return new ReviewDto
-        {
-            Id = review.Id,
-            Rating = review.Rating,
-            Comment = review.Comment,
-            CreatedAt = review.CreatedAt,
-            BookingId = review.BookingId,
-            ReviewerProfileId = review.ReviewerProfileId
-        };
+        return review.ToReviewDto();
     }
 }

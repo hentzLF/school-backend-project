@@ -1,4 +1,5 @@
 using AgriMarket.BLL.Dtos.Bookings;
+using AgriMarket.BLL.Mappers;
 using AgriMarket.BLL;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
@@ -23,13 +24,13 @@ public class BookingService : IBookingService
             query = query.Where(b => b.Status == status.Value);
 
         var bookings = await query.OrderByDescending(b => b.CreatedAt).ToListAsync();
-        return bookings.Select(ToBookingDto);
+        return bookings.Select(b => b.ToBookingDto());
     }
 
     public async Task<BookingDto?> GetByIdAsync(Guid id)
     {
         var booking = await BuildBaseQuery().FirstOrDefaultAsync(b => b.Id == id);
-        return booking is null ? null : ToBookingDto(booking);
+        return booking?.ToBookingDto();
     }
 
     public async Task<IEnumerable<BookingDto>> GetByClientAsync(Guid clientProfileId)
@@ -39,7 +40,7 @@ public class BookingService : IBookingService
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
 
-        return bookings.Select(ToBookingDto);
+        return bookings.Select(b => b.ToBookingDto());
     }
 
     public async Task<IEnumerable<BookingDto>> GetByProviderAsync(Guid providerProfileId)
@@ -49,7 +50,7 @@ public class BookingService : IBookingService
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
 
-        return bookings.Select(ToBookingDto);
+        return bookings.Select(b => b.ToBookingDto());
     }
 
     public async Task<BookingDto> CreateAsync(Guid userId, CreateBookingDto dto)
@@ -175,17 +176,7 @@ public class BookingService : IBookingService
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
 
-        return bookings.Select(b => new BookingSummaryDto
-        {
-            Id = b.Id,
-            ClientName = b.ClientProfile is null
-                ? "Unknown"
-                : $"{b.ClientProfile.FirstName} {b.ClientProfile.LastName}",
-            Status = b.Status,
-            AreaInHectares = b.AreaInHectares,
-            TotalPrice = b.TotalPrice,
-            CreatedAt = b.CreatedAt
-        });
+        return bookings.Select(b => b.ToBookingSummaryDto());
     }
 
     public async Task<(IEnumerable<BookingDto> Items, int TotalCount)> GetAllForProfileAsync(Guid profileId, int page, int pageSize)
@@ -200,7 +191,7 @@ public class BookingService : IBookingService
             .Take(pageSize)
             .ToListAsync();
 
-        return (items.Select(ToBookingDto), totalCount);
+        return (items.Select(b => b.ToBookingDto()), totalCount);
     }
 
     private IQueryable<Booking> BuildBaseQuery()
@@ -212,28 +203,5 @@ public class BookingService : IBookingService
             .Include(b => b.Availability)
             .Include(b => b.Payment)
             .Include(b => b.Review);
-    }
-
-    private static BookingDto ToBookingDto(Booking booking)
-    {
-        return new BookingDto
-        {
-            Id = booking.Id,
-            Status = booking.Status,
-            TotalPrice = booking.TotalPrice,
-            AreaInHectares = booking.AreaInHectares,
-            CreatedAt = booking.CreatedAt,
-            Notes = booking.Notes,
-            ServiceListingId = booking.ServiceListingId,
-            ClientProfileId = booking.ClientProfileId,
-            AvailabilityId = booking.AvailabilityId,
-            ClientName = booking.ClientProfile is null
-                ? "Unknown"
-                : $"{booking.ClientProfile.FirstName} {booking.ClientProfile.LastName}",
-            ListingTitle = booking.ServiceListing?.Title ?? "Unknown",
-            ProviderProfileId = booking.ServiceListing?.UserProfileId ?? Guid.Empty,
-            AvailabilityStart = booking.Availability?.StartTime ?? default,
-            AvailabilityEnd = booking.Availability?.EndTime ?? default
-        };
     }
 }

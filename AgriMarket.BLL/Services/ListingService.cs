@@ -1,4 +1,5 @@
 using AgriMarket.BLL.Dtos.Listings;
+using AgriMarket.BLL.Mappers;
 using AgriMarket.BLL;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
@@ -32,7 +33,7 @@ public class ListingService : IListingService
             .OrderBy(l => l.Title)
             .ToListAsync();
 
-        return listings.Select(ToListingSummaryDto);
+        return listings.Select(l => l.ToListingSummaryDto());
     }
 
     public async Task<ListingDto?> GetByIdAsync(Guid id)
@@ -44,7 +45,7 @@ public class ListingService : IListingService
             .Include(l => l.Availabilities)
             .FirstOrDefaultAsync(l => l.Id == id);
 
-        return listing is null ? null : ToListingDto(listing);
+        return listing?.ToListingDto();
     }
 
     public async Task<IEnumerable<ListingSummaryDto>> GetByProviderAsync(Guid providerProfileId)
@@ -57,7 +58,7 @@ public class ListingService : IListingService
             .OrderBy(l => l.Title)
             .ToListAsync();
 
-        return listings.Select(ToListingSummaryDto);
+        return listings.Select(l => l.ToListingSummaryDto());
     }
 
     public async Task<ListingDto> CreateAsync(Guid userId, CreateListingDto dto)
@@ -142,7 +143,7 @@ public class ListingService : IListingService
             .OrderBy(l => l.Title)
             .ToListAsync();
 
-        return listings.Select(ToListingSummaryDto);
+        return listings.Select(l => l.ToListingSummaryDto());
     }
 
     public async Task ToggleActiveAsync(Guid userId, Guid listingId)
@@ -189,7 +190,7 @@ public class ListingService : IListingService
 
         _db.Availabilities.Add(availability);
         await _db.SaveChangesAsync();
-        return ToAvailabilityDto(availability);
+        return availability.ToAvailabilityDto();
     }
 
     public async Task DeleteAvailabilityAsync(Guid userId, Guid availabilityId)
@@ -220,57 +221,6 @@ public class ListingService : IListingService
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
 
-        return availability is null ? null : ToAvailabilityDto(availability);
-    }
-
-    private static ListingSummaryDto ToListingSummaryDto(ServiceListing listing)
-    {
-        return new ListingSummaryDto
-        {
-            Id = listing.Id,
-            Title = listing.Title,
-            CategoryName = listing.ServiceCategory?.Name ?? "Unknown",
-            ProviderName = listing.UserProfile is null
-                ? "Unknown"
-                : $"{listing.UserProfile.FirstName} {listing.UserProfile.LastName}",
-            PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive
-        };
-    }
-
-    private static ListingDto ToListingDto(ServiceListing listing)
-    {
-        return new ListingDto
-        {
-            Id = listing.Id,
-            Title = listing.Title,
-            Description = listing.Description,
-            PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive,
-            UserProfileId = listing.UserProfileId,
-            ServiceCategoryId = listing.ServiceCategoryId,
-            LocationId = listing.LocationId,
-            CategoryName = listing.ServiceCategory?.Name ?? "Unknown",
-            ProviderName = listing.UserProfile is null
-                ? "Unknown"
-                : $"{listing.UserProfile.FirstName} {listing.UserProfile.LastName}",
-            ProviderUserId = listing.UserProfile?.AppUserId,
-            Availabilities = (listing.Availabilities ?? [])
-                .OrderBy(a => a.StartTime)
-                .Select(ToAvailabilityDto)
-                .ToList()
-        };
-    }
-
-    private static AvailabilityDto ToAvailabilityDto(Availability availability)
-    {
-        return new AvailabilityDto
-        {
-            Id = availability.Id,
-            StartTime = availability.StartTime,
-            EndTime = availability.EndTime,
-            IsBooked = availability.IsBooked,
-            ServiceListingId = availability.ServiceListingId
-        };
+        return availability?.ToAvailabilityDto();
     }
 }

@@ -1,4 +1,5 @@
 using AgriMarket.BLL.Dtos.Users;
+using AgriMarket.BLL.Mappers;
 using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
@@ -22,7 +23,7 @@ public class UserService : IUserService
             .OrderByDescending(p => p.Id)
             .ToListAsync();
 
-        return profiles.Select(p => ToUserProfileDto(p, null));
+        return profiles.Select(p => p.ToUserProfileDto(null));
     }
 
     public async Task<UserProfileDto?> GetUserByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
@@ -36,7 +37,7 @@ public class UserService : IUserService
             return null;
 
         var canSeeEmail = isAdmin || (callerUserId.HasValue && callerUserId.Value == profile.AppUserId);
-        return ToUserProfileDto(profile, canSeeEmail ? profile.AppUser?.Email : null);
+        return profile.ToUserProfileDto(canSeeEmail ? profile.AppUser?.Email : null);
     }
 
     public async Task UpdateUserAsync(Guid appUserId, string email, DateTime? lockoutEnd)
@@ -87,7 +88,7 @@ public class UserService : IUserService
             .Include(p => p.AppUser)
             .FirstOrDefaultAsync(p => p.AppUserId == appUserId);
 
-        return profile is null ? null : ToUserProfileDto(profile, profile.AppUser?.Email);
+        return profile?.ToUserProfileDto(profile.AppUser?.Email);
     }
 
     public async Task UpdateProfileAsync(UserProfileDto profile)
@@ -138,7 +139,7 @@ public class UserService : IUserService
             .Take(pageSize)
             .ToListAsync();
 
-        return (profiles.Select(p => ToUserProfileDto(p, null)), totalCount);
+        return (profiles.Select(p => p.ToUserProfileDto(null)), totalCount);
     }
 
     public async Task<UserProfileDto?> GetProfileByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
@@ -151,20 +152,6 @@ public class UserService : IUserService
             return null;
 
         var canSeeEmail = isAdmin || (callerUserId.HasValue && callerUserId.Value == profile.AppUserId);
-        return ToUserProfileDto(profile, canSeeEmail ? profile.AppUser?.Email : null);
-    }
-
-    private static UserProfileDto ToUserProfileDto(UserProfile profile, string? email)
-    {
-        return new UserProfileDto
-        {
-            Id = profile.Id,
-            FirstName = profile.FirstName,
-            LastName = profile.LastName,
-            Bio = profile.Bio,
-            AvatarUrl = profile.AvatarUrl,
-            AppUserId = profile.AppUserId,
-            Email = email
-        };
+        return profile.ToUserProfileDto(canSeeEmail ? profile.AppUser?.Email : null);
     }
 }

@@ -49,6 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Dependency Inversion
+builder.Services.AddDal();
 builder.Services.AddBll();
 
 builder.Services.AddProblemDetails();

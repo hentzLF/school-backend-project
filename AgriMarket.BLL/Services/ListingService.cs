@@ -7,9 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.BLL.Services;
 
-public class ListingService : IListingService
+public class ListingService(
+    IRepository<ServiceListing> serviceListings,
+    IRepository<UserProfile> userProfiles,
+    IRepository<Booking> bookings,
+    IRepository<Availability> availabilities,
+    IUnitOfWork uow) : IListingService
 {
-    private readonly AppDbContext _db;
     private static readonly BookingStatus[] ActiveBookingStatuses =
     [
         BookingStatus.Pending,
@@ -18,14 +22,9 @@ public class ListingService : IListingService
         BookingStatus.ProviderCompleted
     ];
 
-    public ListingService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<ListingSummaryDto>> GetAllAsync()
     {
-        var listings = await _db.ServiceListings
+        var listings = await serviceListings.Query()
             .AsNoTracking()
             .Include(l => l.UserProfile)
             .Include(l => l.ServiceCategory)
@@ -37,7 +36,7 @@ public class ListingService : IListingService
 
     public async Task<ListingDto?> GetByIdAsync(Guid id)
     {
-        var listing = await _db.ServiceListings
+        var listing = await serviceListings.Query()
             .AsNoTracking()
             .Include(l => l.UserProfile)
             .Include(l => l.ServiceCategory)
@@ -49,7 +48,7 @@ public class ListingService : IListingService
 
     public async Task<IEnumerable<ListingSummaryDto>> GetByProviderAsync(Guid providerProfileId)
     {
-        var listings = await _db.ServiceListings
+        var listings = await serviceListings.Query()
             .AsNoTracking()
             .Include(l => l.UserProfile)
             .Include(l => l.ServiceCategory)
@@ -62,7 +61,7 @@ public class ListingService : IListingService
 
     public async Task<ListingDto> CreateAsync(Guid userId, CreateListingDto dto)
     {
-        var profile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
@@ -78,19 +77,19 @@ public class ListingService : IListingService
             IsActive = false
         };
 
-        _db.ServiceListings.Add(listing);
-        await _db.SaveChangesAsync();
+        serviceListings.Add(listing);
+        await uow.SaveChangesAsync();
 
         return (await GetByIdAsync(listing.Id))!;
     }
 
     public async Task<ListingDto> UpdateAsync(Guid userId, UpdateListingDto dto)
     {
-        var profile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await _db.ServiceListings.FirstOrDefaultAsync(l => l.Id == dto.Id);
+        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == dto.Id);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {dto.Id} not found.");
 
@@ -103,38 +102,38 @@ public class ListingService : IListingService
         listing.PricePerHectare = dto.PricePerHectare;
         listing.IsActive = dto.IsActive;
         listing.LocationId = dto.LocationId;
-        await _db.SaveChangesAsync();
+        await uow.SaveChangesAsync();
 
         return (await GetByIdAsync(listing.Id))!;
     }
 
     public async Task DeleteAsync(Guid userId, Guid listingId)
     {
-        var profile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await _db.ServiceListings.FirstOrDefaultAsync(l => l.Id == listingId);
+        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
 
         if (listing.UserProfileId != profile.Id)
             throw new BusinessRuleException("You do not own this listing.");
 
-        var hasActiveBookings = await _db.Bookings.AnyAsync(b =>
+        var hasActiveBookings = await bookings.AnyAsync(b =>
             b.ServiceListingId == listingId &&
             ActiveBookingStatuses.Contains(b.Status));
 
         if (hasActiveBookings)
             throw new BusinessRuleException("Cannot delete listing with active bookings.");
 
-        _db.ServiceListings.Remove(listing);
-        await _db.SaveChangesAsync();
+        serviceListings.Remove(listing);
+        await uow.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<ListingSummaryDto>> GetActiveListingsAsync()
     {
-        var listings = await _db.ServiceListings
+        var listings = await serviceListings.Query()
             .AsNoTracking()
             .Where(l => l.IsActive)
             .Include(l => l.UserProfile)
@@ -147,11 +146,11 @@ public class ListingService : IListingService
 
     public async Task ToggleActiveAsync(Guid userId, Guid listingId)
     {
-        var profile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await _db.ServiceListings.FirstOrDefaultAsync(l => l.Id == listingId);
+        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
 
@@ -159,7 +158,7 @@ public class ListingService : IListingService
             throw new BusinessRuleException("You do not own this listing.");
 
         listing.IsActive = !listing.IsActive;
-        await _db.SaveChangesAsync();
+        await uow.SaveChangesAsync();
     }
 
     public async Task<AvailabilityDto> AddAvailabilityAsync(Guid userId, CreateAvailabilityDto dto)
@@ -167,11 +166,11 @@ public class ListingService : IListingService
         if (dto.StartTime >= dto.EndTime)
             throw new BusinessRuleException("Start time must be before end time.");
 
-        var profile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await _db.ServiceListings.AsNoTracking().FirstOrDefaultAsync(l => l.Id == dto.ListingId);
+        var listing = await serviceListings.Query().AsNoTracking().FirstOrDefaultAsync(l => l.Id == dto.ListingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {dto.ListingId} not found.");
 
@@ -187,18 +186,18 @@ public class ListingService : IListingService
             IsBooked = false
         };
 
-        _db.Availabilities.Add(availability);
-        await _db.SaveChangesAsync();
+        availabilities.Add(availability);
+        await uow.SaveChangesAsync();
         return ToAvailabilityDto(availability);
     }
 
     public async Task DeleteAvailabilityAsync(Guid userId, Guid availabilityId)
     {
-        var profile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var availability = await _db.Availabilities
+        var availability = await availabilities.Query()
             .Include(a => a.ServiceListing)
             .FirstOrDefaultAsync(a => a.Id == availabilityId);
         if (availability is null)
@@ -210,13 +209,13 @@ public class ListingService : IListingService
         if (availability.IsBooked)
             throw new BusinessRuleException("Cannot delete a booked availability slot.");
 
-        _db.Availabilities.Remove(availability);
-        await _db.SaveChangesAsync();
+        availabilities.Remove(availability);
+        await uow.SaveChangesAsync();
     }
 
     public async Task<AvailabilityDto?> GetAvailabilityByIdAsync(Guid id)
     {
-        var availability = await _db.Availabilities
+        var availability = await availabilities.Query()
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
 

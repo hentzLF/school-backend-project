@@ -1,0 +1,70 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Bookings.BookingDetailsViewModel
+@{
+    ViewData["Title"] = "Booking Details";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">Booking Details</h4>
+    <a asp-area="Client" asp-controller="Bookings" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        Back to My Bookings
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">Booking Info</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Listing</dt>
+                    <dd class="col-sm-7">
+                        <a asp-area="Client" asp-controller="Listings" asp-action="Details"
+                           asp-route-id="@Model.ListingId">@Model.ListingTitle</a>
+                    </dd>
+                    <dt class="col-sm-5">Status</dt>
+                    <dd class="col-sm-7"><span class="badge text-bg-primary">@Model.Status</span></dd>
+                    <dt class="col-sm-5">Area</dt>
+                    <dd class="col-sm-7">@Model.AreaInHectares.ToString("0.00") ha</dd>
+                    <dt class="col-sm-5">Total Price</dt>
+                    <dd class="col-sm-7 fw-bold text-success">€@Model.TotalPrice.ToString("0.00")</dd>
+                    <dt class="col-sm-5">Availability</dt>
+                    <dd class="col-sm-7">
+                        @Model.AvailabilityStart.ToString("dd MMM yyyy HH:mm") &ndash;
+                        @Model.AvailabilityEnd.ToString("dd MMM yyyy HH:mm")
+                    </dd>
+                    <dt class="col-sm-5">Created</dt>
+                    <dd class="col-sm-7">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+                    <dt class="col-sm-5">Notes</dt>
+                    <dd class="col-sm-7">@(Model.Notes ?? "—")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        @if (Model.CanConfirmCompletion)
+        {
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">Confirm Completion</div>
+                <div class="card-body">
+                    <p class="card-text">
+                        The provider has marked this booking as completed. Please confirm to finalise it.
+                    </p>
+                    <form asp-area="Client" asp-controller="Bookings" asp-action="ConfirmCompletion"
+                          asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success w-100">Confirm Completion</button>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body text-muted">
+                    <p class="mb-0">No actions available for the current booking status.</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>

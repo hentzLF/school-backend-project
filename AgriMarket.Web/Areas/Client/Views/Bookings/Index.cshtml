@@ -1,0 +1,51 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Bookings.BookingIndexViewModel
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">My Bookings</h4>
+</div>
+
+@if (!Model.Bookings.Any())
+{
+    <div class="alert alert-info">
+        You have no bookings yet.
+        <a asp-area="Client" asp-controller="Listings" asp-action="Index">Browse listings</a> to get started.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Listing</th>
+                    <th>Status</th>
+                    <th>Area (ha)</th>
+                    <th>Total Price</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model.Bookings)
+                {
+                    <tr>
+                        <td>@booking.ListingTitle</td>
+                        <td><span class="badge text-bg-secondary">@booking.Status</span></td>
+                        <td>@booking.AreaInHectares.ToString("0.00")</td>
+                        <td>€@booking.TotalPrice.ToString("0.00")</td>
+                        <td>@booking.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
+                               asp-route-id="@booking.Id" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

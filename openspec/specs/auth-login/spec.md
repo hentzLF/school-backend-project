@@ -7,23 +7,23 @@ Defines the login flow for users authenticating with email and password, includi
 ## Requirements
 
 ### Requirement: User can log in with email and password
-The system SHALL verify the provided email and BCrypt password. If the user has exactly one profile, it SHALL return access and refresh tokens directly. If the user has multiple profiles, it SHALL return a short-lived session token (2-minute JWT containing only userId) and a list of available profiles.
+The system SHALL verify the provided email and BCrypt password for web MVC login endpoints dedicated to each audience. Admin login requires at least one `UserProfile` with `RoleType.Admin`. Client login requires at least one `UserProfile` with `RoleType.Farmer` or `RoleType.Provider`. The system SHALL issue an authenticated web principal only when credentials and audience role checks both succeed. Each audience login endpoint is independent; credentials valid for one audience do NOT grant access via the other endpoint.
 
-#### Scenario: Login with single profile returns tokens
-- **WHEN** a POST request is sent to `/api/auth/login` with valid credentials and the user has exactly one profile
-- **THEN** the system returns HTTP 200 with `{ accessToken, refreshToken }`
+#### Scenario: Successful admin web login
+- **WHEN** a POST request is sent to the admin login endpoint with valid credentials and the user has an Admin role
+- **THEN** the system signs in and redirects to the admin area
 
-#### Scenario: Login with multiple profiles returns session token and profile list
-- **WHEN** a POST request is sent to `/api/auth/login` with valid credentials and the user has more than one profile
-- **THEN** the system returns HTTP 200 with `{ sessionToken, profiles: [{ profileId, fullName, role }] }`
+#### Scenario: Successful client web login
+- **WHEN** a POST request is sent to the client login endpoint with valid credentials and the user has a client-facing role
+- **THEN** the system signs in and redirects to the client area
 
-#### Scenario: Invalid password rejected
-- **WHEN** a POST request is sent to `/api/auth/login` with a correct email but wrong password
-- **THEN** the system returns HTTP 401 Unauthorized
+#### Scenario: Valid credentials but missing required audience role
+- **WHEN** a POST request is sent to either audience login endpoint with valid credentials but without the role required by that endpoint
+- **THEN** the system rejects the login and returns an authorization error message
 
-#### Scenario: Unknown email rejected
-- **WHEN** a POST request is sent to `/api/auth/login` with an email that does not exist
-- **THEN** the system returns HTTP 401 Unauthorized (same response as wrong password — no user enumeration)
+#### Scenario: Invalid credentials
+- **WHEN** a POST request is sent to an audience login endpoint with invalid email or password
+- **THEN** the system rejects login without revealing whether the email exists
 
 ### Requirement: User can select a profile after multi-profile login
 The system SHALL accept a session token and a profileId. It SHALL validate that the session token is a valid, non-expired JWT containing only userId, and that the profileId belongs to that user. It SHALL then return full access and refresh tokens.

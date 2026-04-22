@@ -25,10 +25,8 @@ public class AppDbContext : DbContext
         .HasIndex(o => new { o.Provider, o.ProviderAccountId })
         .IsUnique();
 
-    // ConversationParticipant: sama kasutaja ei saa olla samas vestluses kaks korda
     modelBuilder.Entity<ConversationParticipant>()
-        .HasIndex(cp => new { cp.ConversationId, cp.UserProfileId })
-        .IsUnique();
+        .HasKey(cp => new { cp.ConversationId, cp.UserProfileId });
 
     // MessageRead: sama kasutaja ei saa sama sõnumit kaks korda lugeda
     modelBuilder.Entity<MessageRead>()

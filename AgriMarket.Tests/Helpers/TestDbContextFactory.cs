@@ -86,7 +86,7 @@ public static class TestDbContextFactory
             AvailabilityId = availabilityId,
             Status = status,
             TotalPrice = 100m,
-            AreaInHectares = 1.0,
+            AreaInHectares = 1.0m,
             CreatedAt = DateTime.UtcNow
         };
         db.Bookings.Add(booking);

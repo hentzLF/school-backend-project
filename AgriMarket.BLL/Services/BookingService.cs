@@ -77,7 +77,7 @@ public class BookingService(
         {
             Id = Guid.NewGuid(),
             Status = BookingStatus.Pending,
-            TotalPrice = (decimal)dto.AreaInHectares * listing.PricePerHectare,
+            TotalPrice = dto.AreaInHectares * listing.PricePerHectare,
             AreaInHectares = dto.AreaInHectares,
             CreatedAt = DateTime.UtcNow,
             Notes = dto.Notes,

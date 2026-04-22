@@ -9,6 +9,6 @@ public class BookingListItemViewModel
     public string ListingTitle { get; set; } = default!;
     public BookingStatus Status { get; set; }
     public decimal TotalPrice { get; set; }
-    public double AreaInHectares { get; set; }
+    public decimal AreaInHectares { get; set; }
     public DateTime CreatedAt { get; set; }
 }

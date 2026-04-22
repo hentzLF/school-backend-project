@@ -10,7 +10,7 @@ public class Booking
 
     public decimal TotalPrice { get; set; }
 
-    public double AreaInHectares { get; set; }
+    public decimal AreaInHectares { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

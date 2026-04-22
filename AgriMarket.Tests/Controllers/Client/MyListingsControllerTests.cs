@@ -139,7 +139,7 @@ namespace AgriMarket.Tests.Controllers.Client
                 AvailabilityId = availId,
                 Status = BookingStatus.Pending,
                 TotalPrice = 20,
-                AreaInHectares = 2,
+                AreaInHectares = 2m,
                 CreatedAt = DateTime.UtcNow
             };
             db.Bookings.Add(booking);

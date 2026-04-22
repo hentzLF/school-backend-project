@@ -10,8 +10,8 @@ public sealed class CreateBookingDto
     [Required]
     public Guid AvailabilityId { get; init; }
 
-    [Range(0.0001, double.MaxValue, ErrorMessage = "AreaInHectares must be positive.")]
-    public double AreaInHectares { get; init; }
+    [Range(0.0001, (double)decimal.MaxValue, ErrorMessage = "AreaInHectares must be positive.")]
+    public decimal AreaInHectares { get; init; }
 
     public string? Notes { get; init; }
 }

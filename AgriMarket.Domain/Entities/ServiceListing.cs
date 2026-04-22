@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using AgriMarket.Domain.Enums;
 
 namespace AgriMarket.Domain.Entities;

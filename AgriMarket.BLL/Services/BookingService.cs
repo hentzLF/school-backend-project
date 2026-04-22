@@ -7,15 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.BLL.Services;
 
-public class BookingService : IBookingService
+public class BookingService(
+    IRepository<Booking> bookingRepo,
+    IRepository<UserProfile> userProfiles,
+    IRepository<ServiceListing> serviceListings,
+    IRepository<Availability> availabilities,
+    IUnitOfWork uow) : IBookingService
 {
-    private readonly AppDbContext _db;
-
-    public BookingService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<BookingDto>> GetAllAsync(BookingStatus? status = null)
     {
         var query = BuildBaseQuery();
@@ -54,18 +52,18 @@ public class BookingService : IBookingService
 
     public async Task<BookingDto> CreateAsync(Guid userId, CreateBookingDto dto)
     {
-        var clientProfile = await _db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var clientProfile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (clientProfile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await _db.ServiceListings.AsNoTracking().FirstOrDefaultAsync(l => l.Id == dto.ServiceListingId);
+        var listing = await serviceListings.Query().AsNoTracking().FirstOrDefaultAsync(l => l.Id == dto.ServiceListingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {dto.ServiceListingId} not found.");
 
         if (listing.UserProfileId == clientProfile.Id)
             throw new BusinessRuleException("Providers cannot book their own services.");
 
-        var availability = await _db.Availabilities.FirstOrDefaultAsync(a => a.Id == dto.AvailabilityId);
+        var availability = await availabilities.Query().FirstOrDefaultAsync(a => a.Id == dto.AvailabilityId);
         if (availability is null || availability.ServiceListingId != dto.ServiceListingId)
             throw new BusinessRuleException("Availability does not belong to the selected listing.");
 
@@ -86,14 +84,14 @@ public class BookingService : IBookingService
             AvailabilityId = dto.AvailabilityId
         };
 
-        _db.Bookings.Add(booking);
-        await _db.SaveChangesAsync();
+        bookingRepo.Add(booking);
+        await uow.SaveChangesAsync();
         return (await GetByIdAsync(booking.Id))!;
     }
 
     public async Task<BookingDto> UpdateStatusAsync(Guid id, BookingStatus status, Guid? callerProfileId = null)
     {
-        var booking = await _db.Bookings
+        var booking = await bookingRepo.Query()
             .Include(b => b.ServiceListing)
             .FirstOrDefaultAsync(b => b.Id == id);
         if (booking is null)
@@ -113,7 +111,7 @@ public class BookingService : IBookingService
         }
 
         booking.Status = status;
-        await _db.SaveChangesAsync();
+        await uow.SaveChangesAsync();
 
         return (await GetByIdAsync(id))!;
     }
@@ -147,35 +145,35 @@ public class BookingService : IBookingService
 
     public async Task DeleteAsync(Guid id)
     {
-        var booking = await _db.Bookings.FindAsync(id);
+        var booking = await bookingRepo.GetByIdAsync(id);
         if (booking != null)
         {
-            _db.Bookings.Remove(booking);
-            await _db.SaveChangesAsync();
+            bookingRepo.Remove(booking);
+            await uow.SaveChangesAsync();
         }
     }
 
     public async Task<int> GetCountByListingAsync(Guid listingId)
     {
-        return await _db.Bookings.CountAsync(b => b.ServiceListingId == listingId);
+        return await bookingRepo.CountAsync(b => b.ServiceListingId == listingId);
     }
 
     public async Task<bool> HasActiveBookingsAsync(Guid listingId)
     {
         var activeStatuses = new[] { BookingStatus.Pending, BookingStatus.Confirmed, BookingStatus.InProgress, BookingStatus.ProviderCompleted };
-        return await _db.Bookings.AnyAsync(b => b.ServiceListingId == listingId && activeStatuses.Contains(b.Status));
+        return await bookingRepo.AnyAsync(b => b.ServiceListingId == listingId && activeStatuses.Contains(b.Status));
     }
 
     public async Task<IEnumerable<BookingSummaryDto>> GetByListingAsync(Guid listingId)
     {
-        var bookings = await _db.Bookings
+        var items = await bookingRepo.Query()
             .AsNoTracking()
             .Include(b => b.ClientProfile)
             .Where(b => b.ServiceListingId == listingId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
 
-        return bookings.Select(b => new BookingSummaryDto
+        return items.Select(b => new BookingSummaryDto
         {
             Id = b.Id,
             ClientName = b.ClientProfile is null
@@ -205,7 +203,7 @@ public class BookingService : IBookingService
 
     private IQueryable<Booking> BuildBaseQuery()
     {
-        return _db.Bookings
+        return bookingRepo.Query()
             .AsNoTracking()
             .Include(b => b.ClientProfile)
             .Include(b => b.ServiceListing)

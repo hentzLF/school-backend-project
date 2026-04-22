@@ -173,6 +173,21 @@ public class AppDbContext : DbContext
         .HasForeignKey(sl => sl.LocationId)
         .OnDelete(DeleteBehavior.SetNull);
 
+    modelBuilder.Entity<Booking>()
+        .HasIndex(b => b.Status);
+
+    modelBuilder.Entity<ServiceListing>()
+        .HasIndex(sl => sl.IsActive);
+
+    modelBuilder.Entity<Notification>()
+        .HasIndex(n => n.IsRead);
+
+    modelBuilder.Entity<Availability>()
+        .HasIndex(a => a.IsBooked);
+
+    modelBuilder.Entity<Message>()
+        .HasIndex(m => m.SentAt);
+
 }
 
 

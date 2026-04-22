@@ -1,6 +1,7 @@
 using AgriMarket.BLL;
 using AgriMarket.BLL.Dtos.Listings;
 using AgriMarket.BLL.Services;
+using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Client.ViewModels.MyListings;
 using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
@@ -287,5 +288,27 @@ public class MyListingsController(IListingService listingService, ICategoryServi
         };
 
         return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateBookingStatus(Guid bookingId, Guid listingId, BookingStatus status)
+    {
+        var profile = await GetProviderProfileAsync();
+        if (profile == null) return Unauthorized();
+
+        var listing = await listingService.GetByIdAsync(listingId);
+        if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
+
+        try
+        {
+            await bookingService.UpdateStatusAsync(bookingId, status, profile.Id);
+        }
+        catch (BusinessRuleException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
+
+        return RedirectToAction(nameof(Bookings), new { id = listingId });
     }
 }

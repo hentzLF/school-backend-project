@@ -1,46 +1,96 @@
+@using AgriMarket.Domain.Enums
 @model AgriMarket.Web.Areas.Client.ViewModels.MyListings.BookingsForListingViewModel
 
 @{
     ViewData["Title"] = "Bookings for " + Model.ListingTitle;
 }
 
-<h1>Bookings for @Model.ListingTitle</h1>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">Bookings for @Model.ListingTitle</h4>
+    <a asp-action="Details" asp-route-id="@Model.ListingId" class="btn btn-sm btn-outline-secondary">Back to Listing</a>
+</div>
 
-<p>
-    <a asp-action="Details" asp-route-id="@Model.ListingId" class="btn btn-secondary">Back to Listing</a>
-</p>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 @if (!Model.Bookings.Any())
 {
-    <div class="alert alert-info">
-        No bookings found for this listing.
-    </div>
+    <div class="alert alert-info">No bookings found for this listing.</div>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Client</th>
-                <th>Status</th>
-                <th>Area (Hectares)</th>
-                <th>Total Price</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.Bookings)
-            {
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
                 <tr>
-                    <td>@item.ClientName</td>
-                    <td>
-                        <span class="badge bg-secondary">@item.Status</span>
-                    </td>
-                    <td>@item.AreaInHectares</td>
-                    <td>@item.TotalPrice.ToString("C")</td>
-                    <td>@item.CreatedAt.ToShortDateString()</td>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Area (ha)</th>
+                    <th>Total Price</th>
+                    <th>Date</th>
+                    <th>Actions</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Bookings)
+                {
+                    <tr>
+                        <td>@item.ClientName</td>
+                        <td><span class="badge bg-secondary">@item.Status</span></td>
+                        <td>@item.AreaInHectares.ToString("0.00")</td>
+                        <td>€@item.TotalPrice.ToString("0.00")</td>
+                        <td>@item.CreatedAt.ToShortDateString()</td>
+                        <td>
+                            @if (item.Status == BookingStatus.Pending)
+                            {
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.Confirmed)" />
+                                    <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                                </form>
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline ms-1">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.Cancelled)" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                                </form>
+                            }
+                            else if (item.Status == BookingStatus.Confirmed)
+                            {
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.InProgress)" />
+                                    <button type="submit" class="btn btn-sm btn-primary">Start Work</button>
+                                </form>
+                            }
+                            else if (item.Status == BookingStatus.InProgress)
+                            {
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.ProviderCompleted)" />
+                                    <button type="submit" class="btn btn-sm btn-success">Mark Complete</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }

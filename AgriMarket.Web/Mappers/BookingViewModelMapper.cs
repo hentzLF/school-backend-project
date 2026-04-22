@@ -87,7 +87,7 @@ public static class BookingViewModelMapper
         {
             Id = dto.Id,
             ClientName = dto.ClientName,
-            Status = dto.Status.ToString(),
+            Status = dto.Status,
             AreaInHectares = dto.AreaInHectares,
             TotalPrice = dto.TotalPrice,
             CreatedAt = dto.CreatedAt

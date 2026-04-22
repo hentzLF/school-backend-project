@@ -6,18 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.BLL.Services;
 
-public class UserService : IUserService
+public class UserService(
+    IRepository<AppUser> appUsers,
+    IRepository<UserProfile> userProfiles,
+    IRepository<ProfileRole> profileRoles,
+    IUnitOfWork uow) : IUserService
 {
-    private readonly AppDbContext _db;
-
-    public UserService(AppDbContext db)
-    {
-        _db = db;
-    }
-
     public async Task<IEnumerable<UserProfileDto>> GetAllUsersAsync()
     {
-        var profiles = await _db.UserProfiles
+        var profiles = await userProfiles.Query()
             .AsNoTracking()
             .OrderByDescending(p => p.Id)
             .ToListAsync();
@@ -27,7 +24,7 @@ public class UserService : IUserService
 
     public async Task<UserProfileDto?> GetUserByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
     {
-        var profile = await _db.UserProfiles
+        var profile = await userProfiles.Query()
             .AsNoTracking()
             .Include(p => p.AppUser)
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -41,48 +38,48 @@ public class UserService : IUserService
 
     public async Task UpdateUserAsync(Guid appUserId, string email, DateTime? lockoutEnd)
     {
-        var existing = await _db.AppUsers.FindAsync(appUserId);
+        var existing = await appUsers.GetByIdAsync(appUserId);
         if (existing != null)
         {
             existing.Email = email;
             existing.LockoutEnd = lockoutEnd;
-            await _db.SaveChangesAsync();
+            await uow.SaveChangesAsync();
         }
     }
 
     public async Task DeleteUserAsync(Guid id)
     {
-        var user = await _db.AppUsers.FindAsync(id);
+        var user = await appUsers.GetByIdAsync(id);
         if (user != null)
         {
-            _db.AppUsers.Remove(user);
-            await _db.SaveChangesAsync();
+            appUsers.Remove(user);
+            await uow.SaveChangesAsync();
         }
     }
 
     public async Task LockUserAsync(Guid id)
     {
-        var user = await _db.AppUsers.FindAsync(id);
+        var user = await appUsers.GetByIdAsync(id);
         if (user != null)
         {
             user.LockoutEnd = DateTime.UtcNow.AddYears(100);
-            await _db.SaveChangesAsync();
+            await uow.SaveChangesAsync();
         }
     }
 
     public async Task UnlockUserAsync(Guid id)
     {
-        var user = await _db.AppUsers.FindAsync(id);
+        var user = await appUsers.GetByIdAsync(id);
         if (user != null)
         {
             user.LockoutEnd = null;
-            await _db.SaveChangesAsync();
+            await uow.SaveChangesAsync();
         }
     }
 
     public async Task<UserProfileDto?> GetProfileByUserIdAsync(Guid appUserId)
     {
-        var profile = await _db.UserProfiles
+        var profile = await userProfiles.Query()
             .AsNoTracking()
             .Include(p => p.AppUser)
             .FirstOrDefaultAsync(p => p.AppUserId == appUserId);
@@ -92,7 +89,7 @@ public class UserService : IUserService
 
     public async Task UpdateProfileAsync(UserProfileDto profile)
     {
-        var existing = await _db.UserProfiles.FindAsync(profile.Id);
+        var existing = await userProfiles.GetByIdAsync(profile.Id);
         if (existing is null)
             throw new KeyNotFoundException($"UserProfile {profile.Id} not found.");
 
@@ -100,12 +97,12 @@ public class UserService : IUserService
         existing.LastName = profile.LastName;
         existing.Bio = profile.Bio;
         existing.AvatarUrl = profile.AvatarUrl;
-        await _db.SaveChangesAsync();
+        await uow.SaveChangesAsync();
     }
 
     public async Task<AppUser?> GetByEmailAsync(string email)
     {
-        return await _db.AppUsers
+        return await appUsers.Query()
             .Include(u => u.Profiles!)
                 .ThenInclude(p => p.Roles)
             .FirstOrDefaultAsync(u => u.Email == email);
@@ -120,16 +117,16 @@ public class UserService : IUserService
             Role = role
         };
 
-        _db.AppUsers.Add(user);
-        _db.UserProfiles.Add(profile);
-        _db.ProfileRoles.Add(profileRole);
-        await _db.SaveChangesAsync();
+        appUsers.Add(user);
+        userProfiles.Add(profile);
+        profileRoles.Add(profileRole);
+        await uow.SaveChangesAsync();
         return user;
     }
 
     public async Task<(IEnumerable<UserProfileDto> Items, int TotalCount)> GetAllProfilesAsync(int page, int pageSize)
     {
-        var query = _db.UserProfiles.AsNoTracking();
+        var query = userProfiles.Query().AsNoTracking();
         var totalCount = await query.CountAsync();
         var profiles = await query
             .OrderBy(p => p.FirstName)
@@ -143,7 +140,7 @@ public class UserService : IUserService
 
     public async Task<UserProfileDto?> GetProfileByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
     {
-        var profile = await _db.UserProfiles.AsNoTracking()
+        var profile = await userProfiles.Query().AsNoTracking()
             .Include(up => up.AppUser)
             .FirstOrDefaultAsync(up => up.Id == id);
 

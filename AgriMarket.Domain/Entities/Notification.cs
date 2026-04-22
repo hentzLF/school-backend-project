@@ -10,6 +10,8 @@ public class Notification
 
     public bool IsRead { get; set; }
 
+    public DateTime? ReadAt { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     //FK

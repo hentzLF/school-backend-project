@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Provider can create a listing
-The system SHALL allow an authenticated Provider to create a new listing via a form at `/Client/MyListings/Create`. The controller SHALL map the `MyListingCreateViewModel` to a `CreateListingDto` and call `IListingService.CreateAsync(userId, dto)`. The controller SHALL NOT construct a `ServiceListing` entity directly.
+The system SHALL allow an authenticated Provider to create a new listing via a form at `/Client/MyListings/Create`. The controller SHALL map the `MyListingCreateViewModel` to a `CreateListingDto` via Web mapper modules and call `IListingService.CreateAsync(userId, dto)`. The controller SHALL NOT construct a `ServiceListing` entity directly.
 
 #### Scenario: Create listing successfully
 - **WHEN** an authenticated Provider submits valid listing data
@@ -12,7 +12,7 @@ The system SHALL allow an authenticated Provider to create a new listing via a f
 - **THEN** the system redisplays the create form with validation errors and does not call the BLL service
 
 ### Requirement: Provider can edit own listing
-The system SHALL allow an authenticated Provider to edit their own listings. The controller SHALL map the `MyListingEditViewModel` to an `UpdateListingDto` and call `IListingService.UpdateAsync(userId, dto)`. Ownership verification SHALL be performed by the BLL service.
+The system SHALL allow an authenticated Provider to edit their own listings. The controller SHALL map the `MyListingEditViewModel` to an `UpdateListingDto` via Web mapper modules and call `IListingService.UpdateAsync(userId, dto)`. Ownership verification SHALL be performed by the BLL service.
 
 #### Scenario: Edit listing successfully
 - **WHEN** an authenticated Provider submits valid changes to a listing they own

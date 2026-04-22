@@ -31,7 +31,7 @@ The BLL SHALL define a `BusinessRuleException` class in `AgriMarket.BLL` that se
 - **THEN** it throws `BusinessRuleException` with a descriptive message and the caller can catch it by type
 
 ### Requirement: API project DTOs are consolidated into BLL
-All DTOs previously defined in `AgriMarket.Api/Dtos/` SHALL be removed. The `AgriMarket.Api` project SHALL NOT contain a `Dtos/` folder. API controllers SHALL reference DTOs from `AgriMarket.BLL.Dtos` namespaces.
+All DTOs previously defined in `AgriMarket.Api/Dtos/` SHALL be removed. The `AgriMarket.Api` project SHALL NOT contain a `Dtos/` folder. API controllers SHALL reference DTOs from `AgriMarket.BLL.Dtos` namespaces directly for request and response models in this change.
 
 #### Scenario: No DTOs in API project
 - **WHEN** the solution is built
@@ -42,7 +42,7 @@ BLL output DTOs (`ListingDto`, `BookingDto`, `ReviewDto`, `UserProfileDto`) SHAL
 
 #### Scenario: ListingDto matches ServiceListingResponse shape
 - **WHEN** `ListingDto` is serialized to JSON
-- **THEN** the JSON includes `id`, `title`, `description`, `pricePerHectare`, `isActive`, `userProfileId`, `serviceCategoryId`
+- **THEN** the JSON includes `id`, `title`, `description`, `pricePerHectare`, `isActive`, `userProfileId`, `serviceCategoryId`, `locationId`
 
 #### Scenario: BookingDto matches BookingResponse shape
 - **WHEN** `BookingDto` is serialized to JSON
@@ -54,4 +54,4 @@ BLL output DTOs (`ListingDto`, `BookingDto`, `ReviewDto`, `UserProfileDto`) SHAL
 
 #### Scenario: UserProfileDto matches UserProfileResponse shape
 - **WHEN** `UserProfileDto` is serialized to JSON
-- **THEN** the JSON includes `id`, `firstName`, `lastName`, `bio`, `avatarUrl`, `appUserId`, `email`
+- **THEN** the JSON includes `id`, `firstName`, `lastName`, `bio`, `avatarUrl`, `appUserId`, `email` where `email` may be `null` when visibility rules do not allow disclosure

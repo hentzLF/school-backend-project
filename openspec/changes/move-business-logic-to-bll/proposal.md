@@ -7,8 +7,8 @@ Web MVC and API controllers currently construct domain entities directly, perfor
 - Move all API-project DTOs (`AgriMarket.Api/Dtos/`) into `AgriMarket.BLL/Dtos/` so both Web and API share one set of service-layer DTOs
 - Add input/output DTOs for every BLL service method that currently accepts or returns a domain entity (e.g. `CreateListingDto`, `ListingDto`, `CreateBookingDto`, `BookingDto`, `CreateAvailabilityDto`, `CreateReviewDto`, `ReviewDto`)
 - Rewrite BLL service interfaces and implementations to accept DTOs instead of entities — services own entity construction, ID generation, default values, and business-rule validation
-- Refactor Web MVC controllers to map ViewModel → DTO before calling services and map returned DTOs → ViewModel
-- Refactor API controllers to use the shared BLL DTOs directly as request/response shapes (or map where the API shape differs)
+- Refactor Web MVC controllers to map ViewModel → DTO before calling services and map returned DTOs → ViewModel using project-local manual mapper classes/extensions
+- Refactor API controllers to use the shared BLL DTOs directly as request/response shapes in this change (no API-local DTO contracts)
 - Remove entity references (`using AgriMarket.Domain.Entities`) from all controller files
 
 ## Capabilities

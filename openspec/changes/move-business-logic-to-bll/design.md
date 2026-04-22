@@ -11,6 +11,7 @@ The Auth services already follow the correct pattern: they accept DTOs (`LoginRe
 - Move entity construction, ID generation, default value assignment, and business-rule validation into BLL services
 - Consolidate all DTOs under `AgriMarket.BLL/Dtos/` (move existing API DTOs there)
 - Slim controllers down to: receive request → map to DTO → call service → map result → return response
+- Keep controller mapping logic in explicit manual mapper classes/extensions per project (Web and API), not inline blocks
 - Maintain identical external behavior (same HTTP endpoints, same MVC routes, same response shapes)
 
 **Non-Goals:**
@@ -42,17 +43,16 @@ The userId parameter is passed explicitly by controllers from the authenticated 
 
 **Alternative considered**: Embedding the userId inside the DTO. Rejected — the userId comes from auth claims and is a controller concern, not a caller-supplied field.
 
-### Decision 3: API DTOs are removed; API controllers use BLL DTOs directly or map
+### Decision 3: API DTOs are removed; API controllers use BLL DTOs directly
 
-The existing `AgriMarket.Api/Dtos/` folder is deleted. Where the BLL DTO shape matches the desired API response shape exactly, the API controller returns the BLL DTO directly. Where they differ (e.g., the API needs a different field set or naming), the API controller maps the BLL DTO to an API-specific response type kept in the Api project.
-
-In practice, the BLL output DTOs (`ListingDto`, `BookingDto`, etc.) should be designed to match the current API response shapes so no API-specific mapping is needed for most endpoints.
+The existing `AgriMarket.Api/Dtos/` folder is deleted. API controllers consume and return BLL DTOs directly. If an API shape must differ in the future, that will be handled in a separate change.
 
 ### Decision 4: Web ViewModels remain in the Web project; controllers map ViewModel ↔ DTO
 
 ViewModels contain UI concerns (`SelectListItem`, display strings, pagination state) that don't belong in BLL. Web controllers will:
 - **Inbound**: Extract relevant fields from the ViewModel and construct the BLL input DTO
 - **Outbound**: Receive the BLL output DTO and map it into a ViewModel, adding UI-specific data (dropdown lists, computed display strings)
+Mappings are implemented in project-local manual mapper classes/extensions and invoked by controllers, rather than inlined repeatedly inside action methods.
 
 ### Decision 5: Business rules move into services with result types for expected failures
 

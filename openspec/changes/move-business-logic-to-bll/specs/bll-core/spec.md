@@ -16,7 +16,7 @@ The BLL SHALL provide `IListingService` with operations that accept and return D
 - **THEN** the service throws `BusinessRuleException`
 
 #### Scenario: Get all listings returns DTOs
-- **WHEN** `GetAllListingsAsync()` is called
+- **WHEN** `GetAllAsync()` is called
 - **THEN** the service returns `IEnumerable<ListingSummaryDto>`, not entities
 
 ### Requirement: BookingService encapsulates booking business logic
@@ -35,7 +35,7 @@ The BLL SHALL provide `IBookingService` with operations that accept and return D
 - **THEN** the service throws `BusinessRuleException`
 
 #### Scenario: Get bookings for client returns DTOs
-- **WHEN** `GetBookingsForClientAsync(clientProfileId)` is called
+- **WHEN** `GetByClientAsync(clientProfileId)` is called
 - **THEN** only bookings belonging to that client are returned as `IEnumerable<BookingDto>`
 
 ### Requirement: ReviewService encapsulates review business logic
@@ -56,6 +56,10 @@ The BLL SHALL provide `IUserService` with query operations that return DTOs. `Ge
 - **WHEN** `GetProfileByUserIdAsync(userId)` is called with a valid user id
 - **THEN** the service returns a `UserProfileDto` with profile fields and email from the linked `AppUser`
 
+#### Scenario: User profile email is privacy-safe
+- **WHEN** a profile DTO is returned in a context where the caller is not the owner or an admin
+- **THEN** `UserProfileDto.Email` is `null`
+
 ### Requirement: Web controllers use BLL interfaces, not AppDbContext
 All `AgriMarket.Web` controllers (Admin and Client areas) SHALL inject BLL service interfaces. No controller in `AgriMarket.Web` SHALL directly inject or use `AppDbContext`. Controllers SHALL NOT reference `AgriMarket.Domain.Entities` — they SHALL work exclusively with DTOs from BLL and ViewModels from the Web project.
 
@@ -66,3 +70,14 @@ All `AgriMarket.Web` controllers (Admin and Client areas) SHALL inject BLL servi
 #### Scenario: No direct DbContext in Web controllers
 - **WHEN** the Web project is compiled
 - **THEN** no controller file contains a constructor parameter of type `AppDbContext`
+
+### Requirement: Mapping logic is implemented in per-project manual mapper modules
+Mapping between Web ViewModels and BLL DTOs, and between API contracts and BLL DTOs, SHALL be implemented in explicit manual mapper classes or extension methods within each presentation project. Controllers SHALL call these mappers and SHALL NOT contain large repeated inline object-construction mapping blocks.
+
+#### Scenario: Web mapping is delegated to mapper modules
+- **WHEN** a Web controller maps ViewModel data to DTOs or DTOs to ViewModels
+- **THEN** it uses mapper classes/extensions from the Web project
+
+#### Scenario: API mapping is delegated to mapper modules
+- **WHEN** an API controller maps request or response shapes to BLL DTOs
+- **THEN** it uses mapper classes/extensions from the API project

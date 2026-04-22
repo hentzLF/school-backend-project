@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Client can create a booking from listing details
-The system SHALL allow an authenticated client to create a booking from a listing details page. The controller SHALL map the `CreateBookingViewModel` to a `CreateBookingDto` and call `IBookingService.CreateAsync(userId, dto)`. The controller SHALL NOT construct a `Booking` entity, calculate `TotalPrice`, or update availability status — all of this SHALL be delegated to the BLL service.
+The system SHALL allow an authenticated client to create a booking from a listing details page. The controller SHALL map the `CreateBookingViewModel` to a `CreateBookingDto` via Web mapper modules and call `IBookingService.CreateAsync(userId, dto)`. The controller SHALL NOT construct a `Booking` entity, calculate `TotalPrice`, or update availability status — all of this SHALL be delegated to the BLL service.
 
 #### Scenario: Create booking successfully
 - **WHEN** an authenticated client submits valid booking data

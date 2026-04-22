@@ -1,13 +1,15 @@
 using AgriMarket.Api.Mappers;
 using AgriMarket.BLL.Dtos.Users;
 using AgriMarket.BLL.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
-[Route("api/users")]
+[ApiVersion("1")]
+[Route("api/v{version:apiVersion}/users")]
 public class UsersController(IUserService userService) : ApiControllerBase
 {
     private readonly IUserService _userService = userService;

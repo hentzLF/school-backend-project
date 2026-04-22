@@ -2,13 +2,15 @@ using AgriMarket.Api.Mappers;
 using AgriMarket.BLL;
 using AgriMarket.BLL.Dtos.Listings;
 using AgriMarket.BLL.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
-[Route("api/listings")]
+[ApiVersion("1")]
+[Route("api/v{version:apiVersion}/listings")]
 public class ListingsController(IListingService listingService) : ApiControllerBase
 {
     private readonly IListingService _listingService = listingService;

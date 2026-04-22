@@ -1,13 +1,15 @@
 using AgriMarket.BLL;
 using AgriMarket.BLL.Dtos.Bookings;
 using AgriMarket.BLL.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
-[Route("api/bookings")]
+[ApiVersion("1")]
+[Route("api/v{version:apiVersion}/bookings")]
 public class BookingsController(IBookingService bookingService) : ApiControllerBase
 {
     private readonly IBookingService _bookingService = bookingService;

@@ -1,13 +1,15 @@
 using AgriMarket.BLL;
 using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.BLL.Services;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgriMarket.Api.Controllers;
 
 [ApiController]
-[Route("api/reviews")]
+[ApiVersion("1")]
+[Route("api/v{version:apiVersion}/reviews")]
 public class ReviewsController(IReviewService reviewService) : ApiControllerBase
 {
     private readonly IReviewService _reviewService = reviewService;

@@ -67,6 +67,7 @@
                     {
                         <form asp-area="Client" asp-controller="Listings" asp-action="Book" method="post">
                             @Html.AntiForgeryToken()
+                            <div class="text-danger mb-3" data-valmsg-summary="true"></div>
                             <input type="hidden" name="ServiceListingId" value="@Model.Id" />
 
                             <div class="mb-3">
@@ -80,17 +81,20 @@
                                         </option>
                                     }
                                 </select>
+                                <span class="text-danger small field-validation-valid" data-valmsg-for="AvailabilityId" data-valmsg-replace="true"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label for="AreaInHectares" class="form-label">Area (hectares)</label>
                                 <input type="number" name="AreaInHectares" id="AreaInHectares"
                                        class="form-control" min="0.1" step="0.1" required />
+                                <span class="text-danger small field-validation-valid" data-valmsg-for="AreaInHectares" data-valmsg-replace="true"></span>
                             </div>
 
                             <div class="mb-3">
                                 <label for="Notes" class="form-label">Notes (optional)</label>
-                                <textarea name="Notes" id="Notes" class="form-control" rows="3"></textarea>
+                                <textarea name="Notes" id="Notes" class="form-control" rows="3" maxlength="1000"></textarea>
+                                <span class="text-danger small field-validation-valid" data-valmsg-for="Notes" data-valmsg-replace="true"></span>
                             </div>
 
                             <button type="submit" class="btn btn-success w-100">Confirm Booking</button>
@@ -111,3 +115,7 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

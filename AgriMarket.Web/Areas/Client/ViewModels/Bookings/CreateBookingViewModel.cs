@@ -4,6 +4,7 @@ namespace AgriMarket.Web.Areas.Client.ViewModels.Bookings;
 
 public class CreateBookingViewModel
 {
+    [Required]
     public Guid ServiceListingId { get; set; }
 
     [Required]
@@ -13,5 +14,6 @@ public class CreateBookingViewModel
     [Range(0.1, 10000, ErrorMessage = "Area must be between 0.1 and 10000 hectares")]
     public double AreaInHectares { get; set; }
 
+    [MaxLength(1000)]
     public string? Notes { get; set; }
 }

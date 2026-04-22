@@ -7,5 +7,6 @@ public sealed class SelectProfileRequest
     [Required]
     public string SessionToken { get; init; } = default!;
 
+    [Required]
     public Guid ProfileId { get; init; }
 }

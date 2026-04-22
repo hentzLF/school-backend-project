@@ -72,7 +72,7 @@ public class TokenService : ITokenService
 
             return Guid.TryParse(sub, out var userId) ? userId : null;
         }
-        catch
+        catch (SecurityTokenException)
         {
             return null;
         }

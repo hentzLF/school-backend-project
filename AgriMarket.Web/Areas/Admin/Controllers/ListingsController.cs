@@ -70,9 +70,14 @@ public class ListingsController(IListingService listingService, ICategoryService
         {
             await listingService.UpdateAsync(userId, vm.ToUpdateListingDto());
         }
-        catch
+        catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+        catch (BLL.BusinessRuleException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToAction(nameof(Edit), new { id = vm.Id });
         }
 
         return RedirectToAction(nameof(Details), new { id = vm.Id });
@@ -98,9 +103,14 @@ public class ListingsController(IListingService listingService, ICategoryService
         {
             await listingService.DeleteAsync(userId, id);
         }
-        catch
+        catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+        catch (BLL.BusinessRuleException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToAction(nameof(Index));
         }
 
         return RedirectToAction(nameof(Index));
@@ -117,9 +127,14 @@ public class ListingsController(IListingService listingService, ICategoryService
         {
             await listingService.ToggleActiveAsync(userId, id);
         }
-        catch
+        catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+        catch (BLL.BusinessRuleException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         return RedirectToAction(nameof(Details), new { id });

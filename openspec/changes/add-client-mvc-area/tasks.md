@@ -1,8 +1,8 @@
 ## 1. Client Area Foundation
 
-- [ ] 1.1 Create `Areas/Client` structure (`Controllers/`, `ViewModels/`, `Views/`) with `_ViewStart.cshtml`, `_ViewImports.cshtml`, and `_ClientLayout.cshtml` (navigation items per spec: Listings always visible; My Bookings/Profile/Logout for authenticated; Login/Register for unauthenticated).
-- [ ] 1.2 Register Client area route in `Program.cs` with pattern `Client/{controller=Listings}/{action=Index}/{id?}` and verify default route resolves to `ListingsController.Index`.
-- [ ] 1.3 Add `ClientOnly` authorization policy (requires `RoleType.Farmer` or `RoleType.Provider`) and apply `[Authorize(Policy = "ClientOnly")]` to all Client area controllers except `AccountController` and `ListingsController`.
+- [x] 1.1 Create `Areas/Client` structure (`Controllers/`, `ViewModels/`, `Views/`) with `_ViewStart.cshtml`, `_ViewImports.cshtml`, and `_ClientLayout.cshtml` (navigation items per spec: Listings always visible; My Bookings/Profile/Logout for authenticated; Login/Register for unauthenticated).
+- [x] 1.2 Register Client area route in `Program.cs` with pattern `Client/{controller=Listings}/{action=Index}/{id?}` and verify default route resolves to `ListingsController.Index`.
+- [x] 1.3 Add `ClientOnly` authorization policy (requires `RoleType.Farmer` or `RoleType.Provider`) and apply `[Authorize(Policy = "ClientOnly")]` to all Client area controllers except `AccountController` and `ListingsController`.
 
 ## 2. Client Account and Authentication Separation
 

@@ -25,6 +25,9 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireClaim(ClaimTypes.Role, "Admin"));
+
+    options.AddPolicy("ClientOnly", policy =>
+        policy.RequireClaim(ClaimTypes.Role, "Farmer", "Provider"));
 });
 
 var app = builder.Build();
@@ -55,6 +58,11 @@ app.MapAreaControllerRoute(
     name: "admin",
     areaName: "Admin",
     pattern: "Admin/{controller=Dashboard}/{action=Index}/{id?}");
+
+app.MapAreaControllerRoute(
+    name: "client",
+    areaName: "Client",
+    pattern: "Client/{controller=Listings}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

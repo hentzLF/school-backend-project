@@ -16,8 +16,10 @@ public class Review
     // FK
     public Guid BookingId { get; set; }
     public Guid ReviewerProfileId { get; set; }
+    public Guid ReviewedProfileId { get; set; }
 
     // Navigation
     public Booking? Booking { get; set; }
     public UserProfile? ReviewerProfile { get; set; }
+    public UserProfile? ReviewedProfile { get; set; }
 }

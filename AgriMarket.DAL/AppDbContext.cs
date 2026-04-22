@@ -76,6 +76,13 @@ public class AppDbContext : DbContext
         .HasForeignKey(r => r.ReviewerProfileId)
         .OnDelete(DeleteBehavior.Restrict);
 
+    // Review.ReviewedProfileId → UserProfile: keela cascade
+    modelBuilder.Entity<Review>()
+        .HasOne(r => r.ReviewedProfile)
+        .WithMany()
+        .HasForeignKey(r => r.ReviewedProfileId)
+        .OnDelete(DeleteBehavior.Restrict);
+
     // Message.SenderProfileId → UserProfile: keela cascade
     modelBuilder.Entity<Message>()
         .HasOne(m => m.SenderProfile)

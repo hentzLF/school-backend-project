@@ -51,12 +51,18 @@ public class ReviewService(
         if (reviewerProfile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var booking = await bookings.Query().AsNoTracking().FirstOrDefaultAsync(b => b.Id == dto.BookingId);
+        var booking = await bookings.Query()
+            .AsNoTracking()
+            .Include(b => b.ServiceListing)
+            .FirstOrDefaultAsync(b => b.Id == dto.BookingId);
         if (booking == null)
             throw new KeyNotFoundException("Booking not found.");
 
         if (booking.Status != BookingStatus.ClientConfirmed && booking.Status != BookingStatus.ProviderCompleted)
             throw new BusinessRuleException("Cannot review a booking that is not completed.");
+
+        var reviewedProfileId = booking.ServiceListing?.UserProfileId
+            ?? throw new BusinessRuleException("Cannot determine service provider for this booking.");
 
         var review = new Review
         {
@@ -65,7 +71,8 @@ public class ReviewService(
             Comment = dto.Comment,
             CreatedAt = DateTime.UtcNow,
             BookingId = dto.BookingId,
-            ReviewerProfileId = reviewerProfile.Id
+            ReviewerProfileId = reviewerProfile.Id,
+            ReviewedProfileId = reviewedProfileId
         };
 
         reviews.Add(review);

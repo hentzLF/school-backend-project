@@ -1,0 +1,106 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Listings.ListingDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-area="Client" asp-controller="Listings" asp-action="Index">Listings</a>
+                </li>
+                <li class="breadcrumb-item active">@Model.Title</li>
+            </ol>
+        </nav>
+
+        <h2>@Model.Title</h2>
+        <span class="badge bg-secondary mb-3">@Model.CategoryName</span>
+
+        <dl class="row mt-3">
+            <dt class="col-sm-4">Provider</dt>
+            <dd class="col-sm-8">@Model.ProviderName</dd>
+
+            <dt class="col-sm-4">Price per hectare</dt>
+            <dd class="col-sm-8 fw-bold text-success">@Model.PricePerHectare.ToString("C")</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <dt class="col-sm-4">Description</dt>
+                <dd class="col-sm-8">@Model.Description</dd>
+            }
+        </dl>
+
+        @if (Model.Availabilities.Any())
+        {
+            <h5 class="mt-4">Available Slots</h5>
+            <ul class="list-group mb-4">
+                @foreach (var slot in Model.Availabilities)
+                {
+                    <li class="list-group-item">
+                        @slot.StartTime.ToString("dd MMM yyyy HH:mm") &ndash; @slot.EndTime.ToString("dd MMM yyyy HH:mm")
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="text-muted mt-4">No availability slots currently listed.</p>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Book This Service</h5>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    @if (Model.Availabilities.Any())
+                    {
+                        <form asp-area="Client" asp-controller="Listings" asp-action="Book" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="ServiceListingId" value="@Model.Id" />
+
+                            <div class="mb-3">
+                                <label for="AvailabilityId" class="form-label">Select Availability</label>
+                                <select name="AvailabilityId" id="AvailabilityId" class="form-select" required>
+                                    <option value="">-- Choose a slot --</option>
+                                    @foreach (var slot in Model.Availabilities)
+                                    {
+                                        <option value="@slot.Id">
+                                            @slot.StartTime.ToString("dd MMM yyyy HH:mm") – @slot.EndTime.ToString("dd MMM yyyy HH:mm")
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="AreaInHectares" class="form-label">Area (hectares)</label>
+                                <input type="number" name="AreaInHectares" id="AreaInHectares"
+                                       class="form-control" min="0.1" step="0.1" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Notes" class="form-label">Notes (optional)</label>
+                                <textarea name="Notes" id="Notes" class="form-control" rows="3"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">Confirm Booking</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No availability slots are open for booking at this time.</p>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">Please log in to book this service.</p>
+                    <a asp-area="Client" asp-controller="Account" asp-action="Login"
+                       class="btn btn-outline-success w-100">Log in to Book</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

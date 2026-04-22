@@ -6,16 +6,16 @@
 
 ## 2. Client Account and Authentication Separation
 
-- [ ] 2.1 Implement `Areas/Client/Controllers/AccountController` with `Login` (GET/POST), `Register` (GET/POST with Farmer/Provider role selector), `Logout` (POST), and `AccessDenied` (GET). Create dedicated view models and views for each. Post-login and post-register redirect target is `/Client/Listings`.
-- [ ] 2.2 Move existing shared `AccountController` login/register/logout to `Areas/Admin/Controllers/AccountController` (preserving existing admin routes). Ensure no existing admin navigation or redirect target breaks.
-- [ ] 2.3 Implement `CookieAuthenticationEvents` with `OnRedirectToLogin` and `OnRedirectToAccessDenied` handlers that inspect the request path prefix: `/Admin/` → admin endpoints, `/Client/` or fallback → client endpoints. Set `CookieAuthenticationOptions.LoginPath` to `/Client/Account/Login` and `AccessDeniedPath` to `/Client/Account/AccessDenied` as defaults.
-- [ ] 2.4 Enforce audience role validation in each login POST: admin login requires `RoleType.Admin`; client login requires `RoleType.Farmer` or `RoleType.Provider`. Return an explicit authorization error message (not a redirect) when credentials are valid but role check fails.
+- [x] 2.1 Implement `Areas/Client/Controllers/AccountController` with `Login` (GET/POST), `Register` (GET/POST with Farmer/Provider role selector), `Logout` (POST), and `AccessDenied` (GET). Create dedicated view models and views for each. Post-login and post-register redirect target is `/Client/Listings`.
+- [x] 2.2 Move existing shared `AccountController` login/register/logout to `Areas/Admin/Controllers/AccountController` (preserving existing admin routes). Ensure no existing admin navigation or redirect target breaks.
+- [x] 2.3 Implement `CookieAuthenticationEvents` with `OnRedirectToLogin` and `OnRedirectToAccessDenied` handlers that inspect the request path prefix: `/Admin/` → admin endpoints, `/Client/` or fallback → client endpoints. Set `CookieAuthenticationOptions.LoginPath` to `/Client/Account/Login` and `AccessDeniedPath` to `/Client/Account/AccessDenied` as defaults.
+- [x] 2.4 Enforce audience role validation in each login POST: admin login requires `RoleType.Admin`; client login requires `RoleType.Farmer` or `RoleType.Provider`. Return an explicit authorization error message (not a redirect) when credentials are valid but role check fails.
 
 ## 3. Client Listings and Booking Creation
 
-- [ ] 3.1 Implement `ListingsController.Index` (no `[Authorize]`) showing active listings with title, category, provider, and price-per-hectare. Include empty-state message when no active listings exist.
-- [ ] 3.2 Implement `ListingsController.Details` (no `[Authorize]`) showing full listing details. Show booking action entry point to authenticated users only; show login prompt to unauthenticated users. Return 404 for non-existent or inactive listings.
-- [ ] 3.3 Implement booking creation POST (`[Authorize(Policy = "ClientOnly")]`) with server-side validation, ownership assignment to authenticated client profile, and redirect to `/Client/Bookings/Details/{id}` of the newly created booking on success.
+- [x] 3.1 Implement `ListingsController.Index` (no `[Authorize]`) showing active listings with title, category, provider, and price-per-hectare. Include empty-state message when no active listings exist.
+- [x] 3.2 Implement `ListingsController.Details` (no `[Authorize]`) showing full listing details. Show booking action entry point to authenticated users only; show login prompt to unauthenticated users. Return 404 for non-existent or inactive listings.
+- [x] 3.3 Implement booking creation POST (`[Authorize(Policy = "ClientOnly")]`) with server-side validation, ownership assignment to authenticated client profile, and redirect to `/Client/Bookings/Details/{id}` of the newly created booking on success.
 
 ## 4. Client Booking and Profile Management
 

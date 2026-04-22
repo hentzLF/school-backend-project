@@ -1,0 +1,37 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Listings.ListingIndexViewModel
+@{
+    ViewData["Title"] = "Listings";
+}
+
+<h2 class="mb-4">Available Services</h2>
+
+@if (!Model.Listings.Any())
+{
+    <div class="alert alert-info">No active listings are available at this time. Please check back later.</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var listing in Model.Listings)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@listing.Title</h5>
+                        <p class="card-text text-muted small">
+                            <span class="badge bg-secondary">@listing.CategoryName</span>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">Provider: @listing.ProviderName</small>
+                        </p>
+                        <p class="card-text fw-bold">@listing.PricePerHectare.ToString("C") / ha</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a asp-area="Client" asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id"
+                           class="btn btn-outline-success btn-sm w-100">View Details</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

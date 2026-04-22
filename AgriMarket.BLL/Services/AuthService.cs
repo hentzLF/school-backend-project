@@ -7,25 +7,21 @@ using Microsoft.Extensions.Configuration;
 
 namespace AgriMarket.BLL.Services;
 
-public class AuthService : IAuthService
+public class AuthService(
+    IRepository<AppUser> appUsers,
+    IRepository<UserProfile> userProfiles,
+    IRepository<ProfileRole> profileRoles,
+    IRepository<RefreshToken> refreshTokens,
+    IUnitOfWork uow,
+    ITokenService tokenService,
+    IConfiguration config) : IAuthService
 {
-    private readonly AppDbContext _db;
-    private readonly ITokenService _tokenService;
-    private readonly IConfiguration _config;
-
-    public AuthService(AppDbContext db, ITokenService tokenService, IConfiguration config)
-    {
-        _db = db;
-        _tokenService = tokenService;
-        _config = config;
-    }
-
     public async Task RegisterAsync(RegisterRequest request)
     {
         if (request.Role == RoleType.Admin)
             throw new InvalidOperationException("Admin role cannot be self-assigned.");
 
-        if (await _db.AppUsers.AnyAsync(u => u.Email == request.Email))
+        if (await appUsers.AnyAsync(u => u.Email == request.Email))
             throw new InvalidOperationException("Email already in use.");
 
         var user = new AppUser
@@ -50,15 +46,15 @@ public class AuthService : IAuthService
             Role = request.Role,
         };
 
-        _db.AppUsers.Add(user);
-        _db.UserProfiles.Add(profile);
-        _db.ProfileRoles.Add(role);
-        await _db.SaveChangesAsync();
+        appUsers.Add(user);
+        userProfiles.Add(profile);
+        profileRoles.Add(role);
+        await uow.SaveChangesAsync();
     }
 
     public async Task<LoginResult> LoginAsync(LoginRequest request)
     {
-        var user = await _db.AppUsers
+        var user = await appUsers.Query()
             .Include(u => u.Profiles!)
                 .ThenInclude(p => p.Roles)
             .FirstOrDefaultAsync(u => u.Email == request.Email);
@@ -78,7 +74,7 @@ public class AuthService : IAuthService
             {
                 Tokens = new TokenResponse
                 {
-                    AccessToken = _tokenService.GenerateAccessToken(user, profile, role),
+                    AccessToken = tokenService.GenerateAccessToken(user, profile, role),
                     RefreshToken = refreshToken,
                 },
             };
@@ -88,7 +84,7 @@ public class AuthService : IAuthService
         {
             ProfileSelection = new ProfileSelectionResponse
             {
-                SessionToken = _tokenService.GenerateSessionToken(user.Id),
+                SessionToken = tokenService.GenerateSessionToken(user.Id),
                 Profiles = profiles.Select(p => new ProfileSummary
                 {
                     ProfileId = p.Id,
@@ -101,11 +97,11 @@ public class AuthService : IAuthService
 
     public async Task<TokenResponse> SelectProfileAsync(SelectProfileRequest request)
     {
-        var userId = _tokenService.ValidateSessionToken(request.SessionToken);
+        var userId = tokenService.ValidateSessionToken(request.SessionToken);
         if (userId is null)
             throw new UnauthorizedAccessException("Invalid or expired session token.");
 
-        var user = await _db.AppUsers
+        var user = await appUsers.Query()
             .Include(u => u.Profiles!)
                 .ThenInclude(p => p.Roles)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -122,14 +118,14 @@ public class AuthService : IAuthService
 
         return new TokenResponse
         {
-            AccessToken = _tokenService.GenerateAccessToken(user, profile, role),
+            AccessToken = tokenService.GenerateAccessToken(user, profile, role),
             RefreshToken = refreshToken,
         };
     }
 
     public async Task<TokenResponse> RefreshAsync(string refreshToken)
     {
-        var stored = await _db.RefreshTokens
+        var stored = await refreshTokens.Query()
             .Include(rt => rt.AppUser!)
                 .ThenInclude(u => u.Profiles!)
                     .ThenInclude(p => p.Roles)
@@ -145,31 +141,31 @@ public class AuthService : IAuthService
         var role = profile.Roles!.First().Role;
         var newRefreshToken = await IssueRefreshTokenAsync(user.Id);
 
-        await _db.SaveChangesAsync();
+        await uow.SaveChangesAsync();
 
         return new TokenResponse
         {
-            AccessToken = _tokenService.GenerateAccessToken(user, profile, role),
+            AccessToken = tokenService.GenerateAccessToken(user, profile, role),
             RefreshToken = newRefreshToken,
         };
     }
 
     public async Task LogoutAsync(string refreshToken)
     {
-        var stored = await _db.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+        var stored = await refreshTokens.Query().FirstOrDefaultAsync(rt => rt.Token == refreshToken);
         if (stored is null)
             return;
 
         stored.IsRevoked = true;
-        await _db.SaveChangesAsync();
+        await uow.SaveChangesAsync();
     }
 
     private async Task<string> IssueRefreshTokenAsync(Guid userId)
     {
-        var token = _tokenService.GenerateRefreshToken();
-        var expiryDays = int.Parse(_config["Jwt:RefreshTokenExpiryDays"] ?? "7");
+        var token = tokenService.GenerateRefreshToken();
+        var expiryDays = int.Parse(config["Jwt:RefreshTokenExpiryDays"] ?? "7");
 
-        _db.RefreshTokens.Add(new RefreshToken
+        refreshTokens.Add(new RefreshToken
         {
             Id = Guid.NewGuid(),
             Token = token,
@@ -179,7 +175,7 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         });
 
-        await _db.SaveChangesAsync();
+        await uow.SaveChangesAsync();
         return token;
     }
 }

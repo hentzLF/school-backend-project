@@ -25,13 +25,10 @@ Every localization key used in views SHALL have a corresponding entry in `Shared
 - **WHEN** a view references `@Localizer["KeyName"]`
 - **THEN** `SharedResource.et.resx` contains an entry for `KeyName` with the Estonian translation
 
-### Requirement: HTML lang attribute reflects culture
-The `<html lang="...">` attribute in all layouts SHALL reflect the current culture.
+### Requirement: Parameterized strings use format placeholders
+Strings containing dynamic values SHALL use `string.Format`-style placeholders in .resx entries and be invoked via `@Localizer["Key", arg1, arg2]`.
 
-#### Scenario: English lang attribute
-- **WHEN** the culture is English
-- **THEN** the HTML element has `lang="en"`
-
-#### Scenario: Estonian lang attribute
-- **WHEN** the culture is Estonian
-- **THEN** the HTML element has `lang="et"`
+#### Scenario: Dynamic value in localized string
+- **WHEN** a view displays a string with a dynamic value (e.g., a user's name or a count)
+- **THEN** the .resx entry uses `{0}`, `{1}`, etc. as placeholders
+- **AND** the view passes the dynamic values as arguments to `@Localizer`

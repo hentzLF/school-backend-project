@@ -33,9 +33,36 @@ The application SHALL use `CookieRequestCultureProvider` as the mechanism for pe
 - **THEN** the `.AspNetCore.Culture` cookie is set with value `c=et|uic=et`
 - **AND** subsequent requests use Estonian as the culture
 
+### Requirement: Fallback to default culture
+When a localization key is missing from a non-default culture's .resx file, the application SHALL fall back to the default culture (English) value rather than displaying the raw key name.
+
+#### Scenario: Missing Estonian translation falls back to English
+- **WHEN** a view renders with Estonian culture
+- **AND** a key exists in `SharedResource.resx` but not in `SharedResource.et.resx`
+- **THEN** the English value is displayed
+
+### Requirement: Culture cookie lifetime
+The culture cookie SHALL be set with an explicit expiry (365 days) so the user's language preference persists across browser sessions.
+
+#### Scenario: Cookie persists after browser restart
+- **WHEN** a user sets their language preference
+- **AND** closes and reopens the browser
+- **THEN** the language preference is still active
+
 ### Requirement: IStringLocalizer available in views
 All Razor views SHALL have access to `IStringLocalizer<SharedResource>` via `@inject` in `_ViewImports.cshtml`.
 
 #### Scenario: Localizer injected in views
 - **WHEN** a Razor view renders
 - **THEN** `@Localizer["KeyName"]` resolves to the correct localized string for the current culture
+
+### Requirement: HTML lang attribute reflects culture
+The `<html lang="...">` attribute in all layouts SHALL dynamically reflect the current request culture using `CultureInfo.CurrentUICulture.TwoLetterISOLanguageName`.
+
+#### Scenario: English lang attribute
+- **WHEN** the culture is English
+- **THEN** the HTML element has `lang="en"`
+
+#### Scenario: Estonian lang attribute
+- **WHEN** the culture is Estonian
+- **THEN** the HTML element has `lang="et"`

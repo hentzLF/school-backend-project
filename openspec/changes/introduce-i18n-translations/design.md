@@ -60,8 +60,20 @@ AgriMarket is an ASP.NET Core MVC application (.NET 10) with 51 Razor views acro
 
 **Rationale**: Flat PascalCase keys are simple to reference in views (`@Localizer["SignIn"]`) and easy to search. Prefixing is reserved for when the same English word needs different translations in different contexts.
 
+### 6. Parameterized / interpolated strings
+
+**Decision**: Strings containing dynamic values use `string.Format`-style placeholders in .resx entries (e.g., `Welcome, {0}`) and are invoked via `@Localizer["Welcome", user.Name]`. Translators can reorder placeholders as needed by the target language's grammar.
+
+**Rationale**: This is the built-in mechanism supported by `IStringLocalizer`. It keeps formatting logic out of views while giving translators flexibility over word order.
+
+### 7. Culture cookie lifetime
+
+**Decision**: Set an explicit cookie expiry (e.g., 365 days) so the language preference persists across browser sessions, rather than relying on the default session cookie.
+
+**Rationale**: A session cookie would reset the user's choice every time they close the browser, which is a poor UX for a language preference. A long-lived cookie matches user expectations.
+
 ## Risks / Trade-offs
 
 - **Large view diff** — All 51 views will be modified to replace hardcoded strings. Risk of introducing typos or missing strings. → Mitigation: Systematic view-by-view pass with resource key verification.
-- **Missing translations** — If a key exists in the English .resx but is missing from the Estonian .resx, the key name will be displayed instead. → Mitigation: Keep both .resx files in sync during development; consider adding a build-time check later.
+- **Missing translations** — If a key exists in the English .resx but is missing from the Estonian .resx, ASP.NET Core falls back to the default culture (English). If both are missing, the raw key name is displayed. → Mitigation: Keep both .resx files in sync during development; add a unit test that compares key sets across .resx files to catch drift.
 - **Three layouts to maintain** — The language switcher partial must be included in all three standalone layouts. → Mitigation: Use a shared partial view (`_LanguageSwitcher.cshtml`) to keep the component in one place.

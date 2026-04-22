@@ -87,7 +87,14 @@ public class BookingService(
         };
 
         bookingRepo.Add(booking);
-        await uow.SaveChangesAsync();
+        try
+        {
+            await uow.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new BusinessRuleException("The selected availability was booked by someone else.");
+        }
         return (await GetByIdAsync(booking.Id))!;
     }
 

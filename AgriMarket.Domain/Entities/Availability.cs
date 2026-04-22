@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace AgriMarket.Domain.Entities;
 
 public class Availability
@@ -11,6 +13,9 @@ public class Availability
     public DateTime EndTime { get; set; }
 
     public bool IsBooked { get; set; }
+
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = [];
 
     // Navigation
     public ServiceListing? ServiceListing { get; set; }

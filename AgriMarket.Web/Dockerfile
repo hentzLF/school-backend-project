@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY AgriMarket.slnx .
+COPY Directory.Build.props .
 COPY AgriMarket.Web/AgriMarket.Web.csproj AgriMarket.Web/
 COPY AgriMarket.BLL/AgriMarket.BLL.csproj AgriMarket.BLL/
 COPY AgriMarket.DAL/AgriMarket.DAL.csproj AgriMarket.DAL/

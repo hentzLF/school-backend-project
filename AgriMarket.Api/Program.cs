@@ -68,7 +68,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
-        policy.RequireClaim("role", "Admin"));
+        policy.RequireClaim(System.Security.Claims.ClaimTypes.Role, "Admin"));
 });
 
 // Dependency Inversion

@@ -104,7 +104,11 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
-    await AppDbSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync();
+    await AppDbSeeder.SeedAsync(context);
+}
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

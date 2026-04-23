@@ -1,4 +1,5 @@
 using AgriMarket.BLL.Services;
+using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -47,7 +48,7 @@ public class DashboardController : Controller
                     ? $"{b.ClientProfile.FirstName} {b.ClientProfile.LastName}"
                     : "Unknown",
                 ListingTitle = b.ServiceListing?.Title ?? "Unknown",
-                Status = b.Status,
+                Status = (BookingStatus)b.Status,
                 TotalPrice = b.TotalPrice,
                 CreatedAt = b.CreatedAt
             }) ?? []

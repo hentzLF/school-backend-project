@@ -13,6 +13,41 @@ namespace AgriMarket.DAL.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(
+                """
+                DELETE FROM "Bookings" WHERE "ServiceListingId" IN (
+                    SELECT "Id" FROM "ServiceListings" WHERE "ServiceCategoryId" IN (
+                        'a1b2c3d4-0001-0000-0000-000000000001',
+                        'a1b2c3d4-0002-0000-0000-000000000002',
+                        'a1b2c3d4-0003-0000-0000-000000000003',
+                        'a1b2c3d4-0004-0000-0000-000000000004',
+                        'a1b2c3d4-0005-0000-0000-000000000005',
+                        'a1b2c3d4-0006-0000-0000-000000000006',
+                        'a1b2c3d4-0007-0000-0000-000000000007'
+                    )
+                );
+                DELETE FROM "Availabilities" WHERE "ServiceListingId" IN (
+                    SELECT "Id" FROM "ServiceListings" WHERE "ServiceCategoryId" IN (
+                        'a1b2c3d4-0001-0000-0000-000000000001',
+                        'a1b2c3d4-0002-0000-0000-000000000002',
+                        'a1b2c3d4-0003-0000-0000-000000000003',
+                        'a1b2c3d4-0004-0000-0000-000000000004',
+                        'a1b2c3d4-0005-0000-0000-000000000005',
+                        'a1b2c3d4-0006-0000-0000-000000000006',
+                        'a1b2c3d4-0007-0000-0000-000000000007'
+                    )
+                );
+                DELETE FROM "ServiceListings" WHERE "ServiceCategoryId" IN (
+                    'a1b2c3d4-0001-0000-0000-000000000001',
+                    'a1b2c3d4-0002-0000-0000-000000000002',
+                    'a1b2c3d4-0003-0000-0000-000000000003',
+                    'a1b2c3d4-0004-0000-0000-000000000004',
+                    'a1b2c3d4-0005-0000-0000-000000000005',
+                    'a1b2c3d4-0006-0000-0000-000000000006',
+                    'a1b2c3d4-0007-0000-0000-000000000007'
+                );
+                """);
+
             migrationBuilder.DeleteData(
                 table: "ServiceCategories",
                 keyColumn: "Id",

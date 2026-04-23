@@ -37,20 +37,36 @@ public class DashboardService(
         var bookingsByStatus = Enum.GetValues<BookingStatus>()
             .ToDictionary(s => s, s => bookingsStatusCounts.FirstOrDefault(b => b.Key == s)?.Count ?? 0);
 
-        var totalRevenue = await payments.Query().SumAsync(p => p.Amount);
-        var totalPlatformFees = await payments.Query().SumAsync(p => p.PlatformFee);
+        var totalRevenue = await payments.Query().Select(p => (decimal?)p.Amount).SumAsync() ?? 0m;
+        var totalPlatformFees = await payments.Query().Select(p => (decimal?)p.PlatformFee).SumAsync() ?? 0m;
         var revenueThisMonth = await payments.Query()
             .Where(p => p.CreatedAt >= startOfMonth)
-            .SumAsync(p => p.Amount);
+            .Select(p => (decimal?)p.Amount).SumAsync() ?? 0m;
 
         var activeDisputes = await payments.CountAsync(p => p.Status == PaymentStatus.Disputed);
         var resolvedDisputes = await payments.CountAsync(p => p.Status == PaymentStatus.Released || p.Status == PaymentStatus.Refunded);
 
         var recentBookings = await bookings.Query()
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
             .OrderByDescending(b => b.CreatedAt)
             .Take(RecentBookingsCount)
+            .Select(b => new RecentBookingDto
+            {
+                Id = b.Id,
+                Status = (int)b.Status,
+                TotalPrice = b.TotalPrice,
+                AreaInHectares = b.AreaInHectares,
+                CreatedAt = b.CreatedAt,
+                ClientProfile = b.ClientProfile != null
+                    ? new ClientProfileDto
+                    {
+                        FirstName = b.ClientProfile.FirstName,
+                        LastName = b.ClientProfile.LastName,
+                    }
+                    : null,
+                ServiceListing = b.ServiceListing != null
+                    ? new ServiceListingDto { Title = b.ServiceListing.Title }
+                    : null,
+            })
             .ToListAsync();
 
         return new DashboardStats

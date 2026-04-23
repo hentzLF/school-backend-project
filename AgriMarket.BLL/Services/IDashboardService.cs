@@ -1,7 +1,28 @@
-using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 
 namespace AgriMarket.BLL.Services;
+
+public class RecentBookingDto
+{
+    public Guid Id { get; set; }
+    public int Status { get; set; }
+    public decimal TotalPrice { get; set; }
+    public decimal AreaInHectares { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public ClientProfileDto? ClientProfile { get; set; }
+    public ServiceListingDto? ServiceListing { get; set; }
+}
+
+public class ClientProfileDto
+{
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+}
+
+public class ServiceListingDto
+{
+    public string Title { get; set; } = string.Empty;
+}
 
 public class DashboardStats
 {
@@ -18,7 +39,7 @@ public class DashboardStats
     public decimal RevenueThisMonth { get; set; }
     public int ActiveDisputes { get; set; }
     public int ResolvedDisputes { get; set; }
-    public IEnumerable<Booking>? RecentBookings { get; set; }
+    public List<RecentBookingDto>? RecentBookings { get; set; }
 }
 
 public interface IDashboardService

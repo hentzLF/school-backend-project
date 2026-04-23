@@ -14,7 +14,11 @@ public static class UserApiMapper
             Bio = dto.Bio,
             AvatarUrl = dto.AvatarUrl,
             AppUserId = dto.AppUserId,
-            Email = null
+            Email = null,
+            CreatedAt = dto.CreatedAt,
+            IsLocked = dto.IsLocked,
+            LockoutEnd = dto.LockoutEnd,
+            Roles = dto.Roles
         };
     }
 }

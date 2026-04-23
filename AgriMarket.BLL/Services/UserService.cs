@@ -125,6 +125,7 @@ public class UserService(
         var query = userProfiles.Query().AsNoTracking();
         var totalCount = await query.CountAsync();
         var profiles = await query
+            .Include(p => p.Roles)
             .OrderBy(p => p.FirstName)
             .ThenBy(p => p.LastName)
             .Skip((page - 1) * pageSize)
@@ -138,6 +139,7 @@ public class UserService(
     {
         var profile = await userProfiles.Query().AsNoTracking()
             .Include(up => up.AppUser)
+            .Include(up => up.Roles)
             .FirstOrDefaultAsync(up => up.Id == id);
 
         if (profile is null)

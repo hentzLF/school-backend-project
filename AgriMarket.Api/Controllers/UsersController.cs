@@ -4,7 +4,7 @@ using AgriMarket.BLL.Services;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+
 
 namespace AgriMarket.Api.Controllers;
 
@@ -33,7 +33,7 @@ public class UsersController(IUserService userService) : ApiControllerBase
     {
         var callerUserId = GetCallerUserId();
         var isAdmin = User.Claims.Any(c =>
-            c.Type == ClaimTypes.Role && string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase));
+            c.Type == "role" && string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase));
 
         var profile = await _userService.GetProfileByIdAsync(id, callerUserId, isAdmin);
         if (profile is null)

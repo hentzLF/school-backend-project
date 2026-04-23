@@ -12,6 +12,7 @@ public class UserService(
     IRepository<UserProfile> userProfiles,
     IRepository<ProfileRole> profileRoles,
     IUnitOfWork uow,
+    AppDbContext db,
     ILogger<UserService> logger) : IUserService
 {
     public async Task<IEnumerable<UserProfileDto>> GetAllUsersAsync()
@@ -54,8 +55,64 @@ public class UserService(
     {
         var user = await appUsers.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"AppUser {id} not found.");
-        appUsers.Remove(user);
-        await uow.SaveChangesAsync();
+
+        var profileIds = await userProfiles.Query()
+            .Where(p => p.AppUserId == id)
+            .Select(p => p.Id)
+            .ToListAsync();
+
+        await uow.BeginTransactionAsync();
+        try
+        {
+            if (profileIds.Count > 0)
+            {
+                await db.Notifications
+                    .Where(n => profileIds.Contains(n.UserProfileId))
+                    .ExecuteDeleteAsync();
+
+                await db.MessageReads
+                    .Where(mr => profileIds.Contains(mr.UserProfileId))
+                    .ExecuteDeleteAsync();
+
+                await db.Messages
+                    .Where(m => profileIds.Contains(m.SenderProfileId))
+                    .ExecuteDeleteAsync();
+
+                await db.ConversationParticipants
+                    .Where(cp => profileIds.Contains(cp.UserProfileId))
+                    .ExecuteDeleteAsync();
+
+                await db.Reviews
+                    .Where(r => profileIds.Contains(r.ReviewerProfileId)
+                             || profileIds.Contains(r.ReviewedProfileId))
+                    .ExecuteDeleteAsync();
+
+                await db.Bookings
+                    .Where(b => profileIds.Contains(b.ClientProfileId))
+                    .ExecuteDeleteAsync();
+
+                var listingIds = await db.ServiceListings
+                    .Where(sl => profileIds.Contains(sl.UserProfileId))
+                    .Select(sl => sl.Id)
+                    .ToListAsync();
+
+                if (listingIds.Count > 0)
+                {
+                    await db.Bookings
+                        .Where(b => listingIds.Contains(b.ServiceListingId))
+                        .ExecuteDeleteAsync();
+                }
+            }
+
+            appUsers.Remove(user);
+            await uow.SaveChangesAsync();
+            await uow.CommitTransactionAsync();
+        }
+        catch
+        {
+            await uow.RollbackTransactionAsync();
+            throw;
+        }
     }
 
     public async Task LockUserAsync(Guid id)

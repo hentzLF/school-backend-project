@@ -4,7 +4,6 @@ using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Security.Claims;
 
 namespace AgriMarket.Web.Areas.Admin.Controllers;
 
@@ -63,12 +62,9 @@ public class ListingsController(IListingService listingService, ICategoryService
             return View(vm);
         }
 
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-            return Unauthorized();
-
         try
         {
-            await listingService.UpdateAsync(userId, vm.ToUpdateListingDto());
+            await listingService.AdminUpdateAsync(vm.ToUpdateListingDto());
         }
         catch (KeyNotFoundException)
         {
@@ -96,12 +92,9 @@ public class ListingsController(IListingService listingService, ICategoryService
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(Guid id)
     {
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-            return Unauthorized();
-
         try
         {
-            await listingService.DeleteAsync(userId, id);
+            await listingService.AdminDeleteAsync(id);
         }
         catch (KeyNotFoundException)
         {
@@ -120,21 +113,13 @@ public class ListingsController(IListingService listingService, ICategoryService
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleActive(Guid id)
     {
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-            return Unauthorized();
-
         try
         {
-            await listingService.ToggleActiveAsync(userId, id);
+            await listingService.AdminToggleActiveAsync(id);
         }
         catch (KeyNotFoundException)
         {
             return NotFound();
-        }
-        catch (BLL.BusinessRuleException ex)
-        {
-            TempData["ErrorMessage"] = ex.Message;
-            return RedirectToAction(nameof(Details), new { id });
         }
 
         return RedirectToAction(nameof(Details), new { id });

@@ -12,6 +12,7 @@ public class PaymentDetailViewModel
     public DateTime? ReleasedAt { get; set; }
     public Guid BookingId { get; set; }
     public BookingStatus BookingStatus { get; set; }
+    public Guid ListingId { get; set; }
     public string ListingTitle { get; set; } = default!;
     public string ClientName { get; set; } = default!;
     public Guid ClientProfileId { get; set; }

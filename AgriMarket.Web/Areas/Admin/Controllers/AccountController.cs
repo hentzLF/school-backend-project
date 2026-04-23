@@ -3,6 +3,7 @@ using AgriMarket.Domain.Enums;
 using AgriMarket.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -50,9 +51,11 @@ public class AccountController(IUserService userService) : Controller
     }
 
     [HttpGet]
+    [Authorize(Policy = "AdminOnly")]
     public IActionResult Register() => View(new RegisterViewModel());
 
     [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {

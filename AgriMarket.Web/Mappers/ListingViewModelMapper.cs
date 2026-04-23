@@ -180,7 +180,12 @@ public static class ListingViewModelMapper
             CategoryName = dto.CategoryName,
             CategoryId = dto.ServiceCategoryId,
             BookingsCount = bookingCount,
-            Equipments = [],
+            Equipments = dto.Equipments.Select(e => new ListingEquipmentViewModel
+            {
+                Name = e.Name,
+                Model = e.Model,
+                ManufactureYear = e.ManufactureYear
+            }),
             Availabilities = dto.Availabilities.Select(a => new ListingAvailabilityViewModel
             {
                 StartTime = a.StartTime,

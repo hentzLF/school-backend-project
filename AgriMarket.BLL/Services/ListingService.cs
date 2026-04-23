@@ -43,6 +43,7 @@ public class ListingService(
             .Include(l => l.UserProfile)
             .Include(l => l.ServiceCategory)
             .Include(l => l.Availabilities)
+            .Include(l => l.Equipments)
             .FirstOrDefaultAsync(l => l.Id == id);
 
         return listing is null ? null : ToListingDto(listing);
@@ -164,6 +165,16 @@ public class ListingService(
             throw new BusinessRuleException("Cannot delete listing with active bookings.");
 
         serviceListings.Remove(listing);
+        await uow.SaveChangesAsync();
+    }
+
+    public async Task AdminToggleActiveAsync(Guid listingId)
+    {
+        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
+        if (listing is null)
+            throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
+
+        listing.IsActive = !listing.IsActive;
         await uow.SaveChangesAsync();
     }
 
@@ -293,6 +304,16 @@ public class ListingService(
             Availabilities = (listing.Availabilities ?? [])
                 .OrderBy(a => a.StartTime)
                 .Select(ToAvailabilityDto)
+                .ToList(),
+            Equipments = (listing.Equipments ?? [])
+                .Select(e => new Dtos.Listings.EquipmentDto
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    Model = e.Model,
+                    ManufactureYear = e.ManufactureYear,
+                    Description = e.Description
+                })
                 .ToList()
         };
     }

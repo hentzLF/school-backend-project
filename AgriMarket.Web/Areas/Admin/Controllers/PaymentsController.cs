@@ -1,6 +1,7 @@
 using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Admin.ViewModels;
+using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,16 +26,7 @@ public class PaymentsController : Controller
         {
             TotalCount = payments.Count(),
             FilterStatus = status,
-            Payments = payments.Select(p => new PaymentListItemViewModel
-            {
-                Id = p.Id,
-                BookingId = p.BookingId,
-                Amount = p.Amount,
-                PlatformFee = p.PlatformFee,
-                Status = p.Status,
-                CreatedAt = p.CreatedAt,
-                ReleasedAt = p.ReleasedAt
-            })
+            Payments = payments.Select(p => p.ToAdminListItem())
         };
 
         return View(vm);
@@ -61,6 +53,7 @@ public class PaymentsController : Controller
             ReleasedAt = payment.ReleasedAt,
             BookingId = payment.BookingId,
             BookingStatus = booking?.Status ?? default,
+            ListingId = listing?.Id ?? default,
             ListingTitle = listing?.Title ?? "Unknown",
             ClientName = clientProfile != null
                 ? $"{clientProfile.FirstName} {clientProfile.LastName}"

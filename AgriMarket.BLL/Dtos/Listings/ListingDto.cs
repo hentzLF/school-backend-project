@@ -14,4 +14,5 @@ public sealed class ListingDto
     public string ProviderName { get; init; } = "Unknown";
     public Guid? ProviderUserId { get; init; }
     public IReadOnlyList<AvailabilityDto> Availabilities { get; init; } = [];
+    public IReadOnlyList<EquipmentDto> Equipments { get; init; } = [];
 }

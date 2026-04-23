@@ -17,4 +17,5 @@ public interface IListingService
     Task<AvailabilityDto?> GetAvailabilityByIdAsync(Guid id);
     Task<ListingDto> AdminUpdateAsync(UpdateListingDto dto);
     Task AdminDeleteAsync(Guid listingId);
+    Task AdminToggleActiveAsync(Guid listingId);
 }

@@ -31,6 +31,7 @@ public class UserService(
         var profile = await userProfiles.Query()
             .AsNoTracking()
             .Include(p => p.AppUser)
+            .Include(p => p.Roles)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (profile is null)

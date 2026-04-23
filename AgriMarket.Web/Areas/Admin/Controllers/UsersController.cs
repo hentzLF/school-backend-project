@@ -13,10 +13,14 @@ namespace AgriMarket.Web.Areas.Admin.Controllers;
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
+    private readonly IBookingService _bookingService;
+    private readonly IListingService _listingService;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, IBookingService bookingService, IListingService listingService)
     {
         _userService = userService;
+        _bookingService = bookingService;
+        _listingService = listingService;
     }
 
     public async Task<IActionResult> Index()
@@ -37,10 +41,18 @@ public class UsersController : Controller
         var profile = await _userService.GetUserByIdAsync(id, GetCallerUserId(), isAdmin: true);
         if (profile == null) return NotFound();
 
+        var listings = await _listingService.GetByProviderAsync(profile.Id);
+        var (_, bookingsCount) = await _bookingService.GetAllForProfileAsync(profile.Id, 1, 1);
+
         var vm = new UserDetailViewModel
         {
             Id = profile.Id,
             Email = profile.Email ?? string.Empty,
+            CreatedAt = profile.CreatedAt,
+            IsLocked = profile.IsLocked,
+            LockoutEnd = profile.LockoutEnd,
+            ListingsCount = listings.Count(),
+            BookingsCount = bookingsCount,
             Profiles = [new UserProfileDetailViewModel
             {
                 Id = profile.Id,
@@ -48,7 +60,7 @@ public class UsersController : Controller
                 LastName = profile.LastName,
                 Bio = profile.Bio,
                 AvatarUrl = profile.AvatarUrl,
-                Roles = []
+                Roles = profile.Roles
             }]
         };
 

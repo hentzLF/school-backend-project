@@ -11,10 +11,12 @@ namespace AgriMarket.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IConfiguration _config;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IConfiguration config)
     {
         _authService = authService;
+        _config = config;
     }
 
     [HttpPost("register")]
@@ -41,9 +43,11 @@ public class AuthController : ControllerBase
         try
         {
             var result = await _authService.LoginAsync(request);
-            return Ok(result.RequiresProfileSelection
-                ? (object)result.ProfileSelection!
-                : result.Tokens!);
+            if (result.RequiresProfileSelection)
+                return Ok(result.ProfileSelection!);
+
+            SetRefreshTokenCookie(result.Tokens!.RefreshToken);
+            return Ok(new { result.Tokens.AccessToken });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -57,7 +61,8 @@ public class AuthController : ControllerBase
         try
         {
             var tokens = await _authService.SelectProfileAsync(request);
-            return Ok(tokens);
+            SetRefreshTokenCookie(tokens.RefreshToken);
+            return Ok(new { tokens.AccessToken });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -66,23 +71,57 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
+    public async Task<IActionResult> Refresh()
     {
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(refreshToken))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "No refresh token.");
+
         try
         {
-            var tokens = await _authService.RefreshAsync(request.RefreshToken);
-            return Ok(tokens);
+            var tokens = await _authService.RefreshAsync(refreshToken);
+            SetRefreshTokenCookie(tokens.RefreshToken);
+            return Ok(new { tokens.AccessToken });
         }
         catch (UnauthorizedAccessException ex)
         {
+            DeleteRefreshTokenCookie();
             return Problem(statusCode: 401, title: "Unauthorized", detail: ex.Message);
         }
     }
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout([FromBody] LogoutRequest request)
+    public async Task<IActionResult> Logout()
     {
-        await _authService.LogoutAsync(request.RefreshToken);
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (!string.IsNullOrEmpty(refreshToken))
+            await _authService.LogoutAsync(refreshToken);
+
+        DeleteRefreshTokenCookie();
         return NoContent();
+    }
+
+    private void SetRefreshTokenCookie(string token)
+    {
+        var expiryDays = int.Parse(_config["Jwt:RefreshTokenExpiryDays"] ?? "7");
+        Response.Cookies.Append("refreshToken", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/v1/auth",
+            Expires = DateTimeOffset.UtcNow.AddDays(expiryDays),
+        });
+    }
+
+    private void DeleteRefreshTokenCookie()
+    {
+        Response.Cookies.Delete("refreshToken", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/api/v1/auth",
+        });
     }
 }

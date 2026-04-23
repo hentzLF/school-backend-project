@@ -42,7 +42,13 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddCors(options =>
-    options.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+    options.AddDefaultPolicy(p => p
+        .WithOrigins(
+            builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+            ?? ["http://localhost:5173"])
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials()));
 
 // 7.1 — JWT bearer authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

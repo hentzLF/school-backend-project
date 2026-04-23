@@ -9,5 +9,6 @@ public enum BookingStatus
     ClientConfirmed = 5,
     Archived =  6,
     Cancelled = 7,
-    Disputed = 8
+    Disputed = 8,
+    AwaitingPayment = 9
 }

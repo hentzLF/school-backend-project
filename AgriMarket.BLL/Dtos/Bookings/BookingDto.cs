@@ -15,6 +15,10 @@ public sealed class BookingDto
     public Guid ClientProfileId { get; init; }
     public Guid AvailabilityId { get; init; }
 
+    public int? PaymentStatus { get; init; }
+    public decimal? PaymentAmount { get; init; }
+    public decimal? PaymentPlatformFee { get; init; }
+
     [JsonIgnore]
     public string ClientName { get; init; } = "Unknown";
 

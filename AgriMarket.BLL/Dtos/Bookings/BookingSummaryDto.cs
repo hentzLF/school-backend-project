@@ -10,4 +10,5 @@ public sealed class BookingSummaryDto
     public decimal AreaInHectares { get; init; }
     public decimal TotalPrice { get; init; }
     public DateTime CreatedAt { get; init; }
+    public int? PaymentStatus { get; init; }
 }

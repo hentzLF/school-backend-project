@@ -13,9 +13,11 @@ public class BookingService(
     IRepository<UserProfile> userProfiles,
     IRepository<ServiceListing> serviceListings,
     IRepository<Availability> availabilities,
+    IRepository<Payment> paymentRepo,
     IUnitOfWork uow,
     ILogger<BookingService> logger) : IBookingService
 {
+    private const decimal PlatformFeeRate = 0.05m;
     public async Task<IEnumerable<BookingDto>> GetAllAsync(BookingStatus? status = null)
     {
         var query = BuildBaseQuery();
@@ -102,6 +104,7 @@ public class BookingService(
     {
         var booking = await bookingRepo.Query()
             .Include(b => b.ServiceListing)
+            .Include(b => b.Payment)
             .FirstOrDefaultAsync(b => b.Id == id);
         if (booking is null)
             throw new KeyNotFoundException($"Booking {id} not found.");
@@ -119,7 +122,39 @@ public class BookingService(
                 throw new BusinessRuleException($"Transition from {booking.Status} to {status} is not permitted for your role.");
         }
 
+        var previousStatus = booking.Status;
         booking.Status = status;
+
+        if (previousStatus == BookingStatus.AwaitingPayment && status == BookingStatus.Confirmed)
+        {
+            var payment = new Payment
+            {
+                Id = Guid.NewGuid(),
+                Status = PaymentStatus.Held,
+                Amount = booking.TotalPrice,
+                PlatformFee = booking.TotalPrice * PlatformFeeRate,
+                CreatedAt = DateTime.UtcNow,
+                BookingId = booking.Id
+            };
+            paymentRepo.Add(payment);
+        }
+
+        if (status == BookingStatus.ClientConfirmed && booking.Payment is { Status: PaymentStatus.Held })
+        {
+            booking.Payment.Status = PaymentStatus.Released;
+            booking.Payment.ReleasedAt = DateTime.UtcNow;
+        }
+
+        if (status == BookingStatus.Cancelled && booking.Payment is { Status: PaymentStatus.Held })
+        {
+            booking.Payment.Status = PaymentStatus.Refunded;
+        }
+
+        if (status == BookingStatus.Disputed && booking.Payment is not null)
+        {
+            booking.Payment.Status = PaymentStatus.Disputed;
+        }
+
         await uow.SaveChangesAsync();
 
         return (await GetByIdAsync(id))!;
@@ -132,6 +167,11 @@ public class BookingService(
         if (isClient)
         {
             if (current == BookingStatus.Pending) result.Add(BookingStatus.Cancelled);
+            if (current == BookingStatus.AwaitingPayment)
+            {
+                result.Add(BookingStatus.Confirmed);
+                result.Add(BookingStatus.Cancelled);
+            }
             if (current == BookingStatus.Confirmed) result.Add(BookingStatus.Cancelled);
             if (current == BookingStatus.ProviderCompleted) result.Add(BookingStatus.ClientConfirmed);
         }
@@ -140,9 +180,10 @@ public class BookingService(
         {
             if (current == BookingStatus.Pending)
             {
-                result.Add(BookingStatus.Confirmed);
+                result.Add(BookingStatus.AwaitingPayment);
                 result.Add(BookingStatus.Cancelled);
             }
+            if (current == BookingStatus.AwaitingPayment) result.Add(BookingStatus.Cancelled);
             if (current == BookingStatus.Confirmed) result.Add(BookingStatus.InProgress);
             if (current == BookingStatus.InProgress) result.Add(BookingStatus.ProviderCompleted);
             var terminal = new[] { BookingStatus.Cancelled, BookingStatus.ClientConfirmed, BookingStatus.Disputed };
@@ -169,7 +210,7 @@ public class BookingService(
 
     public async Task<bool> HasActiveBookingsAsync(Guid listingId)
     {
-        var activeStatuses = new[] { BookingStatus.Pending, BookingStatus.Confirmed, BookingStatus.InProgress, BookingStatus.ProviderCompleted };
+        var activeStatuses = new[] { BookingStatus.Pending, BookingStatus.AwaitingPayment, BookingStatus.Confirmed, BookingStatus.InProgress, BookingStatus.ProviderCompleted };
         return await bookingRepo.AnyAsync(b => b.ServiceListingId == listingId && activeStatuses.Contains(b.Status));
     }
 
@@ -178,6 +219,7 @@ public class BookingService(
         var items = await bookingRepo.Query()
             .AsNoTracking()
             .Include(b => b.ClientProfile)
+            .Include(b => b.Payment)
             .Where(b => b.ServiceListingId == listingId)
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync();
@@ -191,7 +233,8 @@ public class BookingService(
             Status = b.Status,
             AreaInHectares = b.AreaInHectares,
             TotalPrice = b.TotalPrice,
-            CreatedAt = b.CreatedAt
+            CreatedAt = b.CreatedAt,
+            PaymentStatus = b.Payment is null ? null : (int)b.Payment.Status
         });
     }
 
@@ -240,7 +283,10 @@ public class BookingService(
             ListingTitle = booking.ServiceListing?.Title ?? "Unknown",
             ProviderProfileId = booking.ServiceListing?.UserProfileId ?? Guid.Empty,
             AvailabilityStart = booking.Availability?.StartTime ?? default,
-            AvailabilityEnd = booking.Availability?.EndTime ?? default
+            AvailabilityEnd = booking.Availability?.EndTime ?? default,
+            PaymentStatus = booking.Payment is null ? null : (int)booking.Payment.Status,
+            PaymentAmount = booking.Payment?.Amount,
+            PaymentPlatformFee = booking.Payment?.PlatformFee
         };
     }
 }

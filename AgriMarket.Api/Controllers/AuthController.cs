@@ -53,6 +53,10 @@ public class AuthController : ControllerBase
         {
             return Problem(statusCode: 401, title: "Unauthorized", detail: ex.Message);
         }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
+        }
     }
 
     [HttpPost("select-profile")]
@@ -67,6 +71,10 @@ public class AuthController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             return Problem(statusCode: 401, title: "Unauthorized", detail: ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
         }
     }
 

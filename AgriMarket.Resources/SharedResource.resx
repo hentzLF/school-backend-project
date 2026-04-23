@@ -280,6 +280,13 @@
   <data name="DevelopmentMode" xml:space="preserve"><value>Development Mode</value></data>
   <data name="DevelopmentModeDesc" xml:space="preserve"><value>Swapping to the Development environment will display more detailed information about the error that occurred.</value></data>
   <data name="DevelopmentModeWarning" xml:space="preserve"><value>The Development environment shouldn't be enabled for deployed applications. It can result in displaying sensitive information from exceptions to end users. For local debugging, enable the Development environment by setting the ASPNETCORE_ENVIRONMENT environment variable to Development and restarting the app.</value></data>
+  <!-- Booking Checkout -->
+  <data name="Checkout" xml:space="preserve"><value>Checkout</value></data>
+  <data name="ServiceTotal" xml:space="preserve"><value>Service Total</value></data>
+  <data name="Total" xml:space="preserve"><value>Total</value></data>
+  <data name="ConfirmAndPay" xml:space="preserve"><value>Confirm and Pay</value></data>
+  <data name="CancelBooking" xml:space="preserve"><value>Cancel Booking</value></data>
+  <data name="AwaitingPayment" xml:space="preserve"><value>Awaiting Payment</value></data>
   <!-- Footer -->
   <data name="FooterCopyright" xml:space="preserve"><value>2026 - AgriMarket.Web -</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Toggle navigation</value></data>

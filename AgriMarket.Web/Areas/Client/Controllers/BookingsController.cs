@@ -43,6 +43,43 @@ public class BookingsController(IBookingService bookingService, IUserService use
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Pay(Guid id)
+    {
+        var clientProfile = await GetClientProfileAsync();
+        if (clientProfile == null) return Unauthorized();
+
+        var booking = await bookingService.GetByIdAsync(id);
+        if (booking == null) return NotFound();
+
+        if (booking.ClientProfileId != clientProfile.Id)
+            return RedirectToAction("AccessDenied", "Account");
+
+        if (booking.Status != BookingStatus.AwaitingPayment)
+            return RedirectToAction(nameof(Details), new { id });
+
+        await bookingService.UpdateStatusAsync(id, BookingStatus.Confirmed, clientProfile.Id);
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Cancel(Guid id)
+    {
+        var clientProfile = await GetClientProfileAsync();
+        if (clientProfile == null) return Unauthorized();
+
+        var booking = await bookingService.GetByIdAsync(id);
+        if (booking == null) return NotFound();
+
+        if (booking.ClientProfileId != clientProfile.Id)
+            return RedirectToAction("AccessDenied", "Account");
+
+        await bookingService.UpdateStatusAsync(id, BookingStatus.Cancelled, clientProfile.Id);
+        return RedirectToAction(nameof(Details), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ConfirmCompletion(Guid id)
     {
         var clientProfile = await GetClientProfileAsync();

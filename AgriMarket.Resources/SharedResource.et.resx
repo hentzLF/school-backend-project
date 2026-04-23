@@ -280,6 +280,13 @@
   <data name="DevelopmentMode" xml:space="preserve"><value>Arendusrežiim</value></data>
   <data name="DevelopmentModeDesc" xml:space="preserve"><value>Arenduskeskkonnale lülitumine kuvab üksikasjalikumat teavet tekkinud vea kohta.</value></data>
   <data name="DevelopmentModeWarning" xml:space="preserve"><value>Arenduskeskkonda ei tohiks juurutatud rakenduste puhul lubada. See võib põhjustada tundliku teabe kuvamist erandite kaudu lõppkasutajatele. Kohalikuks silumiseks lubage arenduskeskkond, seades keskkonnamuutuja ASPNETCORE_ENVIRONMENT väärtuseks Development ja taaskäivitades rakenduse.</value></data>
+  <!-- Booking Checkout -->
+  <data name="Checkout" xml:space="preserve"><value>Maksmine</value></data>
+  <data name="ServiceTotal" xml:space="preserve"><value>Teenuse summa</value></data>
+  <data name="Total" xml:space="preserve"><value>Kokku</value></data>
+  <data name="ConfirmAndPay" xml:space="preserve"><value>Kinnita ja maksa</value></data>
+  <data name="CancelBooking" xml:space="preserve"><value>Tühista broneering</value></data>
+  <data name="AwaitingPayment" xml:space="preserve"><value>Ootab makset</value></data>
   <!-- Footer -->
   <data name="FooterCopyright" xml:space="preserve"><value>2026 - AgriMarket.Web -</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Lülita navigatsioon</value></data>

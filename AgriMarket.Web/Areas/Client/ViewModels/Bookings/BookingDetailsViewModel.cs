@@ -15,4 +15,8 @@ public class BookingDetailsViewModel
     public DateTime AvailabilityStart { get; set; }
     public DateTime AvailabilityEnd { get; set; }
     public bool CanConfirmCompletion => Status == BookingStatus.ProviderCompleted;
+    public bool CanPay => Status == BookingStatus.AwaitingPayment;
+    public bool CanCancel => Status is BookingStatus.Pending or BookingStatus.AwaitingPayment or BookingStatus.Confirmed;
+    public decimal PlatformFee => TotalPrice * 0.05m;
+    public decimal GrandTotal => TotalPrice + PlatformFee;
 }

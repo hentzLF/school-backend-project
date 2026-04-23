@@ -15,7 +15,7 @@ public class Availability
     public bool IsBooked { get; set; }
 
     [Timestamp]
-    public byte[] RowVersion { get; set; } = [];
+    public uint RowVersion { get; set; }
 
     // Navigation
     public ServiceListing? ServiceListing { get; set; }

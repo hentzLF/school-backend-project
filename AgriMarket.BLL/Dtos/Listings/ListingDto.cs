@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace AgriMarket.BLL.Dtos.Listings;
 
 public sealed class ListingDto
@@ -12,16 +10,8 @@ public sealed class ListingDto
     public Guid UserProfileId { get; init; }
     public Guid ServiceCategoryId { get; init; }
     public Guid? LocationId { get; init; }
-
-    [JsonIgnore]
     public string CategoryName { get; init; } = "Unknown";
-
-    [JsonIgnore]
     public string ProviderName { get; init; } = "Unknown";
-
-    [JsonIgnore]
     public Guid? ProviderUserId { get; init; }
-
-    [JsonIgnore]
     public IReadOnlyList<AvailabilityDto> Availabilities { get; init; } = [];
 }

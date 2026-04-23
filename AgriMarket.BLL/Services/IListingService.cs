@@ -15,4 +15,6 @@ public interface IListingService
     Task<AvailabilityDto> AddAvailabilityAsync(Guid userId, CreateAvailabilityDto dto);
     Task DeleteAvailabilityAsync(Guid userId, Guid availabilityId);
     Task<AvailabilityDto?> GetAvailabilityByIdAsync(Guid id);
+    Task<ListingDto> AdminUpdateAsync(UpdateListingDto dto);
+    Task AdminDeleteAsync(Guid listingId);
 }

@@ -133,6 +133,40 @@ public class ListingService(
         await uow.SaveChangesAsync();
     }
 
+    public async Task<ListingDto> AdminUpdateAsync(UpdateListingDto dto)
+    {
+        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == dto.Id);
+        if (listing is null)
+            throw new KeyNotFoundException($"ServiceListing {dto.Id} not found.");
+
+        listing.Title = dto.Title;
+        listing.Description = dto.Description;
+        listing.ServiceCategoryId = dto.ServiceCategoryId;
+        listing.PricePerHectare = dto.PricePerHectare;
+        listing.IsActive = dto.IsActive;
+        listing.LocationId = dto.LocationId;
+        await uow.SaveChangesAsync();
+
+        return (await GetByIdAsync(listing.Id))!;
+    }
+
+    public async Task AdminDeleteAsync(Guid listingId)
+    {
+        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
+        if (listing is null)
+            throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
+
+        var hasActiveBookings = await bookings.AnyAsync(b =>
+            b.ServiceListingId == listingId &&
+            ActiveBookingStatuses.Contains(b.Status));
+
+        if (hasActiveBookings)
+            throw new BusinessRuleException("Cannot delete listing with active bookings.");
+
+        serviceListings.Remove(listing);
+        await uow.SaveChangesAsync();
+    }
+
     public async Task<IEnumerable<ListingSummaryDto>> GetActiveListingsAsync()
     {
         var listings = await serviceListings.Query()

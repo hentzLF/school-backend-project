@@ -61,7 +61,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // 7.3
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireClaim(System.Security.Claims.ClaimTypes.Role, "Admin"));
+});
 
 // Dependency Inversion
 builder.Services.AddDal();

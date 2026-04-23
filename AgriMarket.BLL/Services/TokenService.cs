@@ -29,7 +29,7 @@ public class TokenService : ITokenService
             new Claim("profileId", profile.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.GivenName, profile.FirstName),
             new Claim(JwtRegisteredClaimNames.FamilyName, profile.LastName),
-            new Claim(ClaimTypes.Role, role.ToString()),
+            new Claim("role", role.ToString()),
         };
 
         var expiryMinutes = int.Parse(_config["Jwt:AccessTokenExpiryMinutes"] ?? "60");

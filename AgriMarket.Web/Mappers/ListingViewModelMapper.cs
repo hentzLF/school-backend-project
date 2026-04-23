@@ -15,7 +15,8 @@ public static class ListingViewModelMapper
             Title = dto.Title,
             CategoryName = dto.CategoryName,
             ProviderName = dto.ProviderName,
-            PricePerHectare = dto.PricePerHectare
+            PricePerHectare = dto.PricePerHectare,
+            IsActive = dto.IsActive
         };
     }
 

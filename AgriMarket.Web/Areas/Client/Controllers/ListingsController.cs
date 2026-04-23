@@ -14,7 +14,7 @@ public class ListingsController(IListingService listingService, IBookingService 
 {
     public async Task<IActionResult> Index()
     {
-        var listings = await listingService.GetActiveListingsAsync();
+        var listings = await listingService.GetAllAsync();
 
         var vm = new ListingIndexViewModel
         {
@@ -31,7 +31,7 @@ public class ListingsController(IListingService listingService, IBookingService 
     public async Task<IActionResult> Details(Guid id)
     {
         var listing = await listingService.GetByIdAsync(id);
-        if (listing == null || !listing.IsActive)
+        if (listing == null)
             return NotFound();
 
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

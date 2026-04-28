@@ -1,0 +1,121 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Listings.ListingDetailsViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a asp-area="Client" asp-controller="Listings" asp-action="Index">@Localizer["Listings"]</a>
+                </li>
+                <li class="breadcrumb-item active">@Model.Title</li>
+            </ol>
+        </nav>
+
+        <h2>@Model.Title</h2>
+        <span class="badge bg-secondary mb-3">@Model.CategoryName</span>
+
+        <dl class="row mt-3">
+            <dt class="col-sm-4">@Localizer["Provider"]</dt>
+            <dd class="col-sm-8">@Model.ProviderName</dd>
+
+            <dt class="col-sm-4">@Localizer["PricePerHectare"]</dt>
+            <dd class="col-sm-8 fw-bold text-success">&euro;@Model.PricePerHectare.ToString("N2")</dd>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <dt class="col-sm-4">@Localizer["Description"]</dt>
+                <dd class="col-sm-8">@Model.Description</dd>
+            }
+        </dl>
+
+        @if (Model.Availabilities.Any())
+        {
+            <h5 class="mt-4">@Localizer["AvailableSlots"]</h5>
+            <ul class="list-group mb-4">
+                @foreach (var slot in Model.Availabilities)
+                {
+                    <li class="list-group-item">
+                        @slot.StartTime.ToString("dd MMM yyyy HH:mm") &ndash; @slot.EndTime.ToString("dd MMM yyyy HH:mm")
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="text-muted mt-4">@Localizer["NoAvailabilitySlots"]</p>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">@Localizer["BookThisService"]</h5>
+
+                @if (Model.IsOwnListing)
+                {
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        @Localizer["OwnListingWarning"]
+                    </div>
+                }
+                else if (User.Identity?.IsAuthenticated == true)
+                {
+                    @if (Model.Availabilities.Any())
+                    {
+                        <form asp-area="Client" asp-controller="Listings" asp-action="Book" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="text-danger mb-3" data-valmsg-summary="true"></div>
+                            <input type="hidden" name="ServiceListingId" value="@Model.Id" />
+
+                            <div class="mb-3">
+                                <label for="AvailabilityId" class="form-label">@Localizer["SelectAvailability"]</label>
+                                <select name="AvailabilityId" id="AvailabilityId" class="form-select" required>
+                                    <option value="">@Localizer["ChooseSlot"]</option>
+                                    @foreach (var slot in Model.Availabilities)
+                                    {
+                                        <option value="@slot.Id">
+                                            @slot.StartTime.ToString("dd MMM yyyy HH:mm") – @slot.EndTime.ToString("dd MMM yyyy HH:mm")
+                                        </option>
+                                    }
+                                </select>
+                                <span class="text-danger small field-validation-valid" data-valmsg-for="AvailabilityId" data-valmsg-replace="true"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="AreaInHectares" class="form-label">@Localizer["AreaHectares"]</label>
+                                <input type="number" name="AreaInHectares" id="AreaInHectares"
+                                       class="form-control" min="0.1" step="0.1" required />
+                                <span class="text-danger small field-validation-valid" data-valmsg-for="AreaInHectares" data-valmsg-replace="true"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Notes" class="form-label">@Localizer["NotesOptional"]</label>
+                                <textarea name="Notes" id="Notes" class="form-control" rows="3" maxlength="1000"></textarea>
+                                <span class="text-danger small field-validation-valid" data-valmsg-for="Notes" data-valmsg-replace="true"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100">@Localizer["ConfirmBooking"]</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p class="text-muted">@Localizer["NoSlotsOpen"]</p>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted">@Localizer["PleaseLogIn"]</p>
+                    <a asp-area="Client" asp-controller="Account" asp-action="Login"
+                       class="btn btn-outline-success w-100">@Localizer["LogInToBook"]</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

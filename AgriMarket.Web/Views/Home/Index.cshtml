@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = Localizer["HomePage"].Value;
+}
+
+<div class="text-center py-5">
+    <h1 class="display-4 mb-3">@Localizer["AgriMarketMVC"]</h1>
+    <p class="lead text-muted mb-5">@Localizer["HomeDescription"]</p>
+
+    <div class="row justify-content-center g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title">@Localizer["FarmersAndProviders"]</h5>
+                    <p class="card-text text-muted small">@Localizer["FarmersDescription"]</p>
+                    <a asp-area="Client" asp-controller="Account" asp-action="Login" class="btn btn-success me-2">@Localizer["SignIn"]</a>
+                    <a asp-area="Client" asp-controller="Account" asp-action="Register" class="btn btn-outline-success">@Localizer["Register"]</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="card-title">@Localizer["Administration"]</h5>
+                    <p class="card-text text-muted small">@Localizer["AdminDescription"]</p>
+                    <a asp-area="Admin" asp-controller="Account" asp-action="Login" class="btn btn-primary">@Localizer["Login"]</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

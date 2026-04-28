@@ -1,0 +1,91 @@
+@using AgriMarket.Domain.Enums
+@model PaymentDetailViewModel
+@{ ViewData["Title"] = Localizer["PaymentDetails"].Value; }
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["PaymentDetails"]</h4>
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">@Localizer["Back"]</a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">@Localizer["PaymentInfo"]</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">@Localizer["Status"]</dt>
+                    <dd class="col-sm-7">
+                        @{
+                            var badgeClass = Model.Status switch
+                            {
+                                PaymentStatus.Held => "text-bg-warning",
+                                PaymentStatus.Released => "text-bg-success",
+                                PaymentStatus.Refunded => "text-bg-info",
+                                PaymentStatus.Disputed => "text-bg-danger",
+                                _ => "text-bg-secondary"
+                            };
+                        }
+                        <span class="badge @badgeClass">@Model.Status</span>
+                    </dd>
+                    <dt class="col-sm-5">@Localizer["Amount"]</dt>
+                    <dd class="col-sm-7">&euro;@Model.Amount.ToString("0.00")</dd>
+                    <dt class="col-sm-5">@Localizer["PlatformFee"]</dt>
+                    <dd class="col-sm-7">&euro;@Model.PlatformFee.ToString("0.00")</dd>
+                    <dt class="col-sm-5">@Localizer["Created"]</dt>
+                    <dd class="col-sm-7">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+                    <dt class="col-sm-5">@Localizer["Released"]</dt>
+                    <dd class="col-sm-7">@(Model.ReleasedAt?.ToString("dd MMM yyyy HH:mm") ?? "—")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">@Localizer["BookingAndParties"]</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">@Localizer["BookingStatus"]</dt>
+                    <dd class="col-sm-7"><span class="badge text-bg-primary">@Model.BookingStatus</span></dd>
+                    <dt class="col-sm-5">@Localizer["Listing"]</dt>
+                    <dd class="col-sm-7">
+                        <a asp-controller="Listings" asp-action="Details" asp-route-id="@Model.ListingId">@Model.ListingTitle</a>
+                    </dd>
+                    <dt class="col-sm-5">@Localizer["Client"]</dt>
+                    <dd class="col-sm-7">@Model.ClientName</dd>
+                    <dt class="col-sm-5">@Localizer["Provider"]</dt>
+                    <dd class="col-sm-7">@Model.ProviderName</dd>
+                </dl>
+                <a asp-controller="Bookings" asp-action="Details" asp-route-id="@Model.BookingId" class="btn btn-sm btn-outline-primary mt-2">@Localizer["ViewBooking"]</a>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Status == PaymentStatus.Disputed)
+    {
+        <div class="col-md-6">
+            <div class="card border-warning">
+                <div class="card-header text-bg-warning">@Localizer["ResolveDispute"]</div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">@Localizer["ResolveDisputeDescription"]</p>
+                    <form asp-action="Resolve" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="PaymentId" value="@Model.Id" />
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="Resolution" value="Release" class="btn btn-success">
+                                @Localizer["ReleasePayment"]
+                            </button>
+                            <button type="submit" name="Resolution" value="Refund" class="btn btn-warning">
+                                @Localizer["RefundPayment"]
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,31 @@
+@model ListingListItemViewModel
+@{ ViewData["Title"] = Localizer["DeleteListing"].Value; }
+
+<div class="mb-4">
+    <h4>@Localizer["DeleteListing"]</h4>
+    <p class="text-muted">@Localizer["ConfirmDeleteListing"]</p>
+</div>
+
+<div class="card border-danger mb-4" style="max-width: 500px;">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@Localizer["Title"]</dt>
+            <dd class="col-sm-8">@Model.Title</dd>
+            <dt class="col-sm-4">@Localizer["Provider"]</dt>
+            <dd class="col-sm-8">@Model.ProviderName</dd>
+            <dt class="col-sm-4">@Localizer["Category"]</dt>
+            <dd class="col-sm-8">@Model.CategoryName</dd>
+            <dt class="col-sm-4">@Localizer["PricePerHa"]</dt>
+            <dd class="col-sm-8">&euro;@Model.PricePerHectare.ToString("0.00")</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="d-flex gap-2">
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">@Localizer["Delete"]</button>
+    </form>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">@Localizer["Cancel"]</a>
+</div>

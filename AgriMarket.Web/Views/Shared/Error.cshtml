@@ -1,0 +1,18 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = Localizer["Error"].Value;
+}
+
+<h1 class="text-danger">@Localizer["ErrorDot"]</h1>
+<h2 class="text-danger">@Localizer["ErrorDescription"]</h2>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>@Localizer["RequestId"]</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+<h3>@Localizer["DevelopmentMode"]</h3>
+<p>@Localizer["DevelopmentModeDesc"]</p>
+<p>@Localizer["DevelopmentModeWarning"]</p>

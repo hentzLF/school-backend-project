@@ -1,0 +1,123 @@
+using AgriMarket.BLL.Services;
+using AgriMarket.Domain.Enums;
+using AgriMarket.Web.Areas.Client.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+
+namespace AgriMarket.Web.Areas.Client.Controllers;
+
+[Area("Client")]
+public class AccountController(IUserService userService) : Controller
+{
+    [HttpGet]
+    public IActionResult Login() => View(new LoginViewModel());
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var user = await userService.GetByEmailAsync(model.Email);
+
+        if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
+        {
+            ModelState.AddModelError(string.Empty, "Invalid email or password");
+            return View(model);
+        }
+
+        if (user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
+        {
+            ModelState.AddModelError(string.Empty, "Your account is locked");
+            return View(model);
+        }
+
+        var clientProfile = user.Profiles?
+            .FirstOrDefault(p => p.Roles != null &&
+                p.Roles.Any(r => r.Role == RoleType.Farmer || r.Role == RoleType.Provider));
+
+        if (clientProfile == null)
+        {
+            ModelState.AddModelError(string.Empty, "You do not have client access");
+            return View(model);
+        }
+
+        var role = clientProfile.Roles!.First(r => r.Role == RoleType.Farmer || r.Role == RoleType.Provider).Role;
+        await SignInAsync(user, clientProfile, role);
+        return RedirectToAction("Index", "Listings", new { area = "Client" });
+    }
+
+    [HttpGet]
+    public IActionResult Register() => View(new RegisterViewModel());
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(RegisterViewModel model)
+    {
+        if (!ModelState.IsValid)
+            return View(model);
+
+        if (model.Role != RoleType.Farmer && model.Role != RoleType.Provider)
+        {
+            ModelState.AddModelError(nameof(model.Role), "Role must be Farmer or Provider");
+            return View(model);
+        }
+
+        var existingUser = await userService.GetByEmailAsync(model.Email);
+        if (existingUser != null)
+        {
+            ModelState.AddModelError(string.Empty, "An account with this email already exists");
+            return View(model);
+        }
+
+        var user = new AgriMarket.Domain.Entities.AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = model.Email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var profile = new AgriMarket.Domain.Entities.UserProfile
+        {
+            Id = Guid.NewGuid(),
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+            AppUserId = user.Id
+        };
+
+        await userService.CreateUserWithProfileAsync(user, profile, model.Role);
+
+        await SignInAsync(user, profile, model.Role);
+        return RedirectToAction("Index", "Listings", new { area = "Client" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Login");
+    }
+
+    public IActionResult AccessDenied() => View();
+
+    private async Task SignInAsync(AgriMarket.Domain.Entities.AppUser user, AgriMarket.Domain.Entities.UserProfile profile, RoleType role)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Name, $"{profile.FirstName} {profile.LastName}"),
+            new(ClaimTypes.Role, role.ToString())
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+    }
+}

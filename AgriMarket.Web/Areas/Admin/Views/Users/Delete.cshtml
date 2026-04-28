@@ -1,0 +1,38 @@
+@model UserListItemViewModel
+@{ ViewData["Title"] = Localizer["DeleteUser"].Value; }
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["DeleteUser"]</h4>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">@Localizer["Cancel"]</a>
+</div>
+
+<div class="card border-danger" style="max-width: 520px;">
+    <div class="card-header text-bg-danger">@Localizer["ConfirmDeletion"]</div>
+    <div class="card-body">
+        <p class="mb-3">@Localizer["ConfirmDeleteUser"]</p>
+        <dl class="row mb-3">
+            <dt class="col-sm-4">@Localizer["Email"]</dt>
+            <dd class="col-sm-8">@Model.Email</dd>
+            <dt class="col-sm-4">@Localizer["Profiles"]</dt>
+            <dd class="col-sm-8">@Model.ProfilesCount</dd>
+            <dt class="col-sm-4">@Localizer["Created"]</dt>
+            <dd class="col-sm-8">@Model.CreatedAt.ToString("dd MMM yyyy")</dd>
+            <dt class="col-sm-4">@Localizer["Status"]</dt>
+            <dd class="col-sm-8">
+                @if (Model.IsLocked)
+                {
+                    <span class="badge text-bg-danger">@Localizer["Locked"]</span>
+                }
+                else
+                {
+                    <span class="badge text-bg-success">@Localizer["Active"]</span>
+                }
+            </dd>
+        </dl>
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">@Localizer["Delete"]</button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary ms-2">@Localizer["Cancel"]</a>
+        </form>
+    </div>
+</div>

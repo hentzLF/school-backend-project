@@ -1,0 +1,49 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Profile.EditProfileViewModel
+@{
+    ViewData["Title"] = Localizer["EditProfile"].Value;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["EditProfile"]</h4>
+    <a asp-area="Client" asp-controller="Profile" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        @Localizer["Cancel"]
+    </a>
+</div>
+
+<div style="max-width: 540px;">
+    <form asp-area="Client" asp-controller="Profile" asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+        <div class="mb-3">
+            <label asp-for="FirstName" class="form-label"></label>
+            <input asp-for="FirstName" class="form-control" />
+            <span asp-validation-for="FirstName" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="LastName" class="form-label"></label>
+            <input asp-for="LastName" class="form-control" />
+            <span asp-validation-for="LastName" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Bio" class="form-label"></label>
+            <textarea asp-for="Bio" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Bio" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="AvatarUrl" class="form-label"></label>
+            <input asp-for="AvatarUrl" class="form-control" />
+            <span asp-validation-for="AvatarUrl" class="text-danger small"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">@Localizer["SaveChangesButton"]</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

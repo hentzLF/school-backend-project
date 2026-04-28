@@ -1,0 +1,34 @@
+@model BookingEditViewModel
+@{ ViewData["Title"] = Localizer["EditBookingStatus"].Value; }
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["EditBookingStatus"]</h4>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-secondary">@Localizer["Cancel"]</a>
+</div>
+
+<div class="card" style="max-width: 480px;">
+    <div class="card-body">
+        <dl class="row mb-3">
+            <dt class="col-sm-4">@Localizer["Client"]</dt>
+            <dd class="col-sm-8">@Model.ClientName</dd>
+            <dt class="col-sm-4">@Localizer["Listing"]</dt>
+            <dd class="col-sm-8">@Model.ListingTitle</dd>
+        </dl>
+
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ListingTitle" />
+            <input type="hidden" asp-for="ClientName" />
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label">@Localizer["Status"]</label>
+                <select asp-for="Status" asp-items="Model.Statuses" class="form-select"></select>
+                <span asp-validation-for="Status" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+        </form>
+    </div>
+</div>

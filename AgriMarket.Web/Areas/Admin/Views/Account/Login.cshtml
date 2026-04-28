@@ -1,0 +1,55 @@
+@using Microsoft.Extensions.Localization
+@using AgriMarket.Resources
+@inject IStringLocalizer<SharedResource> Localizer
+@model AgriMarket.Web.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = Localizer["AdminLogin"].Value;
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AgriMarket</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body class="bg-light">
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4 text-center">@Localizer["AgriMarketAdmin"]</h4>
+                    <form asp-area="Admin" asp-controller="Account" asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
+                            <input asp-for="Email" class="form-control" autocomplete="email" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
+                            <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">@Localizer["SignIn"]</button>
+                    </form>
+                    <hr />
+                    <p class="text-center mb-2 small">
+                        @Localizer["NoAccount"] <a asp-area="Admin" asp-controller="Account" asp-action="Register">@Localizer["Register"]</a>
+                    </p>
+                    <div class="text-center mt-3">
+                        <a asp-area="" asp-controller="Home" asp-action="Index" class="text-decoration-none small">&larr; @Localizer["BackToMainPage"]</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>

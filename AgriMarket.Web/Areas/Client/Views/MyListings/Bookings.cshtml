@@ -1,0 +1,107 @@
+@using AgriMarket.Domain.Enums
+@model AgriMarket.Web.Areas.Client.ViewModels.MyListings.BookingsForListingViewModel
+
+@{
+    ViewData["Title"] = Localizer["BookingsFor", Model.ListingTitle].Value;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["BookingsFor", Model.ListingTitle]</h4>
+    <a asp-action="Details" asp-route-id="@Model.ListingId" class="btn btn-sm btn-outline-secondary">@Localizer["BackToListing"]</a>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (!Model.Bookings.Any())
+{
+    <div class="alert alert-info">@Localizer["NoBookingsForListing"]</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>@Localizer["Client"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th>@Localizer["AreaHa"]</th>
+                    <th>@Localizer["TotalPrice"]</th>
+                    <th>@Localizer["Date"]</th>
+                    <th>@Localizer["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Bookings)
+                {
+                    <tr>
+                        <td>@item.ClientName</td>
+                        <td><span class="badge bg-secondary">@item.Status</span></td>
+                        <td>@item.AreaInHectares.ToString("0.00")</td>
+                        <td>&euro;@item.TotalPrice.ToString("0.00")</td>
+                        <td>@item.CreatedAt.ToShortDateString()</td>
+                        <td>
+                            @if (item.Status == BookingStatus.Pending)
+                            {
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.AwaitingPayment)" />
+                                    <button type="submit" class="btn btn-sm btn-success">@Localizer["Accept"]</button>
+                                </form>
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline ms-1">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.Cancelled)" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@Localizer["Reject"]</button>
+                                </form>
+                            }
+                            else if (item.Status == BookingStatus.AwaitingPayment)
+                            {
+                                <span class="text-muted small me-2">@Localizer["AwaitingPayment"]</span>
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.Cancelled)" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">@Localizer["Cancel"]</button>
+                                </form>
+                            }
+                            else if (item.Status == BookingStatus.Confirmed)
+                            {
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.InProgress)" />
+                                    <button type="submit" class="btn btn-sm btn-primary">@Localizer["StartWork"]</button>
+                                </form>
+                            }
+                            else if (item.Status == BookingStatus.InProgress)
+                            {
+                                <form asp-action="UpdateBookingStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="bookingId" value="@item.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.ListingId" />
+                                    <input type="hidden" name="status" value="@((int)BookingStatus.ProviderCompleted)" />
+                                    <button type="submit" class="btn btn-sm btn-success">@Localizer["MarkComplete"]</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

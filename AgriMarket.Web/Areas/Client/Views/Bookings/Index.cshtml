@@ -1,0 +1,51 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Bookings.BookingIndexViewModel
+@{
+    ViewData["Title"] = Localizer["MyBookings"].Value;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["MyBookings"]</h4>
+</div>
+
+@if (!Model.Bookings.Any())
+{
+    <div class="alert alert-info">
+        @Localizer["NoBookingsYetClient"]
+        <a asp-area="Client" asp-controller="Listings" asp-action="Index">@Localizer["BrowseListingsToStart"]</a> @Localizer["ToGetStarted"]
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>@Localizer["Listing"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th>@Localizer["AreaHa"]</th>
+                    <th>@Localizer["TotalPrice"]</th>
+                    <th>@Localizer["Created"]</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model.Bookings)
+                {
+                    <tr>
+                        <td>@booking.ListingTitle</td>
+                        <td><span class="badge text-bg-secondary">@booking.Status</span></td>
+                        <td>@booking.AreaInHectares.ToString("0.00")</td>
+                        <td>&euro;@booking.TotalPrice.ToString("0.00")</td>
+                        <td>@booking.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
+                               asp-route-id="@booking.Id" class="btn btn-sm btn-outline-primary">
+                                @Localizer["View"]
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

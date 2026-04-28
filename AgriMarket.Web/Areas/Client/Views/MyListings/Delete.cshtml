@@ -1,0 +1,29 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.MyListings.MyListingDetailsViewModel
+
+@{
+    ViewData["Title"] = Localizer["DeleteListing"].Value;
+}
+
+<h1>@Localizer["DeleteListing"]</h1>
+
+@if (ViewBag.HasActiveBookings == true)
+{
+    <div class="alert alert-danger">
+        <strong>@Localizer["Warning"]</strong> @Localizer["CannotDeleteActiveBookings"]
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@Localizer["BackToDetails"]</a>
+}
+else
+{
+    <h3>@Localizer["ConfirmDeleteListingQuestion"]</h3>
+    <div>
+        <h4>@Model.Title</h4>
+        <hr />
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="Id" />
+            <input type="submit" value="@Localizer["Delete"]" class="btn btn-danger" /> |
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">@Localizer["Cancel"]</a>
+        </form>
+    </div>
+}

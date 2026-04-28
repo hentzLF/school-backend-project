@@ -1,0 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+using AgriMarket.Domain.Enums;
+
+namespace AgriMarket.Web.Areas.Admin.ViewModels;
+
+public class DisputeResolveViewModel
+{
+    public Guid PaymentId { get; set; }
+
+    [Required]
+    public PaymentResolution Resolution { get; set; }
+}

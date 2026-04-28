@@ -1,0 +1,55 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.MyListings.MyListingIndexViewModel
+
+@{
+    ViewData["Title"] = Localizer["MyListings"].Value;
+}
+
+<h1>@Localizer["MyListings"]</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">@Localizer["CreateNewListing"]</a>
+</p>
+
+@if (!Model.Listings.Any())
+{
+    <div class="alert alert-info">
+        @Localizer["NoListingsYet"]
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>@Localizer["Title"]</th>
+                <th>@Localizer["Category"]</th>
+                <th>@Localizer["PriceSlashHectare"]</th>
+                <th>@Localizer["Status"]</th>
+                <th>@Localizer["Actions"]</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Listings)
+            {
+                <tr>
+                    <td>@item.Title</td>
+                    <td>@item.CategoryName</td>
+                    <td>&euro;@item.PricePerHectare.ToString("N2")</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge bg-success">@Localizer["Active"]</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">@Localizer["Inactive"]</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">@Localizer["Details"]</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

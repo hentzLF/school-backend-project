@@ -1,0 +1,11 @@
+**/bin
+**/obj
+**/.vs
+*.user
+.env
+.git
+.gitignore
+.claude
+openspec
+README.md
+AgriMarket.Tests

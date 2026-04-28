@@ -1,0 +1,45 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Listings.ListingIndexViewModel
+@{
+    ViewData["Title"] = Localizer["Listings"].Value;
+}
+
+<h2 class="mb-4">@Localizer["AvailableServices"]</h2>
+
+@if (!Model.Listings.Any())
+{
+    <div class="alert alert-info">@Localizer["NoActiveListings"]</div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var listing in Model.Listings)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@listing.Title</h5>
+                        <p class="card-text text-muted small">
+                            <span class="badge bg-secondary">@listing.CategoryName</span>
+                            @if (listing.IsActive)
+                            {
+                                <span class="badge bg-success">@Localizer["Active"]</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">@Localizer["Inactive"]</span>
+                            }
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">@Localizer["Provider"]: @listing.ProviderName</small>
+                        </p>
+                        <p class="card-text fw-bold">&euro;@listing.PricePerHectare.ToString("N2") / ha</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a asp-area="Client" asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id"
+                           class="btn btn-outline-success btn-sm w-100">@Localizer["ViewDetails"]</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

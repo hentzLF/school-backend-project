@@ -1,0 +1,26 @@
+@{
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+
+<div class="dropdown">
+    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        @(currentCulture == "et" ? "ET" : "EN")
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+            <form asp-controller="Culture" asp-action="SetCulture" asp-area="" method="post">
+                <input type="hidden" name="culture" value="en" />
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button type="submit" class="dropdown-item @(currentCulture == "en" ? "active" : "")">EN</button>
+            </form>
+        </li>
+        <li>
+            <form asp-controller="Culture" asp-action="SetCulture" asp-area="" method="post">
+                <input type="hidden" name="culture" value="et" />
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
+                <button type="submit" class="dropdown-item @(currentCulture == "et" ? "active" : "")">ET</button>
+            </form>
+        </li>
+    </ul>
+</div>

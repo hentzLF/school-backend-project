@@ -1,0 +1,32 @@
+## ADDED Requirements
+
+### Requirement: Anyone can browse active listings
+The system SHALL provide a public listing page at `/Client/Listings` accessible to both authenticated and unauthenticated users. The page SHALL display active `ServiceListing` records with key summary fields (title, category, provider, and price-per-hectare) and SHALL support functional pagination or bounded result display to keep response and render time predictable. No `[Authorize]` attribute is applied to the listings index or details actions.
+
+#### Scenario: Unauthenticated user browses listings
+- **WHEN** an unauthenticated user navigates to `/Client/Listings`
+- **THEN** the system displays active service listings with summary information and links to details without requiring login
+
+#### Scenario: Authenticated client browses listings
+- **WHEN** an authenticated client navigates to `/Client/Listings`
+- **THEN** the system displays active service listings with summary information and links to details
+
+#### Scenario: No active listings available
+- **WHEN** any user navigates to `/Client/Listings` and no active listings exist
+- **THEN** the system displays an empty-state message and no booking actions
+
+### Requirement: Anyone can view listing details
+The system SHALL provide a listing detail page at `/Client/Listings/Details/{id}` accessible to both authenticated and unauthenticated users. The page SHALL display listing information needed to make a booking decision (description, pricing, available metadata). The booking action entry point SHALL only be visible to authenticated users; unauthenticated users SHALL see a prompt to log in before booking.
+
+#### Scenario: Unauthenticated user views listing details
+- **WHEN** an unauthenticated user opens `/Client/Listings/Details/{id}` for an active listing
+- **THEN** the system displays listing details and shows a login prompt in place of the booking action
+
+#### Scenario: Authenticated client views listing details
+- **WHEN** an authenticated client opens `/Client/Listings/Details/{id}` for an active listing
+- **THEN** the system displays listing details and the booking action entry point
+
+#### Scenario: Listing not found or inactive
+- **WHEN** any user opens `/Client/Listings/Details/{id}` for a non-existent or inactive listing
+- **THEN** the system returns not found behavior and does not expose booking actions
+

@@ -1,0 +1,103 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Bookings.BookingDetailsViewModel
+@{
+    ViewData["Title"] = Localizer["BookingDetails"].Value;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["BookingDetails"]</h4>
+    <a asp-area="Client" asp-controller="Bookings" asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        @Localizer["BackToMyBookings"]
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">@Localizer["BookingInfo"]</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">@Localizer["Listing"]</dt>
+                    <dd class="col-sm-7">
+                        <a asp-area="Client" asp-controller="Listings" asp-action="Details"
+                           asp-route-id="@Model.ListingId">@Model.ListingTitle</a>
+                    </dd>
+                    <dt class="col-sm-5">@Localizer["Status"]</dt>
+                    <dd class="col-sm-7"><span class="badge text-bg-primary">@Model.Status</span></dd>
+                    <dt class="col-sm-5">@Localizer["Area"]</dt>
+                    <dd class="col-sm-7">@Model.AreaInHectares.ToString("0.00") ha</dd>
+                    <dt class="col-sm-5">@Localizer["TotalPrice"]</dt>
+                    <dd class="col-sm-7 fw-bold text-success">&euro;@Model.TotalPrice.ToString("0.00")</dd>
+                    <dt class="col-sm-5">@Localizer["Availability"]</dt>
+                    <dd class="col-sm-7">
+                        @Model.AvailabilityStart.ToString("dd MMM yyyy HH:mm") &ndash;
+                        @Model.AvailabilityEnd.ToString("dd MMM yyyy HH:mm")
+                    </dd>
+                    <dt class="col-sm-5">@Localizer["Created"]</dt>
+                    <dd class="col-sm-7">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+                    <dt class="col-sm-5">@Localizer["Notes"]</dt>
+                    <dd class="col-sm-7">@(Model.Notes ?? "—")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        @if (Model.CanPay)
+        {
+            <div class="card border-primary mb-3">
+                <div class="card-header bg-primary text-white">@Localizer["Checkout"]</div>
+                <div class="card-body">
+                    <dl class="row mb-3">
+                        <dt class="col-7">@Localizer["ServiceTotal"]</dt>
+                        <dd class="col-5 text-end">&euro;@Model.TotalPrice.ToString("0.00")</dd>
+                        <dt class="col-7">@Localizer["PlatformFee"] (5%)</dt>
+                        <dd class="col-5 text-end">&euro;@Model.PlatformFee.ToString("0.00")</dd>
+                        <dt class="col-7 fw-bold">@Localizer["Total"]</dt>
+                        <dd class="col-5 text-end fw-bold">&euro;@Model.GrandTotal.ToString("0.00")</dd>
+                    </dl>
+                    <form asp-area="Client" asp-controller="Bookings" asp-action="Pay"
+                          asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary w-100">@Localizer["ConfirmAndPay"]</button>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (Model.CanConfirmCompletion)
+        {
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white">@Localizer["ConfirmCompletion"]</div>
+                <div class="card-body">
+                    <p class="card-text">
+                        @Localizer["ConfirmCompletionDescription"]
+                    </p>
+                    <form asp-area="Client" asp-controller="Bookings" asp-action="ConfirmCompletion"
+                          asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success w-100">@Localizer["ConfirmCompletion"]</button>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (Model.CanCancel)
+        {
+            <div class="card border-danger mb-3">
+                <div class="card-body">
+                    <form asp-area="Client" asp-controller="Bookings" asp-action="Cancel"
+                          asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger w-100">@Localizer["CancelBooking"]</button>
+                    </form>
+                </div>
+            </div>
+        }
+        @if (!Model.CanPay && !Model.CanConfirmCompletion && !Model.CanCancel)
+        {
+            <div class="card">
+                <div class="card-body text-muted">
+                    <p class="mb-0">@Localizer["NoActionsAvailable"]</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>

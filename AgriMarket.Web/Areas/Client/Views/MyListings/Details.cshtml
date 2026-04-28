@@ -1,0 +1,53 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.MyListings.MyListingDetailsViewModel
+
+@{
+    ViewData["Title"] = Localizer["ListingDetails"].Value;
+}
+
+<h1>@Localizer["ListingDetails"]</h1>
+
+<div>
+    <h4>@Model.Title</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">@Localizer["Category"]</dt>
+        <dd class="col-sm-10">@Model.CategoryName</dd>
+
+        <dt class="col-sm-2">@Localizer["Description"]</dt>
+        <dd class="col-sm-10">@Model.Description</dd>
+
+        <dt class="col-sm-2">@Localizer["PriceSlashHectare"]</dt>
+        <dd class="col-sm-10">&euro;@Model.PricePerHectare.ToString("N2")</dd>
+
+        <dt class="col-sm-2">@Localizer["Status"]</dt>
+        <dd class="col-sm-10">
+            @if (Model.IsActive)
+            {
+                <span class="badge bg-success">@Localizer["Active"]</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">@Localizer["Inactive"]</span>
+            }
+        </dd>
+
+        <dt class="col-sm-2">@Localizer["TotalBookings"]</dt>
+        <dd class="col-sm-10">@Model.TotalBookingCount</dd>
+    </dl>
+</div>
+
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">@Localizer["Edit"]</a>
+
+    <form asp-action="ToggleActive" asp-route-id="@Model.Id" method="post" style="display:inline;">
+        <button type="submit" class="btn btn-warning">
+            @(Model.IsActive ? Localizer["Deactivate"] : Localizer["Activate"])
+        </button>
+    </form>
+
+    <a asp-action="Bookings" asp-route-id="@Model.Id" class="btn btn-info">@Localizer["ViewBookings"]</a>
+    <a asp-action="Availabilities" asp-route-id="@Model.Id" class="btn btn-secondary">@Localizer["ManageSlots"]</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">@Localizer["Delete"]</a>
+
+    <a asp-action="Index" class="btn btn-secondary">@Localizer["BackToList"]</a>
+</div>

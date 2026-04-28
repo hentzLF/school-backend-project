@@ -1,0 +1,56 @@
+services:
+  agrimarket-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${AGRI_POSTGRES_DB:-agrimarket}
+      POSTGRES_USER: ${AGRI_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${AGRI_POSTGRES_PASSWORD}
+    ports:
+      - "${AGRI_POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - agrimarket-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AGRI_POSTGRES_USER:-postgres} -d ${AGRI_POSTGRES_DB:-agrimarket}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  agrimarket-api:
+    build:
+      context: .
+      dockerfile: AgriMarket.Api/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${AGRI_API_PORT:-5047}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ConnectionStrings__DefaultConnection=Host=agrimarket-db;Port=5432;Database=${AGRI_POSTGRES_DB:-agrimarket};Username=${AGRI_POSTGRES_USER:-postgres};Password=${AGRI_POSTGRES_PASSWORD}
+      - Jwt__Key=${AGRI_JWT_KEY}
+      - Jwt__Issuer=${AGRI_JWT_ISSUER:-AgriMarket}
+      - Jwt__Audience=${AGRI_JWT_AUDIENCE:-AgriMarket}
+      - Cors__Origins__0=${AGRI_CORS_ORIGIN:-http://localhost:8080}
+    depends_on:
+      agrimarket-db:
+        condition: service_healthy
+
+  agrimarket-web:
+    build:
+      context: .
+      dockerfile: AgriMarket.Web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${AGRI_WEB_PORT:-5046}:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - ConnectionStrings__DefaultConnection=Host=agrimarket-db;Port=5432;Database=${AGRI_POSTGRES_DB:-agrimarket};Username=${AGRI_POSTGRES_USER:-postgres};Password=${AGRI_POSTGRES_PASSWORD}
+    depends_on:
+      agrimarket-db:
+        condition: service_healthy
+
+volumes:
+  agrimarket-pgdata:

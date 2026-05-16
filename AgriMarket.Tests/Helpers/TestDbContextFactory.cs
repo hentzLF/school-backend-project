@@ -47,9 +47,24 @@ public static class TestDbContextFactory
         return (user, profile);
     }
 
+    public static void EnsureServiceCategory(AppDbContext db)
+    {
+        var categoryId = Guid.Parse("a1b2c3d4-0001-0000-0000-000000000001");
+        if (!db.ServiceCategories.Any(c => c.Id == categoryId))
+        {
+            db.ServiceCategories.Add(new ServiceCategory
+            {
+                Id = categoryId,
+                Name = "Test Category"
+            });
+            db.SaveChanges();
+        }
+    }
+
     public static (ServiceListing listing, Availability availability) SeedListing(
         AppDbContext db, Guid providerProfileId)
     {
+        EnsureServiceCategory(db);
         var categoryId = Guid.Parse("a1b2c3d4-0001-0000-0000-000000000001");
         var listing = new ServiceListing
         {

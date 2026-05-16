@@ -1,3 +1,4 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ namespace AgriMarket.DAL.Seeding;
 
 public static class AppDbSeeder
 {
-    public static async Task SeedAsync(AppDbContext context)
+    public static async Task SeedAsync(AppDbContext context, IPasswordHasher passwordHasher)
     {
         if (await context.AppUsers.AnyAsync(u => u.Email == "admin@agrimarket.ee"))
             return;
@@ -15,7 +16,7 @@ public static class AppDbSeeder
         {
             Id = Guid.NewGuid(),
             Email = "admin@agrimarket.ee",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
+            PasswordHash = passwordHasher.Hash("Admin123!"),
             CreatedAt = DateTime.UtcNow
         };
 

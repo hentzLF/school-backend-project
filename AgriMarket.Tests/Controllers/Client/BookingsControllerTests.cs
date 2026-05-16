@@ -1,4 +1,5 @@
 using AgriMarket.DAL;
+using AgriMarket.DAL.Repositories;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
@@ -12,10 +13,27 @@ namespace AgriMarket.Tests.Controllers.Client;
 public class BookingsControllerTests
 {
     private static AgriMarket.BLL.Services.BookingService CreateBookingService(AppDbContext db) =>
-        new(new EfRepository<Booking>(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.BookingService>.Instance);
+        new(new EfBookingRepository(db),
+            new EfRepository<UserProfile>(db),
+            new EfRepository<ServiceListing>(db),
+            new EfRepository<Availability>(db),
+            new EfRepository<Payment>(db),
+            new EfUnitOfWork(db),
+            NullLogger<AgriMarket.BLL.Services.BookingService>.Instance);
 
     private static AgriMarket.BLL.Services.UserService CreateUserService(AppDbContext db) =>
-        new(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
+        new(new EfAppUserRepository(db),
+            new EfUserProfileRepository(db),
+            new EfRepository<ProfileRole>(db),
+            new EfUnitOfWork(db),
+            new EfRepository<Notification>(db),
+            new EfRepository<MessageRead>(db),
+            new EfRepository<Message>(db),
+            new EfRepository<ConversationParticipant>(db),
+            new EfRepository<Review>(db),
+            new EfRepository<Booking>(db),
+            new EfRepository<ServiceListing>(db),
+            NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
 
     [Fact]
     public async Task Details_WithDifferentOwner_RedirectsToAccessDenied()

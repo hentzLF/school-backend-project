@@ -1,7 +1,6 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Contracts;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
@@ -11,6 +10,7 @@ public class DashboardService(
     IRepository<ServiceListing> serviceListings,
     IRepository<Booking> bookings,
     IRepository<Payment> payments,
+    IQueryMaterializer mat,
     ILogger<DashboardService> logger) : IDashboardService
 {
     private const int RecentBookingsCount = 10;
@@ -29,45 +29,45 @@ public class DashboardService(
         var inactiveListings = await serviceListings.CountAsync(l => !l.IsActive);
 
         var totalBookings = await bookings.CountAsync(_ => true);
-        var bookingsStatusCounts = await bookings.Query()
-            .GroupBy(b => b.Status)
-            .Select(g => new { g.Key, Count = g.Count() })
-            .ToListAsync();
+        var bookingsStatusCounts = await mat.ToListAsync(
+            bookings.Query()
+                .GroupBy(b => b.Status)
+                .Select(g => new { g.Key, Count = g.Count() }));
 
         var bookingsByStatus = Enum.GetValues<BookingStatus>()
             .ToDictionary(s => s, s => bookingsStatusCounts.FirstOrDefault(b => b.Key == s)?.Count ?? 0);
 
-        var totalRevenue = await payments.Query().Select(p => (decimal?)p.Amount).SumAsync() ?? 0m;
-        var totalPlatformFees = await payments.Query().Select(p => (decimal?)p.PlatformFee).SumAsync() ?? 0m;
-        var revenueThisMonth = await payments.Query()
-            .Where(p => p.CreatedAt >= startOfMonth)
-            .Select(p => (decimal?)p.Amount).SumAsync() ?? 0m;
+        var totalRevenue = await mat.SumAsync(payments.Query(), p => (decimal?)p.Amount);
+        var totalPlatformFees = await mat.SumAsync(payments.Query(), p => (decimal?)p.PlatformFee);
+        var revenueThisMonth = await mat.SumAsync(
+            payments.Query().Where(p => p.CreatedAt >= startOfMonth),
+            p => (decimal?)p.Amount);
 
         var activeDisputes = await payments.CountAsync(p => p.Status == PaymentStatus.Disputed);
         var resolvedDisputes = await payments.CountAsync(p => p.Status == PaymentStatus.Released || p.Status == PaymentStatus.Refunded);
 
-        var recentBookings = await bookings.Query()
-            .OrderByDescending(b => b.CreatedAt)
-            .Take(RecentBookingsCount)
-            .Select(b => new RecentBookingDto
-            {
-                Id = b.Id,
-                Status = (int)b.Status,
-                TotalPrice = b.TotalPrice,
-                AreaInHectares = b.AreaInHectares,
-                CreatedAt = b.CreatedAt,
-                ClientProfile = b.ClientProfile != null
-                    ? new ClientProfileDto
-                    {
-                        FirstName = b.ClientProfile.FirstName,
-                        LastName = b.ClientProfile.LastName,
-                    }
-                    : null,
-                ServiceListing = b.ServiceListing != null
-                    ? new ServiceListingDto { Title = b.ServiceListing.Title }
-                    : null,
-            })
-            .ToListAsync();
+        var recentBookings = await mat.ToListAsync(
+            bookings.Query()
+                .OrderByDescending(b => b.CreatedAt)
+                .Take(RecentBookingsCount)
+                .Select(b => new RecentBookingDto
+                {
+                    Id = b.Id,
+                    Status = (int)b.Status,
+                    TotalPrice = b.TotalPrice,
+                    AreaInHectares = b.AreaInHectares,
+                    CreatedAt = b.CreatedAt,
+                    ClientProfile = b.ClientProfile != null
+                        ? new ClientProfileDto
+                        {
+                            FirstName = b.ClientProfile.FirstName,
+                            LastName = b.ClientProfile.LastName,
+                        }
+                        : null,
+                    ServiceListing = b.ServiceListing != null
+                        ? new ServiceListingDto { Title = b.ServiceListing.Title }
+                        : null,
+                }));
 
         return new DashboardStats
         {

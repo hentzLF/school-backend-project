@@ -76,7 +76,8 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await context.Database.MigrateAsync();
-    await AppDbSeeder.SeedAsync(context);
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<AgriMarket.BLL.Contracts.IPasswordHasher>();
+    await AppDbSeeder.SeedAsync(context, passwordHasher);
 }
 
 // Configure the HTTP request pipeline.

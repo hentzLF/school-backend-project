@@ -1,9 +1,7 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos.Reviews;
-using AgriMarket.BLL;
-using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
@@ -11,50 +9,42 @@ namespace AgriMarket.BLL.Services;
 public class ReviewService(
     IRepository<Review> reviews,
     IRepository<UserProfile> userProfiles,
-    IRepository<Booking> bookings,
+    IBookingRepository bookings,
     IUnitOfWork uow,
+    IQueryMaterializer mat,
     ILogger<ReviewService> logger) : IReviewService
 {
     public async Task<IEnumerable<ReviewDto>> GetByBookingAsync(Guid bookingId)
     {
-        var items = await reviews.Query()
-            .AsNoTracking()
-            .Where(r => r.BookingId == bookingId)
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
-
-        return items.Select(ToReviewDto);
+        var items = await reviews.FindAsync(r => r.BookingId == bookingId);
+        return items.OrderByDescending(r => r.CreatedAt).Select(ToReviewDto);
     }
 
     public async Task<(IEnumerable<ReviewDto> Items, int TotalCount)> GetAllAsync(int page, int pageSize)
     {
-        var query = reviews.Query().AsNoTracking();
-        var totalCount = await query.CountAsync();
-        var items = await query
-            .OrderByDescending(r => r.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var query = reviews.Query();
+        var totalCount = await mat.CountAsync(query);
+        var items = await mat.ToListAsync(
+            query.OrderByDescending(r => r.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize));
 
         return (items.Select(ToReviewDto), totalCount);
     }
 
     public async Task<ReviewDto?> GetByIdAsync(Guid id)
     {
-        var review = await reviews.Query().AsNoTracking().FirstOrDefaultAsync(r => r.Id == id);
+        var review = await reviews.FirstOrDefaultAsync(r => r.Id == id);
         return review is null ? null : ToReviewDto(review);
     }
 
     public async Task<ReviewDto> CreateAsync(Guid userId, CreateReviewDto dto)
     {
-        var reviewerProfile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var reviewerProfile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (reviewerProfile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var booking = await bookings.Query()
-            .AsNoTracking()
-            .Include(b => b.ServiceListing)
-            .FirstOrDefaultAsync(b => b.Id == dto.BookingId);
+        var booking = await bookings.GetByIdWithDetailsAsync(dto.BookingId);
         if (booking == null)
             throw new KeyNotFoundException("Booking not found.");
 

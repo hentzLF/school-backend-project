@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using AgriMarket.BLL.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.DAL;
@@ -26,4 +27,10 @@ public class EfRepository<T>(AppDbContext db) : IRepository<T> where T : class
 
     public async Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
         => await _set.CountAsync(predicate, ct);
+
+    public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+        => await _set.FirstOrDefaultAsync(predicate, ct);
+
+    public async Task<int> ExecuteDeleteAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+        => await _set.Where(predicate).ExecuteDeleteAsync(ct);
 }

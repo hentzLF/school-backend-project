@@ -1,39 +1,34 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos.Users;
-using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
 public class UserService(
-    IRepository<AppUser> appUsers,
-    IRepository<UserProfile> userProfiles,
+    IAppUserRepository appUsers,
+    IUserProfileRepository userProfiles,
     IRepository<ProfileRole> profileRoles,
     IUnitOfWork uow,
-    AppDbContext db,
+    IRepository<Notification> notifications,
+    IRepository<MessageRead> messageReads,
+    IRepository<Message> messages,
+    IRepository<ConversationParticipant> conversationParticipants,
+    IRepository<Review> reviewRepo,
+    IRepository<Booking> bookingRepo,
+    IRepository<ServiceListing> serviceListingRepo,
     ILogger<UserService> logger) : IUserService
 {
     public async Task<IEnumerable<UserProfileDto>> GetAllUsersAsync()
     {
-        var profiles = await userProfiles.Query()
-            .AsNoTracking()
-            .Include(p => p.AppUser)
-            .Include(p => p.Roles)
-            .OrderByDescending(p => p.Id)
-            .ToListAsync();
-
+        var profiles = await userProfiles.ListWithDetailsAsync();
         return profiles.Select(p => ToUserProfileDto(p, p.AppUser?.Email));
     }
 
     public async Task<UserProfileDto?> GetUserByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
     {
-        var profile = await userProfiles.Query()
-            .AsNoTracking()
-            .Include(p => p.AppUser)
-            .Include(p => p.Roles)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        var profile = await userProfiles.GetByIdWithDetailsAsync(id);
 
         if (profile is null)
             return null;
@@ -56,51 +51,33 @@ public class UserService(
         var user = await appUsers.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"AppUser {id} not found.");
 
-        var profileIds = await userProfiles.Query()
-            .Where(p => p.AppUserId == id)
-            .Select(p => p.Id)
-            .ToListAsync();
+        var profileList = await userProfiles.FindAsync(p => p.AppUserId == id);
+        var profileIds = profileList.Select(p => p.Id).ToList();
 
         await uow.BeginTransactionAsync();
         try
         {
             if (profileIds.Count > 0)
             {
-                await db.Notifications
-                    .Where(n => profileIds.Contains(n.UserProfileId))
-                    .ExecuteDeleteAsync();
+                await notifications.ExecuteDeleteAsync(n => profileIds.Contains(n.UserProfileId));
 
-                await db.MessageReads
-                    .Where(mr => profileIds.Contains(mr.UserProfileId))
-                    .ExecuteDeleteAsync();
+                await messageReads.ExecuteDeleteAsync(mr => profileIds.Contains(mr.UserProfileId));
 
-                await db.Messages
-                    .Where(m => profileIds.Contains(m.SenderProfileId))
-                    .ExecuteDeleteAsync();
+                await messages.ExecuteDeleteAsync(m => profileIds.Contains(m.SenderProfileId));
 
-                await db.ConversationParticipants
-                    .Where(cp => profileIds.Contains(cp.UserProfileId))
-                    .ExecuteDeleteAsync();
+                await conversationParticipants.ExecuteDeleteAsync(cp => profileIds.Contains(cp.UserProfileId));
 
-                await db.Reviews
-                    .Where(r => profileIds.Contains(r.ReviewerProfileId)
-                             || profileIds.Contains(r.ReviewedProfileId))
-                    .ExecuteDeleteAsync();
+                await reviewRepo.ExecuteDeleteAsync(r => profileIds.Contains(r.ReviewerProfileId)
+                                                      || profileIds.Contains(r.ReviewedProfileId));
 
-                await db.Bookings
-                    .Where(b => profileIds.Contains(b.ClientProfileId))
-                    .ExecuteDeleteAsync();
+                await bookingRepo.ExecuteDeleteAsync(b => profileIds.Contains(b.ClientProfileId));
 
-                var listingIds = await db.ServiceListings
-                    .Where(sl => profileIds.Contains(sl.UserProfileId))
-                    .Select(sl => sl.Id)
-                    .ToListAsync();
+                var listingList = await serviceListingRepo.FindAsync(sl => profileIds.Contains(sl.UserProfileId));
+                var listingIds = listingList.Select(sl => sl.Id).ToList();
 
                 if (listingIds.Count > 0)
                 {
-                    await db.Bookings
-                        .Where(b => listingIds.Contains(b.ServiceListingId))
-                        .ExecuteDeleteAsync();
+                    await bookingRepo.ExecuteDeleteAsync(b => listingIds.Contains(b.ServiceListingId));
                 }
             }
 
@@ -133,11 +110,7 @@ public class UserService(
 
     public async Task<UserProfileDto?> GetProfileByUserIdAsync(Guid appUserId)
     {
-        var profile = await userProfiles.Query()
-            .AsNoTracking()
-            .Include(p => p.AppUser)
-            .FirstOrDefaultAsync(p => p.AppUserId == appUserId);
-
+        var profile = await userProfiles.GetByAppUserIdWithDetailsAsync(appUserId);
         return profile is null ? null : ToUserProfileDto(profile, profile.AppUser?.Email);
     }
 
@@ -156,10 +129,7 @@ public class UserService(
 
     public async Task<AppUser?> GetByEmailAsync(string email)
     {
-        return await appUsers.Query()
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.Roles)
-            .FirstOrDefaultAsync(u => u.Email == email);
+        return await appUsers.GetByEmailWithProfilesAsync(email);
     }
 
     public async Task<AppUser> CreateUserWithProfileAsync(AppUser user, UserProfile profile, RoleType role)
@@ -180,25 +150,13 @@ public class UserService(
 
     public async Task<(IEnumerable<UserProfileDto> Items, int TotalCount)> GetAllProfilesAsync(int page, int pageSize)
     {
-        var query = userProfiles.Query().AsNoTracking();
-        var totalCount = await query.CountAsync();
-        var profiles = await query
-            .Include(p => p.Roles)
-            .OrderBy(p => p.FirstName)
-            .ThenBy(p => p.LastName)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
+        var (profiles, totalCount) = await userProfiles.ListPagedWithDetailsAsync(page, pageSize);
         return (profiles.Select(p => ToUserProfileDto(p, null)), totalCount);
     }
 
     public async Task<UserProfileDto?> GetProfileByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
     {
-        var profile = await userProfiles.Query().AsNoTracking()
-            .Include(up => up.AppUser)
-            .Include(up => up.Roles)
-            .FirstOrDefaultAsync(up => up.Id == id);
+        var profile = await userProfiles.GetByIdWithDetailsAsync(id);
 
         if (profile is null)
             return null;

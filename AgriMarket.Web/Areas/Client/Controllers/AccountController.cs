@@ -1,3 +1,4 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Client.ViewModels;
@@ -9,7 +10,7 @@ using System.Security.Claims;
 namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
-public class AccountController(IUserService userService) : Controller
+public class AccountController(IUserService userService, IPasswordHasher passwordHasher) : Controller
 {
     [HttpGet]
     public IActionResult Login() => View(new LoginViewModel());
@@ -23,7 +24,7 @@ public class AccountController(IUserService userService) : Controller
 
         var user = await userService.GetByEmailAsync(model.Email);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
+        if (user == null || !passwordHasher.Verify(model.Password, user.PasswordHash))
         {
             ModelState.AddModelError(string.Empty, "Invalid email or password");
             return View(model);
@@ -77,7 +78,7 @@ public class AccountController(IUserService userService) : Controller
         {
             Id = Guid.NewGuid(),
             Email = model.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+            PasswordHash = passwordHasher.Hash(model.Password),
             CreatedAt = DateTime.UtcNow
         };
 

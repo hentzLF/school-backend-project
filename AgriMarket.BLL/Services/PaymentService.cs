@@ -1,14 +1,14 @@
-using AgriMarket.DAL;
+using AgriMarket.BLL.Contracts;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
 public class PaymentService(
-    IRepository<Payment> payments,
+    IPaymentRepository payments,
     IUnitOfWork uow,
+    IQueryMaterializer mat,
     ILogger<PaymentService> logger) : IPaymentService
 {
     public async Task<IEnumerable<Payment>> GetAllAsync(PaymentStatus? status)
@@ -18,18 +18,12 @@ public class PaymentService(
         if (status.HasValue)
             query = query.Where(p => p.Status == status.Value);
 
-        return await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
+        return await mat.ToListAsync(query.OrderByDescending(p => p.CreatedAt));
     }
 
     public async Task<Payment?> GetByIdAsync(Guid id)
     {
-        return await payments.Query()
-            .Include(p => p.Booking)
-                .ThenInclude(b => b!.ClientProfile)
-            .Include(p => p.Booking)
-                .ThenInclude(b => b!.ServiceListing)
-                    .ThenInclude(l => l!.UserProfile)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        return await payments.GetWithBookingDetailsAsync(id);
     }
 
     public async Task ResolveDisputeAsync(Guid paymentId, PaymentResolution resolution)

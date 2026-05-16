@@ -1,18 +1,16 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos.Listings;
-using AgriMarket.BLL;
-using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
 public class ListingService(
-    IRepository<ServiceListing> serviceListings,
+    IListingRepository serviceListings,
     IRepository<UserProfile> userProfiles,
     IRepository<Booking> bookings,
-    IRepository<Availability> availabilities,
+    IAvailabilityRepository availabilities,
     IUnitOfWork uow,
     ILogger<ListingService> logger) : IListingService
 {
@@ -26,45 +24,25 @@ public class ListingService(
 
     public async Task<IEnumerable<ListingSummaryDto>> GetAllAsync()
     {
-        var listings = await serviceListings.Query()
-            .AsNoTracking()
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .OrderBy(l => l.Title)
-            .ToListAsync();
-
+        var listings = await serviceListings.ListWithSummaryAsync();
         return listings.Select(ToListingSummaryDto);
     }
 
     public async Task<ListingDto?> GetByIdAsync(Guid id)
     {
-        var listing = await serviceListings.Query()
-            .AsNoTracking()
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .Include(l => l.Availabilities)
-            .Include(l => l.Equipments)
-            .FirstOrDefaultAsync(l => l.Id == id);
-
+        var listing = await serviceListings.GetWithFullDetailsAsync(id);
         return listing is null ? null : ToListingDto(listing);
     }
 
     public async Task<IEnumerable<ListingSummaryDto>> GetByProviderAsync(Guid providerProfileId)
     {
-        var listings = await serviceListings.Query()
-            .AsNoTracking()
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .Where(l => l.UserProfileId == providerProfileId)
-            .OrderBy(l => l.Title)
-            .ToListAsync();
-
+        var listings = await serviceListings.ListWithSummaryAsync(l => l.UserProfileId == providerProfileId);
         return listings.Select(ToListingSummaryDto);
     }
 
     public async Task<ListingDto> CreateAsync(Guid userId, CreateListingDto dto)
     {
-        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
@@ -88,11 +66,11 @@ public class ListingService(
 
     public async Task<ListingDto> UpdateAsync(Guid userId, UpdateListingDto dto)
     {
-        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == dto.Id);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == dto.Id);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {dto.Id} not found.");
 
@@ -112,11 +90,11 @@ public class ListingService(
 
     public async Task DeleteAsync(Guid userId, Guid listingId)
     {
-        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == listingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
 
@@ -136,7 +114,7 @@ public class ListingService(
 
     public async Task<ListingDto> AdminUpdateAsync(UpdateListingDto dto)
     {
-        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == dto.Id);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == dto.Id);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {dto.Id} not found.");
 
@@ -153,7 +131,7 @@ public class ListingService(
 
     public async Task AdminDeleteAsync(Guid listingId)
     {
-        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == listingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
 
@@ -170,7 +148,7 @@ public class ListingService(
 
     public async Task AdminToggleActiveAsync(Guid listingId)
     {
-        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == listingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
 
@@ -180,24 +158,17 @@ public class ListingService(
 
     public async Task<IEnumerable<ListingSummaryDto>> GetActiveListingsAsync()
     {
-        var listings = await serviceListings.Query()
-            .AsNoTracking()
-            .Where(l => l.IsActive)
-            .Include(l => l.UserProfile)
-            .Include(l => l.ServiceCategory)
-            .OrderBy(l => l.Title)
-            .ToListAsync();
-
+        var listings = await serviceListings.ListWithSummaryAsync(l => l.IsActive);
         return listings.Select(ToListingSummaryDto);
     }
 
     public async Task ToggleActiveAsync(Guid userId, Guid listingId)
     {
-        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await serviceListings.Query().FirstOrDefaultAsync(l => l.Id == listingId);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == listingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {listingId} not found.");
 
@@ -213,11 +184,11 @@ public class ListingService(
         if (dto.StartTime >= dto.EndTime)
             throw new BusinessRuleException("Start time must be before end time.");
 
-        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await serviceListings.Query().AsNoTracking().FirstOrDefaultAsync(l => l.Id == dto.ListingId);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == dto.ListingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {dto.ListingId} not found.");
 
@@ -240,13 +211,11 @@ public class ListingService(
 
     public async Task DeleteAvailabilityAsync(Guid userId, Guid availabilityId)
     {
-        var profile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var profile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (profile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var availability = await availabilities.Query()
-            .Include(a => a.ServiceListing)
-            .FirstOrDefaultAsync(a => a.Id == availabilityId);
+        var availability = await availabilities.GetWithListingAsync(availabilityId);
         if (availability is null)
             throw new KeyNotFoundException($"Availability {availabilityId} not found.");
 
@@ -262,10 +231,7 @@ public class ListingService(
 
     public async Task<AvailabilityDto?> GetAvailabilityByIdAsync(Guid id)
     {
-        var availability = await availabilities.Query()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.Id == id);
-
+        var availability = await availabilities.FirstOrDefaultAsync(a => a.Id == id);
         return availability is null ? null : ToAvailabilityDto(availability);
     }
 

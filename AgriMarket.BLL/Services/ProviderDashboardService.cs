@@ -1,22 +1,22 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos;
-using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 
 namespace AgriMarket.BLL.Services;
 
 public class ProviderDashboardService(
     IRepository<Booking> bookings,
     IRepository<Payment> payments,
-    IRepository<ServiceListing> serviceListings) : IProviderDashboardService
+    IRepository<ServiceListing> serviceListings,
+    IQueryMaterializer mat) : IProviderDashboardService
 {
     public async Task<ProviderDashboardDto> GetStatsAsync(Guid providerProfileId)
     {
-        var listingIds = await serviceListings.Query()
-            .Where(l => l.UserProfileId == providerProfileId)
-            .Select(l => l.Id)
-            .ToListAsync();
+        var listingIds = await mat.ToListAsync(
+            serviceListings.Query()
+                .Where(l => l.UserProfileId == providerProfileId)
+                .Select(l => l.Id));
 
         var providerBookings = bookings.Query()
             .Where(b => listingIds.Contains(b.ServiceListingId));
@@ -27,20 +27,20 @@ public class ProviderDashboardService(
             BookingStatus.Confirmed, BookingStatus.InProgress
         };
 
-        var activeBookings = await providerBookings.CountAsync(b => activeStatuses.Contains(b.Status));
-        var completedBookings = await providerBookings.CountAsync(b => b.Status == BookingStatus.ClientConfirmed);
-        var cancelledBookings = await providerBookings.CountAsync(b => b.Status == BookingStatus.Cancelled);
+        var activeBookings = await mat.CountAsync(providerBookings.Where(b => activeStatuses.Contains(b.Status)));
+        var completedBookings = await mat.CountAsync(providerBookings.Where(b => b.Status == BookingStatus.ClientConfirmed));
+        var cancelledBookings = await mat.CountAsync(providerBookings.Where(b => b.Status == BookingStatus.Cancelled));
 
         var providerPayments = payments.Query()
             .Where(p => listingIds.Contains(p.Booking!.ServiceListingId));
 
-        var totalEarnings = await providerPayments
-            .Where(p => p.Status == PaymentStatus.Released)
-            .Select(p => (decimal?)p.Amount).SumAsync() ?? 0m;
+        var totalEarnings = await mat.SumAsync(
+            providerPayments.Where(p => p.Status == PaymentStatus.Released),
+            p => (decimal?)p.Amount);
 
-        var moneyHeld = await providerPayments
-            .Where(p => p.Status == PaymentStatus.Held)
-            .Select(p => (decimal?)p.Amount).SumAsync() ?? 0m;
+        var moneyHeld = await mat.SumAsync(
+            providerPayments.Where(p => p.Status == PaymentStatus.Held),
+            p => (decimal?)p.Amount);
 
         var activeListings = await serviceListings.CountAsync(l => l.UserProfileId == providerProfileId && l.IsActive);
         var totalListings = await serviceListings.CountAsync(l => l.UserProfileId == providerProfileId);

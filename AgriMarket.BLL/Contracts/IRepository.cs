@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace AgriMarket.DAL;
+namespace AgriMarket.BLL.Contracts;
 
 public interface IRepository<T> where T : class
 {
@@ -12,4 +12,6 @@ public interface IRepository<T> where T : class
     void Remove(T entity);
     Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
     Task<int> CountAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+    Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+    Task<int> ExecuteDeleteAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default);
 }

@@ -1,4 +1,4 @@
-namespace AgriMarket.DAL;
+namespace AgriMarket.BLL.Contracts;
 
 public interface IUnitOfWork
 {

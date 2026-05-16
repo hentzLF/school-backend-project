@@ -1,15 +1,13 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos.Bookings;
-using AgriMarket.BLL;
-using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
 public class BookingService(
-    IRepository<Booking> bookingRepo,
+    IBookingRepository bookingRepo,
     IRepository<UserProfile> userProfiles,
     IRepository<ServiceListing> serviceListings,
     IRepository<Availability> availabilities,
@@ -20,54 +18,46 @@ public class BookingService(
     private const decimal PlatformFeeRate = 0.05m;
     public async Task<IEnumerable<BookingDto>> GetAllAsync(BookingStatus? status = null)
     {
-        var query = BuildBaseQuery();
-        if (status.HasValue)
-            query = query.Where(b => b.Status == status.Value);
+        var predicate = status.HasValue
+            ? (System.Linq.Expressions.Expression<Func<Booking, bool>>)(b => b.Status == status.Value)
+            : null;
 
-        var bookings = await query.OrderByDescending(b => b.CreatedAt).ToListAsync();
+        var bookings = await bookingRepo.ListWithDetailsAsync(predicate);
         return bookings.Select(ToBookingDto);
     }
 
     public async Task<BookingDto?> GetByIdAsync(Guid id)
     {
-        var booking = await BuildBaseQuery().FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await bookingRepo.GetByIdWithDetailsAsync(id);
         return booking is null ? null : ToBookingDto(booking);
     }
 
     public async Task<IEnumerable<BookingDto>> GetByClientAsync(Guid clientProfileId)
     {
-        var bookings = await BuildBaseQuery()
-            .Where(b => b.ClientProfileId == clientProfileId)
-            .OrderByDescending(b => b.CreatedAt)
-            .ToListAsync();
-
+        var bookings = await bookingRepo.ListWithDetailsAsync(b => b.ClientProfileId == clientProfileId);
         return bookings.Select(ToBookingDto);
     }
 
     public async Task<IEnumerable<BookingDto>> GetByProviderAsync(Guid providerProfileId)
     {
-        var bookings = await BuildBaseQuery()
-            .Where(b => b.ServiceListing!.UserProfileId == providerProfileId)
-            .OrderByDescending(b => b.CreatedAt)
-            .ToListAsync();
-
+        var bookings = await bookingRepo.ListWithDetailsAsync(b => b.ServiceListing!.UserProfileId == providerProfileId);
         return bookings.Select(ToBookingDto);
     }
 
     public async Task<BookingDto> CreateAsync(Guid userId, CreateBookingDto dto)
     {
-        var clientProfile = await userProfiles.Query().AsNoTracking().FirstOrDefaultAsync(p => p.AppUserId == userId);
+        var clientProfile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
         if (clientProfile is null)
             throw new BusinessRuleException("User profile not found.");
 
-        var listing = await serviceListings.Query().AsNoTracking().FirstOrDefaultAsync(l => l.Id == dto.ServiceListingId);
+        var listing = await serviceListings.FirstOrDefaultAsync(l => l.Id == dto.ServiceListingId);
         if (listing is null)
             throw new KeyNotFoundException($"ServiceListing {dto.ServiceListingId} not found.");
 
         if (listing.UserProfileId == clientProfile.Id)
             throw new BusinessRuleException("Providers cannot book their own services.");
 
-        var availability = await availabilities.Query().FirstOrDefaultAsync(a => a.Id == dto.AvailabilityId);
+        var availability = await availabilities.FirstOrDefaultAsync(a => a.Id == dto.AvailabilityId);
         if (availability is null || availability.ServiceListingId != dto.ServiceListingId)
             throw new BusinessRuleException("Availability does not belong to the selected listing.");
 
@@ -93,7 +83,7 @@ public class BookingService(
         {
             await uow.SaveChangesAsync();
         }
-        catch (DbUpdateConcurrencyException)
+        catch (ConcurrencyException)
         {
             throw new BusinessRuleException("The selected availability was booked by someone else.");
         }
@@ -102,10 +92,7 @@ public class BookingService(
 
     public async Task<BookingDto> UpdateStatusAsync(Guid id, BookingStatus status, Guid? callerProfileId = null)
     {
-        var booking = await bookingRepo.Query()
-            .Include(b => b.ServiceListing)
-            .Include(b => b.Payment)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await bookingRepo.GetForUpdateAsync(id);
         if (booking is null)
             throw new KeyNotFoundException($"Booking {id} not found.");
 
@@ -216,13 +203,7 @@ public class BookingService(
 
     public async Task<IEnumerable<BookingSummaryDto>> GetByListingAsync(Guid listingId)
     {
-        var items = await bookingRepo.Query()
-            .AsNoTracking()
-            .Include(b => b.ClientProfile)
-            .Include(b => b.Payment)
-            .Where(b => b.ServiceListingId == listingId)
-            .OrderByDescending(b => b.CreatedAt)
-            .ToListAsync();
+        var items = await bookingRepo.ListSummariesByListingAsync(listingId);
 
         return items.Select(b => new BookingSummaryDto
         {
@@ -240,28 +221,13 @@ public class BookingService(
 
     public async Task<(IEnumerable<BookingDto> Items, int TotalCount)> GetAllForProfileAsync(Guid profileId, int page, int pageSize)
     {
-        var query = BuildBaseQuery()
-            .Where(b => b.ClientProfileId == profileId || b.ServiceListing!.UserProfileId == profileId);
+        System.Linq.Expressions.Expression<Func<Booking, bool>> predicate =
+            b => b.ClientProfileId == profileId || b.ServiceListing!.UserProfileId == profileId;
 
-        var totalCount = await query.CountAsync();
-        var items = await query
-            .OrderByDescending(b => b.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+        var totalCount = await bookingRepo.CountWithDetailsAsync(predicate);
+        var items = await bookingRepo.ListWithDetailsAsync(predicate, (page - 1) * pageSize, pageSize);
 
         return (items.Select(ToBookingDto), totalCount);
-    }
-
-    private IQueryable<Booking> BuildBaseQuery()
-    {
-        return bookingRepo.Query()
-            .AsNoTracking()
-            .Include(b => b.ClientProfile)
-            .Include(b => b.ServiceListing)
-            .Include(b => b.Availability)
-            .Include(b => b.Payment)
-            .Include(b => b.Review);
     }
 
     private static BookingDto ToBookingDto(Booking booking)

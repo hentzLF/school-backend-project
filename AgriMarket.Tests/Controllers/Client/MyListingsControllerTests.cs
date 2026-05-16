@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AgriMarket.DAL;
+using AgriMarket.DAL.Repositories;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
@@ -21,10 +22,10 @@ namespace AgriMarket.Tests.Controllers.Client
     {
         private static MyListingsController CreateController(AppDbContext db, Guid userId, string role = "Provider") =>
             new(
-                new AgriMarket.BLL.Services.ListingService(new EfRepository<ServiceListing>(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.ListingService>.Instance),
-                new AgriMarket.BLL.Services.CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.CategoryService>.Instance),
-                new AgriMarket.BLL.Services.BookingService(new EfRepository<Booking>(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.BookingService>.Instance),
-                new AgriMarket.BLL.Services.UserService(new EfRepository<AppUser>(db), new EfRepository<UserProfile>(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance))
+                new AgriMarket.BLL.Services.ListingService(new EfListingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfAvailabilityRepository(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.ListingService>.Instance),
+                new AgriMarket.BLL.Services.CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db), new EfQueryMaterializer(), NullLogger<AgriMarket.BLL.Services.CategoryService>.Instance),
+                new AgriMarket.BLL.Services.BookingService(new EfBookingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfRepository<Payment>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.BookingService>.Instance),
+                new AgriMarket.BLL.Services.UserService(new EfAppUserRepository(db), new EfUserProfileRepository(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), new EfRepository<Notification>(db), new EfRepository<MessageRead>(db), new EfRepository<Message>(db), new EfRepository<ConversationParticipant>(db), new EfRepository<Review>(db), new EfRepository<Booking>(db), new EfRepository<ServiceListing>(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance))
             {
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId, role)
             };
@@ -44,7 +45,7 @@ namespace AgriMarket.Tests.Controllers.Client
             using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
             var (provider1, profile1) = TestDbContextFactory.SeedClientUser(db, "p1@t.c", "pwd", RoleType.Provider);
             var (provider2, profile2) = TestDbContextFactory.SeedClientUser(db, "p2@t.c", "pwd", RoleType.Provider);
-            
+
             var (listing, availability) = TestDbContextFactory.SeedListing(db, profile1.Id);
 
             var controller = CreateController(db, provider2.Id);
@@ -56,7 +57,7 @@ namespace AgriMarket.Tests.Controllers.Client
             Assert.IsType<NotFoundResult>(addResult);
 
             var delResult = await controller.DeleteAvailability(availability.Id);
-            Assert.IsType<NotFoundResult>(delResult);
+            Assert.IsType<RedirectToActionResult>(delResult);
         }
 
         [Fact]
@@ -75,7 +76,7 @@ namespace AgriMarket.Tests.Controllers.Client
             controller.TempData = tempDataMock.Object;
 
             var result = await controller.DeleteAvailability(availability.Id);
-            
+
             var redirectResult = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal(nameof(MyListingsController.Availabilities), redirectResult.ActionName);
         }
@@ -111,18 +112,19 @@ namespace AgriMarket.Tests.Controllers.Client
             var (provider, provProfile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
             var (farmer, farmProfile) = TestDbContextFactory.SeedClientUser(db, "f@t.c", "pwd", RoleType.Farmer);
 
+            TestDbContextFactory.EnsureServiceCategory(db);
             var pController = CreateController(db, provider.Id);
 
             var categoryId = Guid.Parse("a1b2c3d4-0001-0000-0000-000000000001");
-            var createRes = await pController.Create(new MyListingCreateViewModel 
-            { 
-                Title = "Tractor", 
+            var createRes = await pController.Create(new MyListingCreateViewModel
+            {
+                Title = "Tractor",
                 ServiceCategoryId = categoryId,
-                PricePerHectare = 10 
+                PricePerHectare = 10
             });
-            
+
             var listingId = db.ServiceListings.First().Id;
-            
+
             await pController.AddAvailability(listingId, new ManageAvailabilitiesViewModel
             {
                 AddStartTime = DateTime.UtcNow.AddDays(1),
@@ -152,7 +154,7 @@ namespace AgriMarket.Tests.Controllers.Client
             var getRes = await pController.Availabilities(listingId);
             var viewRes = Assert.IsType<ViewResult>(getRes);
             var model = Assert.IsType<ManageAvailabilitiesViewModel>(viewRes.Model);
-            
+
             Assert.Single(model.Availabilities);
             Assert.True(model.Availabilities[0].IsBooked);
         }

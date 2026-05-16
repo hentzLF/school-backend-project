@@ -1,20 +1,20 @@
+using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos.Auth;
-using AgriMarket.DAL;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace AgriMarket.BLL.Services;
 
 public class AuthService(
-    IRepository<AppUser> appUsers,
+    IAppUserRepository appUsers,
     IRepository<UserProfile> userProfiles,
     IRepository<ProfileRole> profileRoles,
-    IRepository<RefreshToken> refreshTokens,
+    IRefreshTokenRepository refreshTokens,
     IUnitOfWork uow,
     ITokenService tokenService,
+    IPasswordHasher passwordHasher,
     IConfiguration config,
     ILogger<AuthService> logger) : IAuthService
 {
@@ -30,7 +30,7 @@ public class AuthService(
         {
             Id = Guid.NewGuid(),
             Email = request.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            PasswordHash = passwordHasher.Hash(request.Password),
         };
 
         var profile = new UserProfile
@@ -66,12 +66,9 @@ public class AuthService(
 
     public async Task<LoginResult> LoginAsync(LoginRequest request)
     {
-        var user = await appUsers.Query()
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.Roles)
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+        var user = await appUsers.GetByEmailWithProfilesAsync(request.Email);
 
-        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user is null || !passwordHasher.Verify(request.Password, user.PasswordHash))
         {
             logger.LogWarning("Failed login attempt for email {Email}", request.Email);
             throw new UnauthorizedAccessException("Invalid credentials.");
@@ -117,10 +114,7 @@ public class AuthService(
         if (userId is null)
             throw new UnauthorizedAccessException("Invalid or expired session token.");
 
-        var user = await appUsers.Query()
-            .Include(u => u.Profiles!)
-                .ThenInclude(p => p.Roles)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        var user = await appUsers.GetByIdWithProfilesAsync(userId.Value);
 
         if (user is null)
             throw new UnauthorizedAccessException("User not found.");
@@ -142,11 +136,7 @@ public class AuthService(
 
     public async Task<TokenResponse> RefreshAsync(string refreshToken)
     {
-        var stored = await refreshTokens.Query()
-            .Include(rt => rt.AppUser!)
-                .ThenInclude(u => u.Profiles!)
-                    .ThenInclude(p => p.Roles)
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+        var stored = await refreshTokens.GetByTokenWithUserAsync(refreshToken);
 
         if (stored is null || stored.IsRevoked || stored.ExpiresAt <= DateTime.UtcNow || stored.AppUser is null)
             throw new UnauthorizedAccessException("Invalid or expired refresh token.");
@@ -181,7 +171,7 @@ public class AuthService(
 
     public async Task LogoutAsync(string refreshToken)
     {
-        var stored = await refreshTokens.Query().FirstOrDefaultAsync(rt => rt.Token == refreshToken);
+        var stored = await refreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
         if (stored is null)
             return;
 

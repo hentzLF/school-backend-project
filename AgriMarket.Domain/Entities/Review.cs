@@ -1,12 +1,9 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace AgriMarket.Domain.Entities;
 
 public class Review
 {
     public Guid Id { get; set; }
 
-    [Range(1, 5)]
     public int Rating { get; set; }
 
     public string? Comment { get; set; }

@@ -1,4 +1,5 @@
 using AgriMarket.Api.Mappers;
+using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Dtos.Users;
 using AgriMarket.BLL.Services;
 using Asp.Versioning;
@@ -18,6 +19,7 @@ public class UsersController(IUserService userService) : ApiControllerBase
     private readonly IUserService _userService = userService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponse<UserProfileDto>), 200)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (pageSize > 100) pageSize = 100;
@@ -25,10 +27,18 @@ public class UsersController(IUserService userService) : ApiControllerBase
 
         var result = await _userService.GetAllProfilesAsync(page, pageSize);
         var items = result.Items.Select(UserApiMapper.HideEmail);
-        return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
+        return Ok(new PaginatedResponse<UserProfileDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = result.TotalCount
+        });
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(UserProfileDto), 200)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var callerUserId = GetCallerUserId();
@@ -44,6 +54,10 @@ public class UsersController(IUserService userService) : ApiControllerBase
 
     [Authorize]
     [HttpPut("profile")]
+    [ProducesResponseType(typeof(UserProfileDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest req)
     {
         if (!TryGetUserId(out var userId))
@@ -69,5 +83,4 @@ public class UsersController(IUserService userService) : ApiControllerBase
         await _userService.UpdateProfileAsync(updated);
         return Ok(updated);
     }
-
 }

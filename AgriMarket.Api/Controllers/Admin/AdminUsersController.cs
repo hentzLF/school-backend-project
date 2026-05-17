@@ -1,3 +1,4 @@
+using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Dtos.Users;
 using AgriMarket.BLL.Services;
 using Asp.Versioning;
@@ -15,16 +16,29 @@ public class AdminUsersController(IUserService userService) : ApiControllerBase
     private readonly IUserService _userService = userService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponse<UserProfileDto>), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (pageSize > 100) pageSize = 100;
         if (page < 1) page = 1;
 
         var result = await _userService.GetAllProfilesAsync(page, pageSize);
-        return Ok(new { items = result.Items, page, pageSize, totalCount = result.TotalCount });
+        return Ok(new PaginatedResponse<UserProfileDto>
+        {
+            Items = result.Items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = result.TotalCount
+        });
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(UserProfileDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var profile = await _userService.GetProfileByIdAsync(id, callerUserId: null, isAdmin: true);
@@ -35,6 +49,11 @@ public class AdminUsersController(IUserService userService) : ApiControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(UserProfileDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UserProfileDto profile)
     {
         var existing = await _userService.GetProfileByIdAsync(id, callerUserId: null, isAdmin: true);
@@ -59,6 +78,10 @@ public class AdminUsersController(IUserService userService) : ApiControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var existing = await _userService.GetProfileByIdAsync(id, callerUserId: null, isAdmin: true);

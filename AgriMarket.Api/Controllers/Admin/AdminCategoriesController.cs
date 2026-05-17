@@ -1,4 +1,4 @@
-using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos.Categories;
 using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Entities;
 using Asp.Versioning;
@@ -16,43 +16,101 @@ public class AdminCategoriesController(ICategoryService categoryService) : ApiCo
     private readonly ICategoryService _categoryService = categoryService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<CategoryDto>), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
     public async Task<IActionResult> GetAll()
     {
         var categories = await _categoryService.GetAllAsync();
-        return Ok(categories);
+        var result = categories.Select(c => new CategoryDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Description = c.Description
+        });
+        return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(CategoryDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var category = await _categoryService.GetByIdAsync(id);
         if (category is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"Category {id} not found.");
 
-        return Ok(category);
+        return Ok(new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description
+        });
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ServiceCategory category)
+    [ProducesResponseType(typeof(CategoryDto), 201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
     {
-        category.Id = Guid.NewGuid();
+        var category = new ServiceCategory
+        {
+            Id = Guid.NewGuid(),
+            Name = dto.Name,
+            Description = dto.Description
+        };
+
         await _categoryService.CreateAsync(category);
-        return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
+
+        var result = new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description
+        };
+        return CreatedAtAction(nameof(GetById), new { id = category.Id }, result);
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] ServiceCategory category)
+    [ProducesResponseType(typeof(CategoryDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCategoryDto dto)
     {
         var existing = await _categoryService.GetByIdAsync(id);
         if (existing is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"Category {id} not found.");
 
-        category.Id = id;
+        var category = new ServiceCategory
+        {
+            Id = id,
+            Name = dto.Name,
+            Description = dto.Description
+        };
+
         await _categoryService.UpdateAsync(category);
-        return Ok(category);
+
+        var result = new CategoryDto
+        {
+            Id = category.Id,
+            Name = category.Name,
+            Description = category.Description
+        };
+        return Ok(result);
     }
 
     [HttpDelete("{id:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(422)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var existing = await _categoryService.GetByIdAsync(id);
@@ -61,7 +119,7 @@ public class AdminCategoriesController(ICategoryService categoryService) : ApiCo
 
         var listingCount = await _categoryService.GetListingCountAsync(id);
         if (listingCount > 0)
-            return Problem(statusCode: 400, title: "Bad Request",
+            return Problem(statusCode: 422, title: "Unprocessable Entity",
                 detail: $"Cannot delete category with {listingCount} associated listing(s).");
 
         await _categoryService.DeleteAsync(id);

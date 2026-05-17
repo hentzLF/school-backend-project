@@ -1,3 +1,4 @@
+using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Services;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,9 @@ public class ProviderDashboardController(IProviderDashboardService providerDashb
     private readonly IProviderDashboardService _providerDashboardService = providerDashboardService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(ProviderDashboardDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
     public async Task<IActionResult> Get()
     {
         if (!TryGetProfileId(out var profileId))

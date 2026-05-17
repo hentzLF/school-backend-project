@@ -14,6 +14,9 @@ public class AdminDashboardController(IDashboardService dashboardService) : ApiC
     private readonly IDashboardService _dashboardService = dashboardService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(DashboardStats), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
     public async Task<IActionResult> Get()
     {
         var stats = await _dashboardService.GetDashboardStatsAsync();

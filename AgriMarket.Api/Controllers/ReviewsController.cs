@@ -1,4 +1,5 @@
 using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.BLL.Services;
 using Asp.Versioning;
@@ -15,16 +16,25 @@ public class ReviewsController(IReviewService reviewService) : ApiControllerBase
     private readonly IReviewService _reviewService = reviewService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponse<ReviewDto>), 200)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (pageSize > 100) pageSize = 100;
         if (page < 1) page = 1;
 
         var result = await _reviewService.GetAllAsync(page, pageSize);
-        return Ok(new { items = result.Items, page, pageSize, totalCount = result.TotalCount });
+        return Ok(new PaginatedResponse<ReviewDto>
+        {
+            Items = result.Items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = result.TotalCount
+        });
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ReviewDto), 200)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var review = await _reviewService.GetByIdAsync(id);
@@ -36,6 +46,10 @@ public class ReviewsController(IReviewService reviewService) : ApiControllerBase
 
     [Authorize]
     [HttpPost]
+    [ProducesResponseType(typeof(ReviewDto), 201)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(422)]
     public async Task<IActionResult> Create([FromBody] CreateReviewDto req)
     {
         if (!TryGetUserId(out var userId))
@@ -55,5 +69,4 @@ public class ReviewsController(IReviewService reviewService) : ApiControllerBase
             return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
         }
     }
-
 }

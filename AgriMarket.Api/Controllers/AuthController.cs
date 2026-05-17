@@ -20,12 +20,15 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [ProducesResponseType(201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(409)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         try
         {
             await _authService.RegisterAsync(request);
-            return StatusCode(201);
+            return Created();
         }
         catch (InvalidOperationException ex) when (ex.Message == "Email already in use.")
         {
@@ -38,6 +41,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
+    [ProducesResponseType(typeof(ProfileSelectionResponse), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         try
@@ -47,7 +54,7 @@ public class AuthController : ControllerBase
                 return Ok(result.ProfileSelection!);
 
             SetRefreshTokenCookie(result.Tokens!.RefreshToken);
-            return Ok(new { result.Tokens.AccessToken });
+            return Ok(new AccessTokenResponse { AccessToken = result.Tokens.AccessToken });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -60,13 +67,16 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("select-profile")]
+    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> SelectProfile([FromBody] SelectProfileRequest request)
     {
         try
         {
             var tokens = await _authService.SelectProfileAsync(request);
             SetRefreshTokenCookie(tokens.RefreshToken);
-            return Ok(new { tokens.AccessToken });
+            return Ok(new AccessTokenResponse { AccessToken = tokens.AccessToken });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -79,6 +89,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [ProducesResponseType(typeof(AccessTokenResponse), 200)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> Refresh()
     {
         var refreshToken = Request.Cookies["refreshToken"];
@@ -89,7 +101,7 @@ public class AuthController : ControllerBase
         {
             var tokens = await _authService.RefreshAsync(refreshToken);
             SetRefreshTokenCookie(tokens.RefreshToken);
-            return Ok(new { tokens.AccessToken });
+            return Ok(new AccessTokenResponse { AccessToken = tokens.AccessToken });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -99,6 +111,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
+    [ProducesResponseType(204)]
     public async Task<IActionResult> Logout()
     {
         var refreshToken = Request.Cookies["refreshToken"];

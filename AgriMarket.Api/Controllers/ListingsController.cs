@@ -1,5 +1,6 @@
 using AgriMarket.Api.Mappers;
 using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Dtos.Listings;
 using AgriMarket.BLL.Dtos.Bookings;
 using AgriMarket.BLL.Services;
@@ -20,6 +21,7 @@ public class ListingsController(IListingService listingService, IBookingService 
     private readonly IBookingService _bookingService = bookingService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponse<ListingSummaryDto>), 200)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (pageSize > 100) pageSize = 100;
@@ -29,11 +31,19 @@ public class ListingsController(IListingService listingService, IBookingService 
         var totalCount = allItems.Count();
         var items = allItems.Skip((page - 1) * pageSize).Take(pageSize);
 
-        return Ok(new { items, page, pageSize, totalCount });
+        return Ok(new PaginatedResponse<ListingSummaryDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     [Authorize]
     [HttpGet("mine")]
+    [ProducesResponseType(typeof(IEnumerable<ListingSummaryDto>), 200)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> GetMine()
     {
         if (!TryGetProfileId(out var profileId))
@@ -44,6 +54,8 @@ public class ListingsController(IListingService listingService, IBookingService 
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(ListingDto), 200)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var listing = await _listingService.GetByIdAsync(id);
@@ -56,6 +68,10 @@ public class ListingsController(IListingService listingService, IBookingService 
 
     [Authorize]
     [HttpPost]
+    [ProducesResponseType(typeof(ListingDto), 201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(422)]
     public async Task<IActionResult> Create([FromBody] CreateListingDto req)
     {
         if (!TryGetUserId(out var userId))
@@ -68,12 +84,16 @@ public class ListingsController(IListingService listingService, IBookingService 
         }
         catch (BusinessRuleException ex)
         {
-            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
+            return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
         }
     }
 
     [Authorize]
     [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(ListingDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateListingDto req)
     {
         if (!TryGetUserId(out var userId))
@@ -96,6 +116,11 @@ public class ListingsController(IListingService listingService, IBookingService 
 
     [Authorize]
     [HttpDelete("{id:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(422)]
     public async Task<IActionResult> Delete(Guid id)
     {
         if (!TryGetUserId(out var userId))
@@ -112,11 +137,13 @@ public class ListingsController(IListingService listingService, IBookingService 
         }
         catch (BusinessRuleException ex)
         {
-            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
+            return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
         }
     }
 
     [HttpGet("{listingId:guid}/availabilities")]
+    [ProducesResponseType(typeof(IReadOnlyList<AvailabilityDto>), 200)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetAvailabilities(Guid listingId)
     {
         var listing = await _listingService.GetByIdAsync(listingId);
@@ -128,6 +155,11 @@ public class ListingsController(IListingService listingService, IBookingService 
 
     [Authorize]
     [HttpPost("{listingId:guid}/availabilities")]
+    [ProducesResponseType(typeof(AvailabilityDto), 201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> AddAvailability(Guid listingId, [FromBody] CreateAvailabilityRequest req)
     {
         if (!TryGetUserId(out var userId))
@@ -158,6 +190,10 @@ public class ListingsController(IListingService listingService, IBookingService 
 
     [Authorize]
     [HttpDelete("{listingId:guid}/availabilities/{id:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteAvailability(Guid listingId, Guid id)
     {
         if (!TryGetUserId(out var userId))
@@ -182,6 +218,10 @@ public class ListingsController(IListingService listingService, IBookingService 
 
     [Authorize]
     [HttpPatch("{id:guid}/toggle-active")]
+    [ProducesResponseType(typeof(ListingDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> ToggleActive(Guid id)
     {
         if (!TryGetUserId(out var userId))
@@ -205,6 +245,10 @@ public class ListingsController(IListingService listingService, IBookingService 
 
     [Authorize]
     [HttpGet("{listingId:guid}/bookings")]
+    [ProducesResponseType(typeof(IEnumerable<BookingSummaryDto>), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetListingBookings(Guid listingId)
     {
         if (!TryGetProfileId(out var profileId))
@@ -220,5 +264,4 @@ public class ListingsController(IListingService listingService, IBookingService 
         var bookings = await _bookingService.GetByListingAsync(listingId);
         return Ok(bookings);
     }
-
 }

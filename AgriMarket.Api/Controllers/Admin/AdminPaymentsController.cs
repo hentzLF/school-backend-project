@@ -1,4 +1,5 @@
 using AgriMarket.BLL.Services;
+using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +16,9 @@ public class AdminPaymentsController(IPaymentService paymentService) : ApiContro
     private readonly IPaymentService _paymentService = paymentService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<Payment>), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
     public async Task<IActionResult> GetAll([FromQuery] PaymentStatus? status)
     {
         var payments = await _paymentService.GetAllAsync(status);
@@ -22,6 +26,10 @@ public class AdminPaymentsController(IPaymentService paymentService) : ApiContro
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(Payment), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var payment = await _paymentService.GetByIdAsync(id);
@@ -32,6 +40,11 @@ public class AdminPaymentsController(IPaymentService paymentService) : ApiContro
     }
 
     [HttpPost("{id:guid}/resolve")]
+    [ProducesResponseType(typeof(Payment), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(422)]
     public async Task<IActionResult> Resolve(Guid id, [FromBody] ResolveDisputeRequest req)
     {
         var payment = await _paymentService.GetByIdAsync(id);
@@ -39,7 +52,7 @@ public class AdminPaymentsController(IPaymentService paymentService) : ApiContro
             return Problem(statusCode: 404, title: "Not Found", detail: $"Payment {id} not found.");
 
         if (payment.Status != PaymentStatus.Disputed)
-            return Problem(statusCode: 400, title: "Bad Request", detail: "Only disputed payments can be resolved.");
+            return Problem(statusCode: 422, title: "Unprocessable Entity", detail: "Only disputed payments can be resolved.");
 
         await _paymentService.ResolveDisputeAsync(id, req.Resolution);
 

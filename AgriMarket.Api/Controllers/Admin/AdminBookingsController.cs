@@ -1,3 +1,4 @@
+using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Dtos.Bookings;
 using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
@@ -16,6 +17,9 @@ public class AdminBookingsController(IBookingService bookingService) : ApiContro
     private readonly IBookingService _bookingService = bookingService;
 
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponse<BookingDto>), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
     public async Task<IActionResult> GetAll(
         [FromQuery] BookingStatus? status,
         [FromQuery] int page = 1,
@@ -28,10 +32,20 @@ public class AdminBookingsController(IBookingService bookingService) : ApiContro
         var totalCount = allItems.Count();
         var items = allItems.Skip((page - 1) * pageSize).Take(pageSize);
 
-        return Ok(new { items, page, pageSize, totalCount });
+        return Ok(new PaginatedResponse<BookingDto>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        });
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(BookingDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var booking = await _bookingService.GetByIdAsync(id);
@@ -42,6 +56,11 @@ public class AdminBookingsController(IBookingService bookingService) : ApiContro
     }
 
     [HttpPut("{id:guid}")]
+    [ProducesResponseType(typeof(BookingDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateBookingStatusRequest req)
     {
         try
@@ -56,6 +75,10 @@ public class AdminBookingsController(IBookingService bookingService) : ApiContro
     }
 
     [HttpDelete("{id:guid}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var booking = await _bookingService.GetByIdAsync(id);

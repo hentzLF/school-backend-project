@@ -1,4 +1,5 @@
 using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Dtos.Bookings;
 using AgriMarket.BLL.Services;
 using Asp.Versioning;
@@ -16,6 +17,8 @@ public class BookingsController(IBookingService bookingService) : ApiControllerB
 
     [Authorize]
     [HttpGet]
+    [ProducesResponseType(typeof(PaginatedResponse<BookingDto>), 200)]
+    [ProducesResponseType(401)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (pageSize > 100) pageSize = 100;
@@ -25,11 +28,21 @@ public class BookingsController(IBookingService bookingService) : ApiControllerB
             return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid profile identity.");
 
         var result = await _bookingService.GetAllForProfileAsync(callerProfileId, page, pageSize);
-        return Ok(new { items = result.Items, page, pageSize, totalCount = result.TotalCount });
+        return Ok(new PaginatedResponse<BookingDto>
+        {
+            Items = result.Items,
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = result.TotalCount
+        });
     }
 
     [Authorize]
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(BookingDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(Guid id)
     {
         if (!TryGetProfileId(out var callerProfileId))
@@ -47,6 +60,11 @@ public class BookingsController(IBookingService bookingService) : ApiControllerB
 
     [Authorize]
     [HttpPost]
+    [ProducesResponseType(typeof(BookingDto), 201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(422)]
     public async Task<IActionResult> Create([FromBody] CreateBookingDto req)
     {
         if (!TryGetUserId(out var userId))
@@ -59,7 +77,7 @@ public class BookingsController(IBookingService bookingService) : ApiControllerB
         }
         catch (BusinessRuleException ex)
         {
-            return Problem(statusCode: 400, title: "Bad Request", detail: ex.Message);
+            return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
         }
         catch (KeyNotFoundException ex)
         {
@@ -69,6 +87,11 @@ public class BookingsController(IBookingService bookingService) : ApiControllerB
 
     [Authorize]
     [HttpPatch("{id:guid}/status")]
+    [ProducesResponseType(typeof(BookingDto), 200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(422)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateBookingStatusRequest req)
     {
         if (!TryGetProfileId(out var callerProfileId))
@@ -92,5 +115,4 @@ public class BookingsController(IBookingService bookingService) : ApiControllerB
             return Problem(statusCode: 422, title: "Unprocessable Entity", detail: ex.Message);
         }
     }
-
 }

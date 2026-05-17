@@ -18,6 +18,7 @@ public class UsersController(IUserService userService) : ApiControllerBase
 {
     private readonly IUserService _userService = userService;
 
+    [Authorize]
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResponse<UserProfileDto>), 200)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -36,6 +37,7 @@ public class UsersController(IUserService userService) : ApiControllerBase
         });
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(UserProfileDto), 200)]
     [ProducesResponseType(404)]

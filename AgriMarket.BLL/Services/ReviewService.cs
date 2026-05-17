@@ -48,6 +48,10 @@ public class ReviewService(
         if (booking == null)
             throw new KeyNotFoundException("Booking not found.");
 
+        if (booking.ClientProfileId != reviewerProfile.Id &&
+            booking.ServiceListing?.UserProfileId != reviewerProfile.Id)
+            throw new BusinessRuleException("You cannot review a booking you are not part of.");
+
         if (booking.Status != BookingStatus.ClientConfirmed && booking.Status != BookingStatus.ProviderCompleted)
             throw new BusinessRuleException("Cannot review a booking that is not completed.");
 

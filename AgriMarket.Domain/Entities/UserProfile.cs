@@ -26,5 +26,4 @@ public class UserProfile
     public ICollection<ConversationParticipant>? ConversationParticipants { get; set; }
     public ICollection<Message>? SentMessages { get; set; }
     public ICollection<MessageRead>? MessageReads { get; set; }
-    public ICollection<Notification>? Notifications { get; set; }
 }

@@ -11,7 +11,6 @@ public class UserService(
     IUserProfileRepository userProfiles,
     IRepository<ProfileRole> profileRoles,
     IUnitOfWork uow,
-    IRepository<Notification> notifications,
     IRepository<MessageRead> messageReads,
     IRepository<Message> messages,
     IRepository<ConversationParticipant> conversationParticipants,
@@ -59,8 +58,6 @@ public class UserService(
         {
             if (profileIds.Count > 0)
             {
-                await notifications.ExecuteDeleteAsync(n => profileIds.Contains(n.UserProfileId));
-
                 await messageReads.ExecuteDeleteAsync(mr => profileIds.Contains(mr.UserProfileId));
 
                 await messages.ExecuteDeleteAsync(m => profileIds.Contains(m.SenderProfileId));

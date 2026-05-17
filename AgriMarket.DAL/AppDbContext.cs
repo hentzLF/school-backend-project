@@ -20,11 +20,6 @@ public class AppDbContext : DbContext
         .HasIndex(u => u.Email)
         .IsUnique();
 
-    // OAuthAccount: üks provider (nt Google) + providerAccountId peab olema unikaalne
-    modelBuilder.Entity<OAuthAccount>()
-        .HasIndex(o => new { o.Provider, o.ProviderAccountId })
-        .IsUnique();
-
     modelBuilder.Entity<ConversationParticipant>()
         .HasKey(cp => new { cp.ConversationId, cp.UserProfileId });
 
@@ -136,13 +131,6 @@ public class AppDbContext : DbContext
         .HasForeignKey(mr => mr.UserProfileId)
         .OnDelete(DeleteBehavior.Restrict);
 
-    // Notification → UserProfile: keela cascade (mitu teed UserProfile-ist)
-    modelBuilder.Entity<Notification>()
-        .HasOne(n => n.UserProfile)
-        .WithMany(up => up.Notifications)
-        .HasForeignKey(n => n.UserProfileId)
-        .OnDelete(DeleteBehavior.Restrict);
-
     // Conversation → Message: kustuta sõnumid koos vestlusega
     modelBuilder.Entity<Message>()
         .HasOne(m => m.Conversation)
@@ -177,9 +165,6 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<ServiceListing>()
         .HasIndex(sl => sl.IsActive);
 
-    modelBuilder.Entity<Notification>()
-        .HasIndex(n => n.IsRead);
-
     modelBuilder.Entity<Availability>()
         .HasIndex(a => a.IsBooked);
 
@@ -194,7 +179,6 @@ public class AppDbContext : DbContext
     public DbSet<ProfileRole> ProfileRoles {get; set;} = default!;
     public DbSet<Location> Locations  {get; set;} = default!;
     public DbSet<ServiceCategory> ServiceCategories {get; set;} = default!;
-    public DbSet<OAuthAccount> OAuthAccounts { get; set; } = default!;
     public DbSet<ServiceListing> ServiceListings { get; set; } = default!;
     public DbSet<Equipment> Equipments { get; set; } = default!;
     public DbSet<Availability> Availabilities { get; set; } = default!;
@@ -205,6 +189,5 @@ public class AppDbContext : DbContext
     public DbSet<ConversationParticipant> ConversationParticipants { get; set; } = default!;
     public DbSet<Message> Messages { get; set; } = default!;
     public DbSet<MessageRead> MessageReads { get; set; } = default!;
-    public DbSet<Notification> Notifications { get; set; } = default!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
 }

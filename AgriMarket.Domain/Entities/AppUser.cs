@@ -14,6 +14,5 @@ public class AppUser
 
     // Navigation
     public ICollection<UserProfile>? Profiles {get; set;}
-    public ICollection<OAuthAccount>? OAuthAccounts { get; set; }
     public ICollection<RefreshToken>? RefreshTokens { get; set; }
 }

@@ -26,7 +26,6 @@ public class BookingsControllerTests
             new EfUserProfileRepository(db),
             new EfRepository<ProfileRole>(db),
             new EfUnitOfWork(db),
-            new EfRepository<Notification>(db),
             new EfRepository<MessageRead>(db),
             new EfRepository<Message>(db),
             new EfRepository<ConversationParticipant>(db),

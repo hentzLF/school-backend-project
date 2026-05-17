@@ -17,6 +17,7 @@ public class UsersController(IUserService userService) : ApiControllerBase
 {
     private readonly IUserService _userService = userService;
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
@@ -28,6 +29,7 @@ public class UsersController(IUserService userService) : ApiControllerBase
         return Ok(new { items, page, pageSize, totalCount = result.TotalCount });
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {

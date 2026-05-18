@@ -8,6 +8,8 @@ public class Payment
 
     public PaymentStatus Status { get; set; }
 
+    public PaymentMethod Method { get; set; }
+
     public decimal Amount { get; set; }
 
     public decimal PlatformFee { get; set; }

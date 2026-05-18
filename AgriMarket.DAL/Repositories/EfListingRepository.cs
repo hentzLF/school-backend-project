@@ -15,6 +15,7 @@ public class EfListingRepository(AppDbContext db) : EfRepository<ServiceListing>
             .AsNoTracking()
             .Include(l => l.UserProfile)
             .Include(l => l.ServiceCategory)
+            .Include(l => l.Location!).ThenInclude(loc => loc.Municipality!).ThenInclude(m => m.County!)
             .AsQueryable();
 
         if (predicate is not null)
@@ -28,6 +29,7 @@ public class EfListingRepository(AppDbContext db) : EfRepository<ServiceListing>
             .AsNoTracking()
             .Include(l => l.UserProfile)
             .Include(l => l.ServiceCategory)
+            .Include(l => l.Location!).ThenInclude(loc => loc.Municipality!).ThenInclude(m => m.County!)
             .Include(l => l.Availabilities)
             .Include(l => l.Equipments)
             .FirstOrDefaultAsync(l => l.Id == id, ct);

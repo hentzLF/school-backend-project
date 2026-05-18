@@ -14,7 +14,7 @@ public static class ListingApiMapper
             ServiceCategoryId = dto.ServiceCategoryId,
             PricePerHectare = dto.PricePerHectare,
             IsActive = dto.IsActive,
-            LocationId = dto.LocationId
+            Location = dto.Location
         };
     }
 }

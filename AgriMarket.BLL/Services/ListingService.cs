@@ -1,5 +1,6 @@
 using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos.Listings;
+using AgriMarket.BLL.Dtos.Locations;
 using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
@@ -11,6 +12,8 @@ public class ListingService(
     IListingRepository serviceListings,
     IRepository<UserProfile> userProfiles,
     IRepository<Booking> bookings,
+    IRepository<Municipality> municipalities,
+    IRepository<Location> locations,
     IAvailabilityRepository availabilities,
     IUnitOfWork uow,
     IReviewService reviewService,
@@ -55,10 +58,19 @@ public class ListingService(
             Description = dto.Description,
             ServiceCategoryId = dto.ServiceCategoryId,
             PricePerHectare = dto.PricePerHectare,
-            LocationId = dto.LocationId,
             UserProfileId = profile.Id,
             IsActive = false
         };
+
+        if (dto.Location is not null)
+        {
+            await ValidateMunicipalityExists(dto.Location.MunicipalityId);
+            ValidateCoordinates(dto.Location.Latitude, dto.Location.Longitude);
+
+            var location = BuildLocationFromDto(dto.Location.MunicipalityId, dto.Location.Address, dto.Location.Latitude, dto.Location.Longitude);
+            locations.Add(location);
+            listing.LocationId = location.Id;
+        }
 
         serviceListings.Add(listing);
         await uow.SaveChangesAsync();
@@ -84,7 +96,7 @@ public class ListingService(
         listing.ServiceCategoryId = dto.ServiceCategoryId;
         listing.PricePerHectare = dto.PricePerHectare;
         listing.IsActive = dto.IsActive;
-        listing.LocationId = dto.LocationId;
+        await UpdateListingLocationAsync(listing, dto.Location);
         await uow.SaveChangesAsync();
 
         return (await GetByIdAsync(listing.Id))!;
@@ -125,7 +137,7 @@ public class ListingService(
         listing.ServiceCategoryId = dto.ServiceCategoryId;
         listing.PricePerHectare = dto.PricePerHectare;
         listing.IsActive = dto.IsActive;
-        listing.LocationId = dto.LocationId;
+        await UpdateListingLocationAsync(listing, dto.Location);
         await uow.SaveChangesAsync();
 
         return (await GetByIdAsync(listing.Id))!;
@@ -282,7 +294,7 @@ public class ListingService(
             IsActive = listing.IsActive,
             UserProfileId = listing.UserProfileId,
             ServiceCategoryId = listing.ServiceCategoryId,
-            LocationId = listing.LocationId,
+            Location = ToLocationDto(listing.Location),
             CategoryName = listing.ServiceCategory?.Name ?? "Unknown",
             ProviderName = listing.UserProfile is null
                 ? "Unknown"
@@ -304,6 +316,95 @@ public class ListingService(
                 .ToList(),
             AverageRating = stats?.AverageRating ?? 0,
             ReviewCount = stats?.ReviewCount ?? 0
+        };
+    }
+
+    private static LocationDto? ToLocationDto(Location? location)
+    {
+        if (location?.Municipality is null)
+            return null;
+
+        return new LocationDto(
+            location.Id,
+            location.MunicipalityId,
+            location.Municipality.Name,
+            location.Municipality.CountyId,
+            location.Municipality.County?.Name ?? "Unknown",
+            location.Address,
+            location.Latitude,
+            location.Longitude);
+    }
+
+    private async Task UpdateListingLocationAsync(ServiceListing listing, UpdateLocationDto? locationDto)
+    {
+        if (locationDto is null)
+        {
+            await RemoveExistingLocationAsync(listing);
+            return;
+        }
+
+        await ValidateMunicipalityExists(locationDto.MunicipalityId);
+        ValidateCoordinates(locationDto.Latitude, locationDto.Longitude);
+
+        if (listing.LocationId.HasValue)
+        {
+            var existingLocation = await locations.GetByIdAsync(listing.LocationId.Value);
+            if (existingLocation is not null)
+            {
+                existingLocation.MunicipalityId = locationDto.MunicipalityId;
+                existingLocation.Address = locationDto.Address;
+                existingLocation.Latitude = locationDto.Latitude;
+                existingLocation.Longitude = locationDto.Longitude;
+                locations.Update(existingLocation);
+                return;
+            }
+        }
+
+        var newLocation = BuildLocationFromDto(locationDto.MunicipalityId, locationDto.Address, locationDto.Latitude, locationDto.Longitude);
+        locations.Add(newLocation);
+        listing.LocationId = newLocation.Id;
+    }
+
+    private async Task RemoveExistingLocationAsync(ServiceListing listing)
+    {
+        if (!listing.LocationId.HasValue)
+            return;
+
+        var existingLocation = await locations.GetByIdAsync(listing.LocationId.Value);
+        if (existingLocation is not null)
+            locations.Remove(existingLocation);
+
+        listing.LocationId = null;
+    }
+
+    private async Task ValidateMunicipalityExists(Guid municipalityId)
+    {
+        var exists = await municipalities.AnyAsync(m => m.Id == municipalityId);
+        if (!exists)
+            throw new BusinessRuleException($"Municipality {municipalityId} does not exist.");
+    }
+
+    private static void ValidateCoordinates(double? latitude, double? longitude)
+    {
+        if (latitude.HasValue != longitude.HasValue)
+            throw new BusinessRuleException("Both Latitude and Longitude must be provided together.");
+
+        if (latitude.HasValue && (latitude.Value < -90 || latitude.Value > 90))
+            throw new BusinessRuleException("Latitude must be between -90 and 90.");
+
+        if (longitude.HasValue && (longitude.Value < -180 || longitude.Value > 180))
+            throw new BusinessRuleException("Longitude must be between -180 and 180.");
+    }
+
+    private static Location BuildLocationFromDto(Guid municipalityId, string? address, double? latitude, double? longitude)
+    {
+        return new Location
+        {
+            Id = Guid.NewGuid(),
+            MunicipalityId = municipalityId,
+            Address = address,
+            Latitude = latitude,
+            Longitude = longitude
         };
     }
 

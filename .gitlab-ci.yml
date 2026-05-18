@@ -8,4 +8,5 @@ deploy:
   tags:
     - csharp-backend
   script:
+    - docker network create agrimarket-net 2>/dev/null || true
     - docker compose up --build --remove-orphans --detach

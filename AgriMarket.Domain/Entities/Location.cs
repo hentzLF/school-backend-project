@@ -4,15 +4,13 @@ public class Location
 {
     public Guid Id { get; set; }
 
-    public double Latitude { get; set; }
+    public Guid MunicipalityId { get; set; }
 
-    public double Longitude { get; set; }
+    public string? Address { get; set; }
 
-    public string Address { get; set; } = default!;
+    public double? Latitude { get; set; }
 
-    public string City { get; set; } = default!;
+    public double? Longitude { get; set; }
 
-    public string? PostalCode { get; set; }
-
-    public string Country { get; set; } = default!;
+    public Municipality? Municipality { get; set; }
 }

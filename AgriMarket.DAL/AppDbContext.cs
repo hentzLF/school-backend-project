@@ -1,4 +1,4 @@
-using AgriMarket.DAL;
+using AgriMarket.DAL.Seeding;
 using AgriMarket.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -152,12 +152,37 @@ public class AppDbContext : DbContext
         .HasForeignKey(sl => sl.ServiceCategoryId)
         .OnDelete(DeleteBehavior.Restrict);
 
-    // ServiceListing → Location: nullable FK, kustutamisel jäta listing alles
+    // County → Municipality: maakonda ei saa kustutada kui omavalitsused on olemas
+    modelBuilder.Entity<County>()
+        .HasIndex(c => c.EhakCode)
+        .IsUnique();
+
+    modelBuilder.Entity<Municipality>()
+        .HasIndex(m => m.EhakCode)
+        .IsUnique();
+
+    modelBuilder.Entity<Municipality>()
+        .HasOne(m => m.County)
+        .WithMany(c => c.Municipalities)
+        .HasForeignKey(m => m.CountyId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+    // Municipality → Location: omavalitsust ei saa kustutada kui asukohad viitavad
+    modelBuilder.Entity<Location>()
+        .HasOne(l => l.Municipality)
+        .WithMany(m => m.Locations)
+        .HasForeignKey(l => l.MunicipalityId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+    // ServiceListing → Location: kustuta location koos listinguga
     modelBuilder.Entity<ServiceListing>()
         .HasOne(sl => sl.Location)
         .WithMany()
         .HasForeignKey(sl => sl.LocationId)
-        .OnDelete(DeleteBehavior.SetNull);
+        .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<County>().HasData(CountySeedData.GetAll());
+    modelBuilder.Entity<Municipality>().HasData(MunicipalitySeedData.GetAll());
 
     modelBuilder.Entity<Booking>()
         .HasIndex(b => b.Status);
@@ -177,6 +202,8 @@ public class AppDbContext : DbContext
     public DbSet<AppUser> AppUsers {get; set;} = default!;
     public DbSet<UserProfile> UserProfiles {get; set;} = default!;
     public DbSet<ProfileRole> ProfileRoles {get; set;} = default!;
+    public DbSet<County> Counties { get; set; } = default!;
+    public DbSet<Municipality> Municipalities { get; set; } = default!;
     public DbSet<Location> Locations  {get; set;} = default!;
     public DbSet<ServiceCategory> ServiceCategories {get; set;} = default!;
     public DbSet<ServiceListing> ServiceListings { get; set; } = default!;

@@ -40,9 +40,7 @@ public class ReviewService(
 
     public async Task<ReviewDto> CreateAsync(Guid userId, CreateReviewDto dto)
     {
-        var reviewerProfile = await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId);
-        if (reviewerProfile is null)
-            throw new BusinessRuleException("User profile not found.");
+        var reviewerProfile = await ResolveProfileOrThrow(userId);
 
         var booking = await bookings.GetByIdWithDetailsAsync(dto.BookingId);
         if (booking == null)
@@ -75,6 +73,54 @@ public class ReviewService(
         reviews.Add(review);
         await uow.SaveChangesAsync();
         return ToReviewDto(review);
+    }
+
+    public async Task<(IEnumerable<ReviewDto> Items, int TotalCount)> GetByProfileAsync(Guid profileId, int page, int pageSize)
+    {
+        var query = reviews.Query().Where(r => r.ReviewedProfileId == profileId);
+        var totalCount = await mat.CountAsync(query);
+        var items = await mat.ToListAsync(
+            query.OrderByDescending(r => r.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize));
+
+        return (items.Select(ToReviewDto), totalCount);
+    }
+
+    public async Task<ReviewDto> UpdateAsync(Guid userId, UpdateReviewDto dto)
+    {
+        var profile = await ResolveProfileOrThrow(userId);
+
+        var review = await reviews.FirstOrDefaultAsync(r => r.Id == dto.Id)
+            ?? throw new KeyNotFoundException($"Review {dto.Id} not found.");
+
+        if (review.ReviewerProfileId != profile.Id)
+            throw new BusinessRuleException("You do not own this review.");
+
+        review.Rating = dto.Rating;
+        review.Comment = dto.Comment;
+        await uow.SaveChangesAsync();
+        return ToReviewDto(review);
+    }
+
+    public async Task DeleteAsync(Guid userId, Guid reviewId)
+    {
+        var profile = await ResolveProfileOrThrow(userId);
+
+        var review = await reviews.FirstOrDefaultAsync(r => r.Id == reviewId)
+            ?? throw new KeyNotFoundException($"Review {reviewId} not found.");
+
+        if (review.ReviewerProfileId != profile.Id)
+            throw new BusinessRuleException("You do not own this review.");
+
+        reviews.Remove(review);
+        await uow.SaveChangesAsync();
+    }
+
+    private async Task<UserProfile> ResolveProfileOrThrow(Guid userId)
+    {
+        return await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId)
+            ?? throw new BusinessRuleException("User profile not found.");
     }
 
     private static ReviewDto ToReviewDto(Review review)

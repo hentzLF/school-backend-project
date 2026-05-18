@@ -3,9 +3,7 @@
 Defines the REST API endpoints, request/response DTO shapes, and validation rules for managing `ServiceListing` resources in the AgriMarket API.
 
 ---
-
 ## Requirements
-
 ### Requirement: List service listings
 The API SHALL expose `GET /api/listings` returning a paginated list of active `ServiceListing` records.
 
@@ -44,14 +42,18 @@ The API SHALL expose `POST /api/listings` accepting a `CreateListingDto` (from B
 - **THEN** the response returns HTTP 400 with a ProblemDetails body listing validation errors
 
 ### Requirement: Update service listing
-The API SHALL expose `PUT /api/listings/{id}` accepting an `UpdateListingDto` (from BLL) and returning the updated `ListingDto`. The controller SHALL delegate to `IListingService.UpdateAsync(userId, dto)`.
+The API SHALL expose `PUT /api/v1/listings/{id}` accepting an `UpdateListingDto` with an optional nested `location` object (of type `UpdateLocationDto`) instead of `LocationId`.
 
-#### Scenario: Valid update
-- **WHEN** `PUT /api/listings/{id}` is called with a valid body by the listing owner
-- **THEN** the response returns HTTP 200 with the updated `ListingDto`
+#### Scenario: Valid update with location change
+- **WHEN** `PUT /api/v1/listings/{id}` is called with a `location` object by the listing owner
+- **THEN** the Location SHALL be updated (or created) and the response SHALL return HTTP 200 with the updated ListingDto
+
+#### Scenario: Remove location via update
+- **WHEN** `PUT /api/v1/listings/{id}` is called with `"location": null`
+- **THEN** the existing Location SHALL be deleted and the response SHALL show `"location": null`
 
 #### Scenario: Non-existent listing
-- **WHEN** `PUT /api/listings/{id}` is called with an ID that does not exist
+- **WHEN** `PUT /api/v1/listings/{id}` is called with an ID that does not exist
 - **THEN** the response returns HTTP 404 with a ProblemDetails body
 
 ### Requirement: Delete service listing
@@ -66,17 +68,33 @@ The API SHALL expose `DELETE /api/listings/{id}` removing the listing.
 - **THEN** the response returns HTTP 404 with a ProblemDetails body
 
 ### Requirement: ServiceListingResponse DTO shape
-`ServiceListingResponse` SHALL include: `id`, `title`, `description`, `pricePerHectare`, `isActive`, `userProfileId`, `serviceCategoryId`, `locationId`.
+`ListingDto` SHALL include a nested `LocationDto` object (or null) instead of `LocationId`. The `LocationDto` SHALL contain: `id`, `municipalityId`, `municipalityName`, `countyId`, `countyName`, `address`, `latitude`, `longitude`.
 
-#### Scenario: Response does not include navigation objects
-- **WHEN** a listing endpoint returns a `ServiceListingResponse`
-- **THEN** the JSON does not contain nested `userProfile`, `serviceCategory`, or `location` objects
+#### Scenario: Response includes nested location
+- **WHEN** a Listing endpoint returns a response for a Listing with a Location
+- **THEN** the JSON SHALL contain a `location` object with `municipalityName`, `countyName`, and all location fields
+
+#### Scenario: Response for listing without location
+- **WHEN** a Listing endpoint returns a response for a Listing without a Location
+- **THEN** the JSON SHALL contain `"location": null`
+
+#### Scenario: LocationId no longer in response
+- **WHEN** any Listing endpoint returns a response
+- **THEN** the JSON SHALL NOT contain a top-level `locationId` field
 
 ### Requirement: CreateListingRequest DTO shape
-`CreateListingRequest` SHALL require: `title` (non-empty string), `pricePerHectare` (positive decimal), `userProfileId` (valid Guid), `serviceCategoryId` (valid Guid). `description` and `locationId` are optional.
+`CreateListingDto` SHALL accept an optional nested `location` object (of type `CreateLocationDto`) instead of `LocationId`. The `CreateLocationDto` SHALL contain: `municipalityId` (Guid, required), `address` (string, optional), `latitude` (double, optional), `longitude` (double, optional).
+
+#### Scenario: Request with inline location
+- **WHEN** `POST /api/v1/listings` is called with `{ "title": "...", "location": { "municipalityId": "..." } }`
+- **THEN** the system SHALL create a Location and associate it with the new Listing
+
+#### Scenario: Request without location
+- **WHEN** `POST /api/v1/listings` is called without a `location` field
+- **THEN** the Listing SHALL be created with no associated Location
 
 #### Scenario: Request is validated before hitting the database
-- **WHEN** `POST /api/listings` is called with `pricePerHectare: -5`
+- **WHEN** `POST /api/v1/listings` is called with `pricePerHectare: -5`
 - **THEN** the response returns HTTP 400 without writing to the database
 
 ### Requirement: API controllers do not reference domain entities
@@ -85,3 +103,4 @@ API controllers SHALL NOT contain `using AgriMarket.Domain.Entities`. All data e
 #### Scenario: No entity imports in API controllers
 - **WHEN** the API project is compiled
 - **THEN** no controller file contains a `using AgriMarket.Domain.Entities` directive
+

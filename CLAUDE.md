@@ -10,15 +10,6 @@ Before any codebase modification (creating, editing, deleting), always start wit
 - **Why those files:** (explanation)
 - **What this changes in our codebase:** (impact description)
 
-## Code Style
-
-Write code that is easy to read, understand, and maintain. Follow these principles:
-
-- **KISS (Keep It Simple, Stupid):** Choose the simplest solution that works. Avoid clever tricks, unnecessary abstractions, and over-engineering. If a junior developer can't understand the code in 30 seconds, it's too complex.
-- **YAGNI (You Aren't Gonna Need It):** Don't build features, abstractions, or flexibility for hypothetical future needs. Solve today's problem today.
-- **Readability over cleverness:** Code is read far more than it is written. Prefer explicit over implicit, verbose over terse, boring over clever.
-- **Flat over nested:** Avoid deep nesting. Use early returns, guard clauses, and extract logic into well-named helper functions.
-
 ### Functions & Methods
 
 - **One function = one job.** If you need to describe what a function does using the word "and", it should be two functions.
@@ -81,18 +72,3 @@ The controller action reads like a summary. Each extracted method is self-explan
 - Write commit messages in English, imperative mood ("Add endpoint", not "Added endpoint")
 - Always run `dotnet build` before committing to verify compilation
 - One logical change per commit — don't bundle unrelated changes
-
-## Error Handling
-
-- Never silently catch and ignore exceptions. If you catch, log or rethrow.
-- Use ProblemDetails for API error responses (RFC 9457). Do not return raw exception messages to the client.
-- Validate input at the controller/endpoint level. Do not rely on deep layers to catch bad data.
-- Use guard clauses and early returns instead of deeply nested try-catch blocks.
-
-## Testing
-
-- When adding or modifying a feature, write or update unit tests in the corresponding test project.
-- Use xUnit with FluentAssertions.
-- Test names follow the pattern: `MethodName_Scenario_ExpectedResult`
-- Keep tests focused: one assertion per test where practical.
-- Do not use in-memory database for EF Core tests unless explicitly asked. Prefer Testcontainers or a real test database.

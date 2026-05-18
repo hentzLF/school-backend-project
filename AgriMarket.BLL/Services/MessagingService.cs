@@ -110,6 +110,35 @@ public class MessagingService(
         await notifier.NotifyMessageReadAsync(message.ConversationId, messageId, callerProfileId, readAt);
     }
 
+    public async Task<int> MarkAllAsReadAsync(Guid callerProfileId, Guid conversationId)
+    {
+        await EnsureConversationExistsAsync(conversationId);
+        await EnsureIsParticipantAsync(conversationId, callerProfileId);
+
+        var unreadIds = await conversationRepo.GetUnreadMessageIdsAsync(conversationId, callerProfileId);
+        if (unreadIds.Count == 0)
+            return 0;
+
+        var readAt = DateTime.UtcNow;
+        foreach (var messageId in unreadIds)
+        {
+            messageReads.Add(new MessageRead
+            {
+                Id = Guid.NewGuid(),
+                MessageId = messageId,
+                UserProfileId = callerProfileId,
+                ReadAt = readAt
+            });
+        }
+
+        await uow.SaveChangesAsync();
+
+        foreach (var messageId in unreadIds)
+            await notifier.NotifyMessageReadAsync(conversationId, messageId, callerProfileId, readAt);
+
+        return unreadIds.Count;
+    }
+
     public async Task<UnreadCountDto> GetUnreadCountAsync(Guid callerProfileId)
     {
         var count = await conversationRepo.CountUnreadAsync(callerProfileId);

@@ -484,6 +484,70 @@ public class MessagingServiceTests
             Times.Never);
     }
 
+    // ===== MarkAllAsReadAsync =====
+
+    [Fact]
+    public async Task MarkAllAsReadAsync_WithUnreadMessages_MarksAllAndBroadcasts()
+    {
+        var conversationId = Guid.NewGuid();
+        var msg1 = Guid.NewGuid();
+        var msg2 = Guid.NewGuid();
+        SetupConversationExists(conversationId);
+        SetupIsParticipant(conversationId, CallerId);
+        _conversationRepo
+            .Setup(r => r.GetUnreadMessageIdsAsync(conversationId, CallerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([msg1, msg2]);
+
+        var count = await _sut.MarkAllAsReadAsync(CallerId, conversationId);
+
+        Assert.Equal(2, count);
+        _messageReads.Verify(r => r.Add(It.Is<MessageRead>(mr => mr.MessageId == msg1)), Times.Once);
+        _messageReads.Verify(r => r.Add(It.Is<MessageRead>(mr => mr.MessageId == msg2)), Times.Once);
+        _uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _notifier.Verify(n => n.NotifyMessageReadAsync(conversationId, msg1, CallerId, It.IsAny<DateTime>()), Times.Once);
+        _notifier.Verify(n => n.NotifyMessageReadAsync(conversationId, msg2, CallerId, It.IsAny<DateTime>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task MarkAllAsReadAsync_NoUnreadMessages_ReturnsZero()
+    {
+        var conversationId = Guid.NewGuid();
+        SetupConversationExists(conversationId);
+        SetupIsParticipant(conversationId, CallerId);
+        _conversationRepo
+            .Setup(r => r.GetUnreadMessageIdsAsync(conversationId, CallerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        var count = await _sut.MarkAllAsReadAsync(CallerId, conversationId);
+
+        Assert.Equal(0, count);
+        _messageReads.Verify(r => r.Add(It.IsAny<MessageRead>()), Times.Never);
+        _uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task MarkAllAsReadAsync_NonParticipant_ThrowsUnauthorizedAccessException()
+    {
+        var conversationId = Guid.NewGuid();
+        SetupConversationExists(conversationId);
+        SetupIsParticipant(conversationId, CallerId, false);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+            () => _sut.MarkAllAsReadAsync(CallerId, conversationId));
+    }
+
+    [Fact]
+    public async Task MarkAllAsReadAsync_NonExistentConversation_ThrowsKeyNotFoundException()
+    {
+        var conversationId = Guid.NewGuid();
+        _conversations
+            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<Conversation, bool>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _sut.MarkAllAsReadAsync(CallerId, conversationId));
+    }
+
     // ===== GetUnreadCountAsync =====
 
     [Fact]

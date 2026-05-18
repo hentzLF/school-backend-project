@@ -119,6 +119,31 @@ public class ConversationsController(IMessagingService messagingService) : ApiCo
         }
     }
 
+    [HttpPost("{id:guid}/read-all")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> MarkAllAsRead(Guid id)
+    {
+        if (!TryGetProfileId(out var callerProfileId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid profile identity.");
+
+        try
+        {
+            var count = await _messagingService.MarkAllAsReadAsync(callerProfileId, id);
+            return Ok(new { markedCount = count });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Problem(statusCode: 403, title: "Forbidden", detail: ex.Message);
+        }
+    }
+
     [HttpGet("unread-count")]
     [ProducesResponseType(typeof(UnreadCountDto), 200)]
     [ProducesResponseType(401)]

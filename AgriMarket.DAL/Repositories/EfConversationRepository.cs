@@ -126,4 +126,16 @@ public class EfConversationRepository(AppDbContext db) : IConversationRepository
             .Select(cp => cp.ConversationId)
             .ToListAsync(ct);
     }
+
+    public async Task<List<Guid>> GetUnreadMessageIdsAsync(
+        Guid conversationId, Guid profileId, CancellationToken ct = default)
+    {
+        return await db.Messages
+            .AsNoTracking()
+            .Where(m => m.ConversationId == conversationId)
+            .Where(m => m.SenderProfileId != profileId)
+            .Where(m => !m.MessageReads!.Any(mr => mr.UserProfileId == profileId))
+            .Select(m => m.Id)
+            .ToListAsync(ct);
+    }
 }

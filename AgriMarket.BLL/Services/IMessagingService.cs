@@ -10,5 +10,6 @@ public interface IMessagingService
     Task<PaginatedResponse<ConversationSummaryDto>> GetConversationsAsync(Guid callerProfileId, int page, int pageSize);
     Task<ConversationDto> GetConversationAsync(Guid callerProfileId, Guid conversationId, int page, int pageSize);
     Task MarkAsReadAsync(Guid callerProfileId, Guid messageId);
+    Task<int> MarkAllAsReadAsync(Guid callerProfileId, Guid conversationId);
     Task<UnreadCountDto> GetUnreadCountAsync(Guid callerProfileId);
 }

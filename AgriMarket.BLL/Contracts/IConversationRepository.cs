@@ -13,4 +13,5 @@ public interface IConversationRepository
     Task<int> CountUnreadAsync(Guid profileId, CancellationToken ct = default);
     Task<bool> IsParticipantAsync(Guid conversationId, Guid profileId, CancellationToken ct = default);
     Task<List<Guid>> GetConversationIdsAsync(Guid profileId, CancellationToken ct = default);
+    Task<List<Guid>> GetUnreadMessageIdsAsync(Guid conversationId, Guid profileId, CancellationToken ct = default);
 }

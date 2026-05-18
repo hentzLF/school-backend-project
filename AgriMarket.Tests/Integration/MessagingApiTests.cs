@@ -7,6 +7,7 @@ using AgriMarket.DAL.Repositories;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
+using Moq;
 using Xunit;
 
 namespace AgriMarket.Tests.Integration;
@@ -22,7 +23,8 @@ public class MessagingApiTests
             new EfRepository<Conversation>(db),
             new EfRepository<Message>(db),
             new EfRepository<MessageRead>(db),
-            new EfUnitOfWork(db));
+            new EfUnitOfWork(db),
+            new Mock<IMessageNotifier>().Object);
         return (service, db);
     }
 

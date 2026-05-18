@@ -17,6 +17,7 @@ public class MessagingServiceTests
     private readonly Mock<IRepository<Message>> _messages = new();
     private readonly Mock<IRepository<MessageRead>> _messageReads = new();
     private readonly Mock<IUnitOfWork> _uow = new();
+    private readonly Mock<IMessageNotifier> _notifier = new();
     private readonly MessagingService _sut;
 
     private static readonly Guid CallerId = Guid.NewGuid();
@@ -30,7 +31,8 @@ public class MessagingServiceTests
             _conversations.Object,
             _messages.Object,
             _messageReads.Object,
-            _uow.Object);
+            _uow.Object,
+            _notifier.Object);
     }
 
     private void SetupProfileExists(Guid profileId)

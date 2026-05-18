@@ -11,7 +11,8 @@ public class MessagingService(
     IRepository<Conversation> conversations,
     IRepository<Message> messages,
     IRepository<MessageRead> messageReads,
-    IUnitOfWork uow) : IMessagingService
+    IUnitOfWork uow,
+    IMessageNotifier notifier) : IMessagingService
 {
     public async Task<(ConversationDto Conversation, bool IsNew)> CreateConversationAsync(Guid callerProfileId, CreateConversationDto dto)
     {
@@ -49,7 +50,9 @@ public class MessagingService(
         messages.Add(message);
         await uow.SaveChangesAsync();
 
-        return ToMessageDto(message, senderProfile!);
+        var result = ToMessageDto(message, senderProfile!);
+        await notifier.NotifyMessageSentAsync(conversationId, result);
+        return result;
     }
 
     public async Task<PaginatedResponse<ConversationSummaryDto>> GetConversationsAsync(
@@ -93,15 +96,17 @@ public class MessagingService(
         if (alreadyRead)
             return;
 
+        var readAt = DateTime.UtcNow;
         messageReads.Add(new MessageRead
         {
             Id = Guid.NewGuid(),
             MessageId = messageId,
             UserProfileId = callerProfileId,
-            ReadAt = DateTime.UtcNow
+            ReadAt = readAt
         });
 
         await uow.SaveChangesAsync();
+        await notifier.NotifyMessageReadAsync(message.ConversationId, messageId, callerProfileId, readAt);
     }
 
     public async Task<UnreadCountDto> GetUnreadCountAsync(Guid callerProfileId)

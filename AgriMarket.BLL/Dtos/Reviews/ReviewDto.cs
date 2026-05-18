@@ -8,4 +8,5 @@ public sealed class ReviewDto
     public DateTime CreatedAt { get; init; }
     public Guid BookingId { get; init; }
     public Guid ReviewerProfileId { get; init; }
+    public Guid ReviewedProfileId { get; init; }
 }

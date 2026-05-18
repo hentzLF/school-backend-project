@@ -48,12 +48,15 @@ public class ReviewService(
         if (booking == null)
             throw new KeyNotFoundException("Booking not found.");
 
-        if (booking.ClientProfileId != reviewerProfile.Id &&
-            booking.ServiceListing?.UserProfileId != reviewerProfile.Id)
-            throw new BusinessRuleException("You cannot review a booking you are not part of.");
+        if (booking.ClientProfileId != reviewerProfile.Id)
+            throw new BusinessRuleException("Only the client can review a booking.");
 
         if (booking.Status != BookingStatus.ClientConfirmed && booking.Status != BookingStatus.ProviderCompleted)
             throw new BusinessRuleException("Cannot review a booking that is not completed.");
+
+        var alreadyReviewed = await reviews.AnyAsync(r => r.BookingId == dto.BookingId);
+        if (alreadyReviewed)
+            throw new BusinessRuleException("A review already exists for this booking.");
 
         var reviewedProfileId = booking.ServiceListing?.UserProfileId
             ?? throw new BusinessRuleException("Cannot determine service provider for this booking.");
@@ -83,7 +86,8 @@ public class ReviewService(
             Comment = review.Comment,
             CreatedAt = review.CreatedAt,
             BookingId = review.BookingId,
-            ReviewerProfileId = review.ReviewerProfileId
+            ReviewerProfileId = review.ReviewerProfileId,
+            ReviewedProfileId = review.ReviewedProfileId
         };
     }
 }

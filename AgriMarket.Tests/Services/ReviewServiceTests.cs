@@ -90,6 +90,7 @@ public class ReviewServiceTests
         Assert.Equal("Excellent service", result.Comment);
         Assert.Equal(BookingId, result.BookingId);
         Assert.Equal(ReviewerProfileId, result.ReviewerProfileId);
+        Assert.Equal(ReviewedProfileId, result.ReviewedProfileId);
         _reviews.Verify(r => r.Add(It.Is<Review>(rev =>
             rev.Rating == 5 &&
             rev.ReviewedProfileId == ReviewedProfileId)), Times.Once);
@@ -139,7 +140,7 @@ public class ReviewServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_ReviewerNotPartOfBooking_ThrowsBusinessRuleException()
+    public async Task CreateAsync_NonClientUser_ThrowsBusinessRuleException()
     {
         SetupReviewerProfileExists();
         var unrelatedClientId = Guid.NewGuid();
@@ -149,7 +150,7 @@ public class ReviewServiceTests
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(
             () => _sut.CreateAsync(UserId, ValidDto()));
 
-        Assert.Equal("You cannot review a booking you are not part of.", ex.Message);
+        Assert.Equal("Only the client can review a booking.", ex.Message);
     }
 
     [Theory]
@@ -192,7 +193,7 @@ public class ReviewServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_ProviderReviewsOwnBooking_SetsReviewedProfileToSelf()
+    public async Task CreateAsync_ProviderReviewsOwnBooking_ThrowsBusinessRuleException()
     {
         var providerProfileId = ReviewedProfileId;
         _userProfiles
@@ -217,11 +218,10 @@ public class ReviewServiceTests
         };
         SetupBookingExists(booking);
 
-        var result = await _sut.CreateAsync(UserId, ValidDto());
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _sut.CreateAsync(UserId, ValidDto()));
 
-        Assert.Equal(providerProfileId, result.ReviewerProfileId);
-        _reviews.Verify(r => r.Add(It.Is<Review>(rev =>
-            rev.ReviewedProfileId == providerProfileId)), Times.Once);
+        Assert.Equal("Only the client can review a booking.", ex.Message);
     }
 
     [Fact]

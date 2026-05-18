@@ -108,7 +108,7 @@ public class ReviewApiTests
             () => service.CreateAsync(outsiderUser.Id,
                 new CreateReviewDto { BookingId = booking.Id, Rating = 3 }));
 
-        Assert.Equal("You cannot review a booking you are not part of.", ex.Message);
+        Assert.Equal("Only the client can review a booking.", ex.Message);
     }
 
     [Fact]

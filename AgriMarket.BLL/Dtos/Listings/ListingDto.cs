@@ -1,3 +1,5 @@
+using AgriMarket.BLL.Dtos.Locations;
+
 namespace AgriMarket.BLL.Dtos.Listings;
 
 public sealed class ListingDto
@@ -9,7 +11,7 @@ public sealed class ListingDto
     public bool IsActive { get; init; }
     public Guid UserProfileId { get; init; }
     public Guid ServiceCategoryId { get; init; }
-    public Guid? LocationId { get; init; }
+    public LocationDto? Location { get; init; }
     public string CategoryName { get; init; } = "Unknown";
     public string ProviderName { get; init; } = "Unknown";
     public Guid? ProviderUserId { get; init; }

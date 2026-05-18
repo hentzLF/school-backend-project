@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AgriMarket.BLL.Dtos.Locations;
 
 namespace AgriMarket.BLL.Dtos.Listings;
 
@@ -16,5 +17,5 @@ public sealed class CreateListingDto
     [Required]
     public Guid ServiceCategoryId { get; init; }
 
-    public Guid? LocationId { get; init; }
+    public CreateLocationDto? Location { get; init; }
 }

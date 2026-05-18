@@ -17,6 +17,13 @@ public sealed class CreateLocationDto : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (MunicipalityId == Guid.Empty)
+        {
+            yield return new ValidationResult(
+                "MunicipalityId is required.",
+                [nameof(MunicipalityId)]);
+        }
+
         if (Latitude.HasValue != Longitude.HasValue)
         {
             yield return new ValidationResult(

@@ -189,4 +189,30 @@ public class LocationDtoValidationTests
         results.Should().ContainSingle()
             .Which.ErrorMessage.Should().Contain("Latitude and Longitude must be provided together");
     }
+
+    [Fact]
+    public void CreateLocationDto_EmptyMunicipalityId_FailsValidation()
+    {
+        // Arrange
+        var dto = new CreateLocationDto { MunicipalityId = Guid.Empty };
+
+        // Act
+        var results = Validate(dto);
+
+        // Assert
+        results.Should().Contain(r => r.MemberNames.Contains(nameof(CreateLocationDto.MunicipalityId)));
+    }
+
+    [Fact]
+    public void UpdateLocationDto_EmptyMunicipalityId_FailsValidation()
+    {
+        // Arrange
+        var dto = new UpdateLocationDto { MunicipalityId = Guid.Empty };
+
+        // Act
+        var results = Validate(dto);
+
+        // Assert
+        results.Should().Contain(r => r.MemberNames.Contains(nameof(UpdateLocationDto.MunicipalityId)));
+    }
 }

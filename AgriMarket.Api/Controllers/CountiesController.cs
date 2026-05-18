@@ -1,6 +1,7 @@
 using AgriMarket.BLL.Dtos.Locations;
 using AgriMarket.BLL.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgriMarket.Api.Controllers;
@@ -8,6 +9,7 @@ namespace AgriMarket.Api.Controllers;
 [ApiController]
 [ApiVersion("1")]
 [Route("api/v{version:apiVersion}/counties")]
+[AllowAnonymous]
 public class CountiesController(ILocationLookupService locationLookupService) : ApiControllerBase
 {
     [HttpGet]

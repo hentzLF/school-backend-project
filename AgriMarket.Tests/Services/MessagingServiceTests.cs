@@ -421,6 +421,69 @@ public class MessagingServiceTests
             () => _sut.MarkAsReadAsync(CallerId, messageId));
     }
 
+    // ===== SendMessageAsync — Broadcast =====
+
+    [Fact]
+    public async Task SendMessageAsync_Success_BroadcastsReceiveMessage()
+    {
+        var conversationId = Guid.NewGuid();
+        var dto = new SendMessageDto { Content = "Hello!" };
+        SetupConversationExists(conversationId);
+        SetupIsParticipant(conversationId, CallerId);
+        _userProfiles
+            .Setup(r => r.GetByIdAsync(CallerId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new UserProfile { Id = CallerId, FirstName = "Alice", LastName = "A" });
+
+        await _sut.SendMessageAsync(CallerId, conversationId, dto);
+
+        _notifier.Verify(n => n.NotifyMessageSentAsync(
+            conversationId,
+            It.Is<MessageDto>(m => m.Content == "Hello!" && m.ConversationId == conversationId)),
+            Times.Once);
+    }
+
+    // ===== MarkAsReadAsync — Broadcast =====
+
+    [Fact]
+    public async Task MarkAsReadAsync_NewRead_BroadcastsMessageRead()
+    {
+        var messageId = Guid.NewGuid();
+        var conversationId = Guid.NewGuid();
+        _messages
+            .Setup(r => r.GetByIdAsync(messageId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Message { Id = messageId, ConversationId = conversationId });
+        SetupIsParticipant(conversationId, CallerId);
+        _messageReads
+            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<MessageRead, bool>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        await _sut.MarkAsReadAsync(CallerId, messageId);
+
+        _notifier.Verify(n => n.NotifyMessageReadAsync(
+            conversationId, messageId, CallerId, It.IsAny<DateTime>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task MarkAsReadAsync_IdempotentReRead_DoesNotBroadcast()
+    {
+        var messageId = Guid.NewGuid();
+        var conversationId = Guid.NewGuid();
+        _messages
+            .Setup(r => r.GetByIdAsync(messageId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Message { Id = messageId, ConversationId = conversationId });
+        SetupIsParticipant(conversationId, CallerId);
+        _messageReads
+            .Setup(r => r.AnyAsync(It.IsAny<Expression<Func<MessageRead, bool>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        await _sut.MarkAsReadAsync(CallerId, messageId);
+
+        _notifier.Verify(n => n.NotifyMessageReadAsync(
+            It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<DateTime>()),
+            Times.Never);
+    }
+
     // ===== GetUnreadCountAsync =====
 
     [Fact]

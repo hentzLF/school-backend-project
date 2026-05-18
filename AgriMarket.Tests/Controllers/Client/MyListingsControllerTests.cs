@@ -23,7 +23,7 @@ namespace AgriMarket.Tests.Controllers.Client
     {
         private static MyListingsController CreateController(AppDbContext db, Guid userId, string role = "Provider") =>
             new(
-                new ListingService(new EfListingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfAvailabilityRepository(db), new EfUnitOfWork(db), TestServiceFactory.CreateReviewService(db), NullLogger<ListingService>.Instance),
+                new ListingService(new EfListingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfRepository<Municipality>(db), new EfRepository<Location>(db), new EfAvailabilityRepository(db), new EfUnitOfWork(db), TestServiceFactory.CreateReviewService(db), NullLogger<ListingService>.Instance),
                 new CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db), new EfQueryMaterializer(), NullLogger<CategoryService>.Instance),
                 new BookingService(new EfBookingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfRepository<Payment>(db), new EfUnitOfWork(db), NullLogger<BookingService>.Instance),
                 new UserService(new EfAppUserRepository(db), new EfUserProfileRepository(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), new EfRepository<MessageRead>(db), new EfRepository<Message>(db), new EfRepository<ConversationParticipant>(db), new EfRepository<Review>(db), new EfRepository<Booking>(db), new EfRepository<ServiceListing>(db), TestServiceFactory.CreateReviewService(db), NullLogger<UserService>.Instance))

@@ -1,0 +1,52 @@
+## MODIFIED Requirements
+
+### Requirement: ReviewResponse DTO shape
+`ReviewResponse` SHALL include: `id`, `rating`, `comment`, `createdAt`, `bookingId`, `reviewerProfileId`, `reviewedProfileId`.
+
+#### Scenario: Response does not include navigation objects
+- **WHEN** a review endpoint returns a `ReviewResponse`
+- **THEN** the JSON does not contain nested `booking` or `reviewerProfile` objects
+
+#### Scenario: Response includes reviewedProfileId
+- **WHEN** a review endpoint returns a `ReviewResponse`
+- **THEN** the JSON SHALL include `reviewedProfileId` identifying the user who was reviewed
+
+### Requirement: Create review
+The API SHALL expose `POST /api/reviews` accepting a `CreateReviewDto` (from BLL) and returning the created `ReviewDto`. The controller SHALL NOT construct a `Review` entity — it SHALL delegate to `IReviewService.CreateAsync(userId, dto)`. Booking state validation SHALL be enforced by the BLL service. Only the booking client SHALL be allowed to create a review. Duplicate reviews for the same booking SHALL be rejected.
+
+#### Scenario: Valid request
+- **WHEN** `POST /api/reviews` is called by the booking client with valid data for a completed booking
+- **THEN** the controller passes the DTO and authenticated userId to the BLL service, and returns HTTP 201 with the `ReviewDto`
+
+#### Scenario: Review for non-completed booking
+- **WHEN** `POST /api/reviews` is called for a booking that is not in `ClientConfirmed` or `ProviderCompleted` status
+- **THEN** the BLL service throws `BusinessRuleException` and the controller returns HTTP 422
+
+#### Scenario: Rating out of range
+- **WHEN** `POST /api/reviews` is called with `rating` outside 1-5
+- **THEN** the response returns HTTP 400 with a ProblemDetails body
+
+#### Scenario: Missing required fields
+- **WHEN** `POST /api/reviews` is called without `bookingId`
+- **THEN** the response returns HTTP 400 with a ProblemDetails body
+
+#### Scenario: Booking not in eligible state
+- **WHEN** `POST /api/reviews` is called with a `bookingId` whose booking status is not `ClientConfirmed` or `ProviderCompleted`
+- **THEN** the response returns HTTP 422 with a ProblemDetails body and no review is persisted
+
+#### Scenario: Provider attempts to review
+- **WHEN** `POST /api/reviews` is called by the service provider (not the client) of the booking
+- **THEN** the response returns HTTP 422 with message "Only the client can review a booking."
+
+#### Scenario: Duplicate review for same booking
+- **WHEN** `POST /api/reviews` is called for a booking that already has a review
+- **THEN** the response returns HTTP 422 with message "A review already exists for this booking."
+
+## ADDED Requirements
+
+### Requirement: CreateReviewRequest DTO shape
+`CreateReviewRequest` SHALL require: `bookingId` (Guid, required), `rating` (integer 1-5, required). `comment` is optional. `reviewerProfileId` is NOT part of the request — it is derived from the authenticated user.
+
+#### Scenario: Rating is validated as integer between 1 and 5
+- **WHEN** `POST /api/reviews` is called with `rating: 6`
+- **THEN** the response returns HTTP 400 without writing to the database

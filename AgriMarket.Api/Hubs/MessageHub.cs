@@ -10,10 +10,10 @@ public class MessageHub(IConversationRepository conversationRepo) : Hub
     public override async Task OnConnectedAsync()
     {
         var profileId = GetProfileId();
-        var conversationIds = await conversationRepo.GetConversationIdsAsync(profileId);
+        var conversationIds = await conversationRepo.GetConversationIdsAsync(profileId, Context.ConnectionAborted);
 
         foreach (var conversationId in conversationIds)
-            await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(conversationId));
+            await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(conversationId), Context.ConnectionAborted);
 
         await base.OnConnectedAsync();
     }
@@ -21,22 +21,22 @@ public class MessageHub(IConversationRepository conversationRepo) : Hub
     public async Task JoinConversation(Guid conversationId)
     {
         var profileId = GetProfileId();
-        var isParticipant = await conversationRepo.IsParticipantAsync(conversationId, profileId);
+        var isParticipant = await conversationRepo.IsParticipantAsync(conversationId, profileId, Context.ConnectionAborted);
         if (!isParticipant)
             throw new HubException("You are not a participant of this conversation.");
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(conversationId));
+        await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(conversationId), Context.ConnectionAborted);
     }
 
     public async Task SendTyping(Guid conversationId)
     {
         var profileId = GetProfileId();
-        var isParticipant = await conversationRepo.IsParticipantAsync(conversationId, profileId);
+        var isParticipant = await conversationRepo.IsParticipantAsync(conversationId, profileId, Context.ConnectionAborted);
         if (!isParticipant)
             throw new HubException("You are not a participant of this conversation.");
 
         await Clients.OthersInGroup(GroupName(conversationId))
-            .SendAsync("UserTyping", new { conversationId, profileId });
+            .SendAsync("UserTyping", new { conversationId, profileId }, Context.ConnectionAborted);
     }
 
     public static string GroupName(Guid conversationId) => $"conversation-{conversationId}";

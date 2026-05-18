@@ -37,7 +37,8 @@ public class MessagingService(
         await EnsureConversationExistsAsync(conversationId);
         await EnsureIsParticipantAsync(conversationId, callerProfileId);
 
-        var senderProfile = await userProfiles.GetByIdAsync(callerProfileId);
+        var senderProfile = await userProfiles.GetByIdAsync(callerProfileId)
+            ?? throw new KeyNotFoundException($"Sender profile {callerProfileId} not found.");
         var message = new Message
         {
             Id = Guid.NewGuid(),
@@ -50,7 +51,7 @@ public class MessagingService(
         messages.Add(message);
         await uow.SaveChangesAsync();
 
-        var result = ToMessageDto(message, senderProfile!);
+        var result = ToMessageDto(message, senderProfile);
         await notifier.NotifyMessageSentAsync(conversationId, result);
         return result;
     }

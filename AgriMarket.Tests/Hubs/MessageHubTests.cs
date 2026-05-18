@@ -24,6 +24,7 @@ public class MessageHubTests
 
         _context.Setup(c => c.ConnectionId).Returns(ConnectionId);
         _context.Setup(c => c.User).Returns(CreateClaimsPrincipal(ProfileId));
+        _context.Setup(c => c.ConnectionAborted).Returns(CancellationToken.None);
 
         _hub.Context = _context.Object;
         _hub.Groups = _groups.Object;
@@ -50,9 +51,9 @@ public class MessageHubTests
 
         await _hub.OnConnectedAsync();
 
-        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conv1}", default), Times.Once);
-        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conv2}", default), Times.Once);
-        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conv3}", default), Times.Once);
+        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conv1}", It.IsAny<CancellationToken>()), Times.Once);
+        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conv2}", It.IsAny<CancellationToken>()), Times.Once);
+        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conv3}", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -81,7 +82,7 @@ public class MessageHubTests
 
         await _hub.JoinConversation(conversationId);
 
-        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conversationId}", default), Times.Once);
+        _groups.Verify(g => g.AddToGroupAsync(ConnectionId, $"conversation-{conversationId}", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -117,7 +118,7 @@ public class MessageHubTests
         await _hub.SendTyping(conversationId);
 
         clientProxy.Verify(
-            p => p.SendCoreAsync("UserTyping", It.Is<object?[]>(args => args.Length == 1), default),
+            p => p.SendCoreAsync("UserTyping", It.Is<object?[]>(args => args.Length == 1), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

@@ -93,7 +93,9 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddDal();
 builder.Services.AddBll();
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+        options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 builder.Services.AddScoped<AgriMarket.BLL.Contracts.IMessageNotifier, AgriMarket.Api.Hubs.SignalRMessageNotifier>();
 builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();

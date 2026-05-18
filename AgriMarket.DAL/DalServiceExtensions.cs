@@ -20,6 +20,7 @@ public static class DalServiceExtensions
         services.AddScoped<IUserProfileRepository, EfUserProfileRepository>();
         services.AddScoped<IAvailabilityRepository, EfAvailabilityRepository>();
         services.AddScoped<IPaymentRepository, EfPaymentRepository>();
+        services.AddScoped<IConversationRepository, EfConversationRepository>();
         return services;
     }
 }

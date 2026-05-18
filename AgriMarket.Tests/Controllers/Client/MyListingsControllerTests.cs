@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AgriMarket.BLL.Services;
 using AgriMarket.DAL;
 using AgriMarket.DAL.Repositories;
 using AgriMarket.Domain.Entities;
@@ -20,12 +21,20 @@ namespace AgriMarket.Tests.Controllers.Client
 {
     public class MyListingsControllerTests
     {
+        private static ReviewService CreateReviewService(AppDbContext db) =>
+            new(new EfRepository<Review>(db),
+                new EfRepository<UserProfile>(db),
+                new EfBookingRepository(db),
+                new EfUnitOfWork(db),
+                new EfQueryMaterializer(),
+                NullLogger<ReviewService>.Instance);
+
         private static MyListingsController CreateController(AppDbContext db, Guid userId, string role = "Provider") =>
             new(
-                new AgriMarket.BLL.Services.ListingService(new EfListingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfAvailabilityRepository(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.ListingService>.Instance),
-                new AgriMarket.BLL.Services.CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db), new EfQueryMaterializer(), NullLogger<AgriMarket.BLL.Services.CategoryService>.Instance),
-                new AgriMarket.BLL.Services.BookingService(new EfBookingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfRepository<Payment>(db), new EfUnitOfWork(db), NullLogger<AgriMarket.BLL.Services.BookingService>.Instance),
-                new AgriMarket.BLL.Services.UserService(new EfAppUserRepository(db), new EfUserProfileRepository(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), new EfRepository<MessageRead>(db), new EfRepository<Message>(db), new EfRepository<ConversationParticipant>(db), new EfRepository<Review>(db), new EfRepository<Booking>(db), new EfRepository<ServiceListing>(db), NullLogger<AgriMarket.BLL.Services.UserService>.Instance))
+                new ListingService(new EfListingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfAvailabilityRepository(db), new EfUnitOfWork(db), CreateReviewService(db), NullLogger<ListingService>.Instance),
+                new CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db), new EfQueryMaterializer(), NullLogger<CategoryService>.Instance),
+                new BookingService(new EfBookingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<ServiceListing>(db), new EfRepository<Availability>(db), new EfRepository<Payment>(db), new EfUnitOfWork(db), NullLogger<BookingService>.Instance),
+                new UserService(new EfAppUserRepository(db), new EfUserProfileRepository(db), new EfRepository<ProfileRole>(db), new EfUnitOfWork(db), new EfRepository<MessageRead>(db), new EfRepository<Message>(db), new EfRepository<ConversationParticipant>(db), new EfRepository<Review>(db), new EfRepository<Booking>(db), new EfRepository<ServiceListing>(db), CreateReviewService(db), NullLogger<UserService>.Instance))
             {
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId, role)
             };

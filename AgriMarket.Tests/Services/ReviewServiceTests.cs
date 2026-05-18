@@ -328,4 +328,236 @@ public class ReviewServiceTests
 
         Assert.Null(result.Comment);
     }
+
+    [Fact]
+    public async Task CreateAsync_DuplicateReview_ThrowsBusinessRuleException()
+    {
+        SetupReviewerProfileExists();
+        SetupBookingExists(CreateCompletedBooking());
+        _reviews.Setup(r => r.AnyAsync(
+            It.IsAny<Expression<Func<Review, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _sut.CreateAsync(UserId, ValidDto()));
+
+        Assert.Equal("A review already exists for this booking.", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_OwnerUpdatesReview_ReturnsUpdatedDto()
+    {
+        SetupReviewerProfileExists();
+        var reviewId = Guid.NewGuid();
+        _reviews.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<Review, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Review
+            {
+                Id = reviewId, Rating = 3, Comment = "Old",
+                BookingId = BookingId, ReviewerProfileId = ReviewerProfileId,
+                ReviewedProfileId = ReviewedProfileId, CreatedAt = DateTime.UtcNow
+            });
+
+        var result = await _sut.UpdateAsync(UserId, new UpdateReviewDto { Id = reviewId, Rating = 5, Comment = "Updated" });
+
+        Assert.Equal(5, result.Rating);
+        Assert.Equal("Updated", result.Comment);
+        _uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ReviewNotFound_ThrowsKeyNotFoundException()
+    {
+        SetupReviewerProfileExists();
+        _reviews.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<Review, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Review?)null);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _sut.UpdateAsync(UserId, new UpdateReviewDto { Id = Guid.NewGuid(), Rating = 4 }));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_NotOwner_ThrowsBusinessRuleException()
+    {
+        SetupReviewerProfileExists();
+        var reviewId = Guid.NewGuid();
+        _reviews.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<Review, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Review
+            {
+                Id = reviewId, Rating = 3, ReviewerProfileId = Guid.NewGuid(),
+                BookingId = BookingId, ReviewedProfileId = ReviewedProfileId, CreatedAt = DateTime.UtcNow
+            });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _sut.UpdateAsync(UserId, new UpdateReviewDto { Id = reviewId, Rating = 4 }));
+
+        Assert.Equal("You do not own this review.", ex.Message);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_NoProfile_ThrowsBusinessRuleException()
+    {
+        _userProfiles.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<UserProfile, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UserProfile?)null);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _sut.UpdateAsync(UserId, new UpdateReviewDto { Id = Guid.NewGuid(), Rating = 4 }));
+
+        Assert.Equal("User profile not found.", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_OwnerDeletesReview_Succeeds()
+    {
+        SetupReviewerProfileExists();
+        var reviewId = Guid.NewGuid();
+        var review = new Review
+        {
+            Id = reviewId, Rating = 3, ReviewerProfileId = ReviewerProfileId,
+            BookingId = BookingId, ReviewedProfileId = ReviewedProfileId, CreatedAt = DateTime.UtcNow
+        };
+        _reviews.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<Review, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(review);
+
+        await _sut.DeleteAsync(UserId, reviewId);
+
+        _reviews.Verify(r => r.Remove(review), Times.Once);
+        _uow.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ReviewNotFound_ThrowsKeyNotFoundException()
+    {
+        SetupReviewerProfileExists();
+        _reviews.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<Review, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Review?)null);
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => _sut.DeleteAsync(UserId, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task DeleteAsync_NotOwner_ThrowsBusinessRuleException()
+    {
+        SetupReviewerProfileExists();
+        var reviewId = Guid.NewGuid();
+        _reviews.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<Review, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Review
+            {
+                Id = reviewId, Rating = 3, ReviewerProfileId = Guid.NewGuid(),
+                BookingId = BookingId, ReviewedProfileId = ReviewedProfileId, CreatedAt = DateTime.UtcNow
+            });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _sut.DeleteAsync(UserId, reviewId));
+
+        Assert.Equal("You do not own this review.", ex.Message);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_NoProfile_ThrowsBusinessRuleException()
+    {
+        _userProfiles.Setup(r => r.FirstOrDefaultAsync(
+            It.IsAny<Expression<Func<UserProfile, bool>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UserProfile?)null);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _sut.DeleteAsync(UserId, Guid.NewGuid()));
+
+        Assert.Equal("User profile not found.", ex.Message);
+    }
+
+    [Fact]
+    public async Task GetByProfileAsync_ReturnsFilteredPaginatedResults()
+    {
+        var reviews = new List<Review>
+        {
+            new() { Id = Guid.NewGuid(), Rating = 4, CreatedAt = DateTime.UtcNow,
+                BookingId = BookingId, ReviewerProfileId = ReviewerProfileId, ReviewedProfileId = ReviewedProfileId }
+        };
+        _mat.Setup(m => m.CountAsync(It.IsAny<IQueryable<Review>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+        _mat.Setup(m => m.ToListAsync(It.IsAny<IQueryable<Review>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(reviews);
+
+        var (items, totalCount) = await _sut.GetByProfileAsync(ReviewedProfileId, 1, 10);
+        var list = items.ToList();
+
+        Assert.Equal(1, totalCount);
+        Assert.Single(list);
+        Assert.Equal(4, list[0].Rating);
+    }
+
+    [Fact]
+    public async Task GetRatingStatsForProfileAsync_WithReviews_ReturnsStats()
+    {
+        _mat.Setup(m => m.CountAsync(It.IsAny<IQueryable<Review>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(3);
+        _mat.Setup(m => m.SumAsync(
+            It.IsAny<IQueryable<Review>>(),
+            It.IsAny<Expression<Func<Review, decimal?>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(12m);
+
+        var stats = await _sut.GetRatingStatsForProfileAsync(ReviewedProfileId);
+
+        Assert.Equal(4.0, stats.AverageRating);
+        Assert.Equal(3, stats.ReviewCount);
+    }
+
+    [Fact]
+    public async Task GetRatingStatsForProfileAsync_NoReviews_ReturnsZero()
+    {
+        _mat.Setup(m => m.CountAsync(It.IsAny<IQueryable<Review>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        var stats = await _sut.GetRatingStatsForProfileAsync(ReviewedProfileId);
+
+        Assert.Equal(0, stats.AverageRating);
+        Assert.Equal(0, stats.ReviewCount);
+    }
+
+    [Fact]
+    public async Task GetRatingStatsForListingAsync_WithReviews_ReturnsStats()
+    {
+        _mat.Setup(m => m.CountAsync(It.IsAny<IQueryable<Review>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(2);
+        _mat.Setup(m => m.SumAsync(
+            It.IsAny<IQueryable<Review>>(),
+            It.IsAny<Expression<Func<Review, decimal?>>>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(9m);
+
+        var stats = await _sut.GetRatingStatsForListingAsync(ListingId);
+
+        Assert.Equal(4.5, stats.AverageRating);
+        Assert.Equal(2, stats.ReviewCount);
+    }
+
+    [Fact]
+    public async Task GetRatingStatsForListingAsync_NoReviews_ReturnsZero()
+    {
+        _mat.Setup(m => m.CountAsync(It.IsAny<IQueryable<Review>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        var stats = await _sut.GetRatingStatsForListingAsync(ListingId);
+
+        Assert.Equal(0, stats.AverageRating);
+        Assert.Equal(0, stats.ReviewCount);
+    }
 }

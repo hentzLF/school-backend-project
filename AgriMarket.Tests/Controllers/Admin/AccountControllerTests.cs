@@ -1,3 +1,4 @@
+using AgriMarket.BLL.Services;
 using AgriMarket.DAL;
 using AgriMarket.DAL.Repositories;
 using AgriMarket.Domain.Entities;
@@ -15,6 +16,14 @@ public class AccountControllerTests
 {
     private static readonly AgriMarket.BLL.Contracts.IPasswordHasher PasswordHasher = new BCryptPasswordHasher();
 
+    private static ReviewService CreateReviewService(AppDbContext db) =>
+        new(new EfRepository<Review>(db),
+            new EfRepository<UserProfile>(db),
+            new EfBookingRepository(db),
+            new EfUnitOfWork(db),
+            new EfQueryMaterializer(),
+            NullLogger<ReviewService>.Instance);
+
     private static AgriMarket.BLL.Services.UserService CreateUserService(AppDbContext db) =>
         new(new EfAppUserRepository(db),
             new EfUserProfileRepository(db),
@@ -26,6 +35,7 @@ public class AccountControllerTests
             new EfRepository<Review>(db),
             new EfRepository<Booking>(db),
             new EfRepository<ServiceListing>(db),
+            CreateReviewService(db),
             NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
 
     [Fact]

@@ -239,6 +239,172 @@ public class ReviewApiTests
         Assert.Empty(items);
     }
 
+    [Fact]
+    public async Task UpdateAsync_OwnerUpdatesReview_Succeeds()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(UpdateAsync_OwnerUpdatesReview_Succeeds));
+        using var _ = db;
+        var (_, providerProfile) = SeedProvider(db);
+        var (clientUser, clientProfile) = SeedClient(db);
+        var booking = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
+
+        var created = await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking.Id, Rating = 3, Comment = "OK" });
+
+        var updated = await service.UpdateAsync(clientUser.Id,
+            new UpdateReviewDto { Id = created.Id, Rating = 5, Comment = "Actually great" });
+
+        Assert.Equal(5, updated.Rating);
+        Assert.Equal("Actually great", updated.Comment);
+        Assert.Equal(created.Id, updated.Id);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_OwnerDeletesReview_Succeeds()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(DeleteAsync_OwnerDeletesReview_Succeeds));
+        using var _ = db;
+        var (_, providerProfile) = SeedProvider(db);
+        var (clientUser, clientProfile) = SeedClient(db);
+        var booking = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
+
+        var created = await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking.Id, Rating = 4 });
+
+        await service.DeleteAsync(clientUser.Id, created.Id);
+
+        var fetched = await service.GetByIdAsync(created.Id);
+        Assert.Null(fetched);
+    }
+
+    [Fact]
+    public async Task CreateAsync_DuplicateReview_ThrowsBusinessRuleException()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(CreateAsync_DuplicateReview_ThrowsBusinessRuleException));
+        using var _ = db;
+        var (_, providerProfile) = SeedProvider(db);
+        var (clientUser, clientProfile) = SeedClient(db);
+        var booking = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
+
+        await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking.Id, Rating = 4 });
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => service.CreateAsync(clientUser.Id,
+                new CreateReviewDto { BookingId = booking.Id, Rating = 5 }));
+
+        Assert.Equal("A review already exists for this booking.", ex.Message);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ProviderAttempts_ThrowsBusinessRuleException()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(CreateAsync_ProviderAttempts_ThrowsBusinessRuleException));
+        using var _ = db;
+        var (providerUser, providerProfile) = SeedProvider(db);
+        var (_, clientProfile) = SeedClient(db);
+        var booking = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => service.CreateAsync(providerUser.Id,
+                new CreateReviewDto { BookingId = booking.Id, Rating = 5 }));
+
+        Assert.Equal("Only the client can review a booking.", ex.Message);
+    }
+
+    [Fact]
+    public async Task GetByProfileAsync_ReturnsOnlyReviewsForProfile()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(GetByProfileAsync_ReturnsOnlyReviewsForProfile));
+        using var _ = db;
+        var (_, providerProfile) = SeedProvider(db);
+        var (clientUser, clientProfile) = SeedClient(db);
+
+        var booking1 = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
+        await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking1.Id, Rating = 4, Comment = "Good" });
+
+        var booking2 = SeedSecondBooking(db, clientProfile.Id, providerProfile.Id);
+        await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking2.Id, Rating = 5, Comment = "Great" });
+
+        var (items, totalCount) = await service.GetByProfileAsync(providerProfile.Id, 1, 10);
+        var list = items.ToList();
+
+        Assert.Equal(2, totalCount);
+        Assert.Equal(2, list.Count);
+        Assert.All(list, r => Assert.Equal(providerProfile.Id, r.ReviewedProfileId));
+    }
+
+    [Fact]
+    public async Task GetByProfileAsync_NoReviews_ReturnsEmpty()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(GetByProfileAsync_NoReviews_ReturnsEmpty));
+        using var _ = db;
+
+        var (items, totalCount) = await service.GetByProfileAsync(Guid.NewGuid(), 1, 10);
+
+        Assert.Equal(0, totalCount);
+        Assert.Empty(items);
+    }
+
+    [Fact]
+    public async Task GetRatingStatsForProfileAsync_WithReviews_ReturnsCorrectStats()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(GetRatingStatsForProfileAsync_WithReviews_ReturnsCorrectStats));
+        using var _ = db;
+        var (_, providerProfile) = SeedProvider(db);
+        var (clientUser, clientProfile) = SeedClient(db);
+
+        var booking1 = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
+        await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking1.Id, Rating = 3 });
+
+        var booking2 = SeedSecondBooking(db, clientProfile.Id, providerProfile.Id);
+        await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking2.Id, Rating = 5 });
+
+        var stats = await service.GetRatingStatsForProfileAsync(providerProfile.Id);
+
+        Assert.Equal(4.0, stats.AverageRating);
+        Assert.Equal(2, stats.ReviewCount);
+    }
+
+    [Fact]
+    public async Task GetRatingStatsForProfileAsync_NoReviews_ReturnsZero()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(GetRatingStatsForProfileAsync_NoReviews_ReturnsZero));
+        using var _ = db;
+
+        var stats = await service.GetRatingStatsForProfileAsync(Guid.NewGuid());
+
+        Assert.Equal(0, stats.AverageRating);
+        Assert.Equal(0, stats.ReviewCount);
+    }
+
+    [Fact]
+    public async Task GetRatingStatsForListingAsync_WithReviews_ReturnsCorrectStats()
+    {
+        var (service, db) = CreateServiceWithDb(nameof(GetRatingStatsForListingAsync_WithReviews_ReturnsCorrectStats));
+        using var _ = db;
+        var (_, providerProfile) = SeedProvider(db);
+        var (clientUser, clientProfile) = SeedClient(db);
+
+        var booking1 = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
+        await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking1.Id, Rating = 4 });
+
+        var booking2 = SeedSecondBooking(db, clientProfile.Id, providerProfile.Id);
+        await service.CreateAsync(clientUser.Id,
+            new CreateReviewDto { BookingId = booking2.Id, Rating = 5 });
+
+        var listingId = db.ServiceListings.First(l => l.UserProfileId == providerProfile.Id).Id;
+        var stats = await service.GetRatingStatsForListingAsync(listingId);
+
+        Assert.Equal(4.5, stats.AverageRating);
+        Assert.Equal(2, stats.ReviewCount);
+    }
+
     private static Booking SeedSecondBooking(
         AppDbContext db, Guid clientProfileId, Guid providerProfileId)
     {

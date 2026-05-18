@@ -15,6 +15,7 @@ public static class BllServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<IClientPaymentService, ClientPaymentService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IProviderDashboardService, ProviderDashboardService>();
         services.AddScoped<IMessagingService, MessagingService>();

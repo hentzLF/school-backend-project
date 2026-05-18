@@ -29,6 +29,9 @@ public class EfConversationRepository(AppDbContext db) : IConversationRepository
         var totalCount = await baseQuery.CountAsync(ct);
 
         var items = await baseQuery
+            .OrderByDescending(c => c.Messages!.Max(m => (DateTime?)m.SentAt) ?? c.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new ConversationSummaryDto
             {
                 Id = c.Id,
@@ -55,9 +58,6 @@ public class EfConversationRepository(AppDbContext db) : IConversationRepository
                     .Count(m => m.SenderProfileId != profileId
                         && !m.MessageReads!.Any(mr => mr.UserProfileId == profileId))
             })
-            .OrderByDescending(s => s.LastMessage != null ? s.LastMessage.SentAt : s.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
             .ToListAsync(ct);
 
         return (items, totalCount);

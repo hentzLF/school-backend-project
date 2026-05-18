@@ -19,6 +19,7 @@
     <ProjectReference Include="..\AgriMarket.BLL\AgriMarket.BLL.csproj" />
     <ProjectReference Include="..\AgriMarket.DAL\AgriMarket.DAL.csproj" />
     <ProjectReference Include="..\AgriMarket.Web\AgriMarket.Web.csproj" />
+    <ProjectReference Include="..\AgriMarket.Api\AgriMarket.Api.csproj" />
   </ItemGroup>
 
 </Project>

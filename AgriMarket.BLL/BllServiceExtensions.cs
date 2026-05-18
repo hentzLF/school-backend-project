@@ -19,6 +19,7 @@ public static class BllServiceExtensions
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IProviderDashboardService, ProviderDashboardService>();
         services.AddScoped<IMessagingService, MessagingService>();
+        services.AddScoped<ILocationLookupService, LocationLookupService>();
 
         return services;
     }

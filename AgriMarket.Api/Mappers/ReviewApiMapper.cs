@@ -6,7 +6,11 @@ public static class ReviewApiMapper
 {
     public static UpdateReviewDto WithRouteId(this UpdateReviewDto dto, Guid id)
     {
-        dto.Id = id;
-        return dto;
+        return new UpdateReviewDto
+        {
+            Id = id,
+            Rating = dto.Rating,
+            Comment = dto.Comment
+        };
     }
 }

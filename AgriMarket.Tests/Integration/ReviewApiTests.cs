@@ -2,11 +2,9 @@ using AgriMarket.BLL;
 using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.BLL.Services;
 using AgriMarket.DAL;
-using AgriMarket.DAL.Repositories;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace AgriMarket.Tests.Integration;
@@ -16,14 +14,7 @@ public class ReviewApiTests
     private static (ReviewService service, AppDbContext db) CreateServiceWithDb(string dbName)
     {
         var db = TestDbContextFactory.Create(dbName);
-        var service = new ReviewService(
-            new EfRepository<Review>(db),
-            new EfRepository<UserProfile>(db),
-            new EfBookingRepository(db),
-            new EfUnitOfWork(db),
-            new EfQueryMaterializer(),
-            NullLogger<ReviewService>.Instance);
-        return (service, db);
+        return (TestServiceFactory.CreateReviewService(db), db);
     }
 
     private static (AppUser user, UserProfile profile) SeedProvider(AppDbContext db)
@@ -209,11 +200,11 @@ public class ReviewApiTests
         await service.CreateAsync(clientUser.Id,
             new CreateReviewDto { BookingId = booking2.Id, Rating = 2 });
 
-        var result = (await service.GetByBookingAsync(booking1.Id)).ToList();
+        var result = await service.GetByBookingAsync(booking1.Id);
 
-        Assert.Single(result);
-        Assert.Equal(booking1.Id, result[0].BookingId);
-        Assert.Equal(4, result[0].Rating);
+        Assert.NotNull(result);
+        Assert.Equal(booking1.Id, result!.BookingId);
+        Assert.Equal(4, result.Rating);
     }
 
     [Fact]

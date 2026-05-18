@@ -14,10 +14,10 @@ public class ReviewService(
     IQueryMaterializer mat,
     ILogger<ReviewService> logger) : IReviewService
 {
-    public async Task<IEnumerable<ReviewDto>> GetByBookingAsync(Guid bookingId)
+    public async Task<ReviewDto?> GetByBookingAsync(Guid bookingId)
     {
-        var items = await reviews.FindAsync(r => r.BookingId == bookingId);
-        return items.OrderByDescending(r => r.CreatedAt).Select(ToReviewDto);
+        var review = await reviews.FirstOrDefaultAsync(r => r.BookingId == bookingId);
+        return review is null ? null : ToReviewDto(review);
     }
 
     public async Task<(IEnumerable<ReviewDto> Items, int TotalCount)> GetAllAsync(int page, int pageSize)

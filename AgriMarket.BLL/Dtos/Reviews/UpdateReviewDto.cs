@@ -4,10 +4,11 @@ namespace AgriMarket.BLL.Dtos.Reviews;
 
 public sealed class UpdateReviewDto
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 
     [Range(1, 5)]
     public int Rating { get; init; }
 
+    [MaxLength(2000)]
     public string? Comment { get; init; }
 }

@@ -129,8 +129,7 @@ public class ReviewsController(IReviewService reviewService) : ApiControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetByBooking(Guid bookingId)
     {
-        var items = await _reviewService.GetByBookingAsync(bookingId);
-        var review = items.FirstOrDefault();
+        var review = await _reviewService.GetByBookingAsync(bookingId);
         if (review is null)
             return Problem(statusCode: 404, title: "Not Found", detail: $"No review found for booking {bookingId}.");
 

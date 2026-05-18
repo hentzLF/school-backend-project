@@ -265,43 +265,39 @@ public class ReviewServiceTests
     }
 
     [Fact]
-    public async Task GetByBookingAsync_ReviewsExist_ReturnsOrderedByCreatedAtDesc()
+    public async Task GetByBookingAsync_ReviewExists_ReturnsDto()
     {
-        var older = new Review
-        {
-            Id = Guid.NewGuid(), Rating = 3, CreatedAt = DateTime.UtcNow.AddDays(-1),
-            BookingId = BookingId, ReviewerProfileId = ReviewerProfileId
-        };
-        var newer = new Review
+        var review = new Review
         {
             Id = Guid.NewGuid(), Rating = 5, CreatedAt = DateTime.UtcNow,
-            BookingId = BookingId, ReviewerProfileId = ReviewerProfileId
+            BookingId = BookingId, ReviewerProfileId = ReviewerProfileId,
+            ReviewedProfileId = ReviewedProfileId
         };
         _reviews
-            .Setup(r => r.FindAsync(
+            .Setup(r => r.FirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Review, bool>>>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Review> { older, newer });
-
-        var result = (await _sut.GetByBookingAsync(BookingId)).ToList();
-
-        Assert.Equal(2, result.Count);
-        Assert.Equal(newer.Id, result[0].Id);
-        Assert.Equal(older.Id, result[1].Id);
-    }
-
-    [Fact]
-    public async Task GetByBookingAsync_NoReviews_ReturnsEmpty()
-    {
-        _reviews
-            .Setup(r => r.FindAsync(
-                It.IsAny<Expression<Func<Review, bool>>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Review>());
+            .ReturnsAsync(review);
 
         var result = await _sut.GetByBookingAsync(BookingId);
 
-        Assert.Empty(result);
+        Assert.NotNull(result);
+        Assert.Equal(review.Id, result!.Id);
+        Assert.Equal(5, result.Rating);
+    }
+
+    [Fact]
+    public async Task GetByBookingAsync_NoReview_ReturnsNull()
+    {
+        _reviews
+            .Setup(r => r.FirstOrDefaultAsync(
+                It.IsAny<Expression<Func<Review, bool>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Review?)null);
+
+        var result = await _sut.GetByBookingAsync(BookingId);
+
+        Assert.Null(result);
     }
 
     [Fact]

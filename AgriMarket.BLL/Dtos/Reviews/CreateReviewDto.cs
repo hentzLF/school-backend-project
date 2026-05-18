@@ -10,5 +10,6 @@ public sealed class CreateReviewDto
     [Range(1, 5)]
     public int Rating { get; init; }
 
+    [MaxLength(2000)]
     public string? Comment { get; init; }
 }

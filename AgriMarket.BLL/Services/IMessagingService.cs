@@ -5,7 +5,7 @@ namespace AgriMarket.BLL.Services;
 
 public interface IMessagingService
 {
-    Task<ConversationDto> CreateConversationAsync(Guid callerProfileId, CreateConversationDto dto);
+    Task<(ConversationDto Conversation, bool IsNew)> CreateConversationAsync(Guid callerProfileId, CreateConversationDto dto);
     Task<MessageDto> SendMessageAsync(Guid callerProfileId, Guid conversationId, SendMessageDto dto);
     Task<PaginatedResponse<ConversationSummaryDto>> GetConversationsAsync(Guid callerProfileId, int page, int pageSize);
     Task<ConversationDto> GetConversationAsync(Guid callerProfileId, Guid conversationId, int page, int pageSize);

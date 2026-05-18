@@ -40,7 +40,7 @@ public class MessagingApiTests
         using var _ = db;
         var (caller, other) = SeedTwoProfiles(db);
 
-        var conversation = await service.CreateConversationAsync(caller.Id,
+        var (conversation, _) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });
         Assert.NotEqual(Guid.Empty, conversation.Id);
         Assert.Equal(2, conversation.Participants.Count());
@@ -80,7 +80,7 @@ public class MessagingApiTests
         var (caller, other) = SeedTwoProfiles(db);
         var (_, outsider) = TestDbContextFactory.SeedClientUser(db, "outsider@test.com", "pw", RoleType.Farmer);
 
-        var conversation = await service.CreateConversationAsync(caller.Id,
+        var (conversation, _) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
@@ -116,7 +116,7 @@ public class MessagingApiTests
             () => service.CreateConversationAsync(caller.Id,
                 new CreateConversationDto { ParticipantProfileIds = [caller.Id, nonExistentId] }));
 
-        var conversation = await service.CreateConversationAsync(caller.Id,
+        var (conversation, _) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });
 
         await Assert.ThrowsAsync<BusinessRuleException>(
@@ -131,12 +131,14 @@ public class MessagingApiTests
         using var _ = db;
         var (caller, other) = SeedTwoProfiles(db);
 
-        var first = await service.CreateConversationAsync(caller.Id,
+        var (first, firstIsNew) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });
 
-        var second = await service.CreateConversationAsync(caller.Id,
+        var (second, secondIsNew) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });
 
+        Assert.True(firstIsNew);
+        Assert.False(secondIsNew);
         Assert.Equal(first.Id, second.Id);
 
         var count = db.Conversations.Count();
@@ -152,10 +154,10 @@ public class MessagingApiTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, caller.Id);
         var booking = TestDbContextFactory.SeedBooking(db, other.Id, listing.Id, availability.Id);
 
-        var first = await service.CreateConversationAsync(caller.Id,
+        var (first, _) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });
 
-        var bookingConvo = await service.CreateConversationAsync(caller.Id,
+        var (bookingConvo, _) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto
             {
                 ParticipantProfileIds = [caller.Id, other.Id],
@@ -174,7 +176,7 @@ public class MessagingApiTests
         using var _ = db;
         var (caller, other) = SeedTwoProfiles(db);
 
-        var conversation = await service.CreateConversationAsync(caller.Id,
+        var (conversation, _) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });
 
         for (var i = 0; i < 5; i++)

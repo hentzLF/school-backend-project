@@ -29,9 +29,8 @@ public class ConversationsController(IMessagingService messagingService) : ApiCo
 
         try
         {
-            var conversation = await _messagingService.CreateConversationAsync(callerProfileId, req);
+            var (conversation, isNew) = await _messagingService.CreateConversationAsync(callerProfileId, req);
 
-            var isNew = conversation.CreatedAt >= DateTime.UtcNow.AddSeconds(-5);
             if (isNew)
                 return CreatedAtAction(nameof(GetById), new { id = conversation.Id }, conversation);
 
@@ -130,39 +129,5 @@ public class ConversationsController(IMessagingService messagingService) : ApiCo
 
         var result = await _messagingService.GetUnreadCountAsync(callerProfileId);
         return Ok(result);
-    }
-}
-
-[ApiController]
-[ApiVersion("1")]
-[Route("api/v{version:apiVersion}/messages")]
-[Authorize]
-public class MessagesController(IMessagingService messagingService) : ApiControllerBase
-{
-    private readonly IMessagingService _messagingService = messagingService;
-
-    [HttpPost("{id:guid}/read")]
-    [ProducesResponseType(200)]
-    [ProducesResponseType(401)]
-    [ProducesResponseType(403)]
-    [ProducesResponseType(404)]
-    public async Task<IActionResult> MarkAsRead(Guid id)
-    {
-        if (!TryGetProfileId(out var callerProfileId))
-            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid profile identity.");
-
-        try
-        {
-            await _messagingService.MarkAsReadAsync(callerProfileId, id);
-            return Ok();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return Problem(statusCode: 404, title: "Not Found", detail: ex.Message);
-        }
-        catch (UnauthorizedAccessException ex)
-        {
-            return Problem(statusCode: 403, title: "Forbidden", detail: ex.Message);
-        }
     }
 }

@@ -74,4 +74,4 @@
 - [x] 7.1 Run `dotnet build` — solution compiles with no errors
 - [x] 7.2 Run `dotnet test` — all tests pass
 - [x] 7.3 Verify test coverage ≥ 80% for messaging service
-- [ ] 7.4 Manual Swagger test — verify all 6 endpoints appear and respond correctly
+- [x] 7.4 Manual Swagger test — verify all 6 endpoints appear and respond correctly

@@ -93,8 +93,9 @@ public class MessagingServiceTests
                 }
             });
 
-        var result = await _sut.CreateConversationAsync(CallerId, dto);
+        var (result, isNew) = await _sut.CreateConversationAsync(CallerId, dto);
 
+        Assert.True(isNew);
         Assert.NotEqual(Guid.Empty, result.Id);
         Assert.Equal(2, result.Participants.Count());
         _conversations.Verify(r => r.Add(It.IsAny<Conversation>()), Times.Once);
@@ -159,8 +160,9 @@ public class MessagingServiceTests
                 }
             });
 
-        var result = await _sut.CreateConversationAsync(CallerId, dto);
+        var (result, isNew) = await _sut.CreateConversationAsync(CallerId, dto);
 
+        Assert.False(isNew);
         Assert.Equal(existingId, result.Id);
         _conversations.Verify(r => r.Add(It.IsAny<Conversation>()), Times.Never);
     }
@@ -190,8 +192,9 @@ public class MessagingServiceTests
                 }
             });
 
-        var result = await _sut.CreateConversationAsync(CallerId, dto);
+        var (result, isNew) = await _sut.CreateConversationAsync(CallerId, dto);
 
+        Assert.True(isNew);
         Assert.Equal(bookingId, result.BookingId);
         _conversations.Verify(r => r.Add(It.IsAny<Conversation>()), Times.Once);
         _conversationRepo.Verify(

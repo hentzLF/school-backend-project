@@ -13,21 +13,21 @@ public class MessagingService(
     IRepository<MessageRead> messageReads,
     IUnitOfWork uow) : IMessagingService
 {
-    public async Task<ConversationDto> CreateConversationAsync(Guid callerProfileId, CreateConversationDto dto)
+    public async Task<(ConversationDto Conversation, bool IsNew)> CreateConversationAsync(Guid callerProfileId, CreateConversationDto dto)
     {
         ValidateParticipants(callerProfileId, dto.ParticipantProfileIds);
         await EnsureProfilesExistAsync(dto.ParticipantProfileIds);
 
         var existing = await FindExistingConversationAsync(dto);
         if (existing is not null)
-            return ToConversationDto(existing);
+            return (ToConversationDto(existing), false);
 
         var conversation = BuildConversation(dto);
         conversations.Add(conversation);
         await uow.SaveChangesAsync();
 
         var saved = await conversationRepo.GetWithParticipantsAsync(conversation.Id);
-        return ToConversationDto(saved!);
+        return (ToConversationDto(saved!), true);
     }
 
     public async Task<MessageDto> SendMessageAsync(Guid callerProfileId, Guid conversationId, SendMessageDto dto)

@@ -8,4 +8,6 @@ public sealed class ListingSummaryDto
     public string ProviderName { get; init; } = default!;
     public decimal PricePerHectare { get; init; }
     public bool IsActive { get; init; }
+    public double AverageRating { get; init; }
+    public int ReviewCount { get; init; }
 }

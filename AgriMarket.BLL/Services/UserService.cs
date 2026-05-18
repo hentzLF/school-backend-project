@@ -1,4 +1,5 @@
 using AgriMarket.BLL.Contracts;
+using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.BLL.Dtos.Users;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
@@ -17,12 +18,13 @@ public class UserService(
     IRepository<Review> reviewRepo,
     IRepository<Booking> bookingRepo,
     IRepository<ServiceListing> serviceListingRepo,
+    IReviewService reviewService,
     ILogger<UserService> logger) : IUserService
 {
     public async Task<IEnumerable<UserProfileDto>> GetAllUsersAsync()
     {
         var profiles = await userProfiles.ListWithDetailsAsync();
-        return profiles.Select(p => ToUserProfileDto(p, p.AppUser?.Email));
+        return await BuildUserProfileDtosAsync(profiles, includeEmail: true);
     }
 
     public async Task<UserProfileDto?> GetUserByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
@@ -33,7 +35,7 @@ public class UserService(
             return null;
 
         var canSeeEmail = isAdmin || (callerUserId.HasValue && callerUserId.Value == profile.AppUserId);
-        return ToUserProfileDto(profile, canSeeEmail ? profile.AppUser?.Email : null);
+        return await BuildUserProfileDtoAsync(profile, canSeeEmail ? profile.AppUser?.Email : null);
     }
 
     public async Task UpdateUserAsync(Guid appUserId, string email, DateTime? lockoutEnd)
@@ -108,7 +110,7 @@ public class UserService(
     public async Task<UserProfileDto?> GetProfileByUserIdAsync(Guid appUserId)
     {
         var profile = await userProfiles.GetByAppUserIdWithDetailsAsync(appUserId);
-        return profile is null ? null : ToUserProfileDto(profile, profile.AppUser?.Email);
+        return profile is null ? null : await BuildUserProfileDtoAsync(profile, profile.AppUser?.Email);
     }
 
     public async Task UpdateProfileAsync(UserProfileDto profile)
@@ -148,7 +150,8 @@ public class UserService(
     public async Task<(IEnumerable<UserProfileDto> Items, int TotalCount)> GetAllProfilesAsync(int page, int pageSize)
     {
         var (profiles, totalCount) = await userProfiles.ListPagedWithDetailsAsync(page, pageSize);
-        return (profiles.Select(p => ToUserProfileDto(p, null)), totalCount);
+        var dtos = await BuildUserProfileDtosAsync(profiles, includeEmail: false);
+        return (dtos, totalCount);
     }
 
     public async Task<UserProfileDto?> GetProfileByIdAsync(Guid id, Guid? callerUserId = null, bool isAdmin = false)
@@ -159,10 +162,27 @@ public class UserService(
             return null;
 
         var canSeeEmail = isAdmin || (callerUserId.HasValue && callerUserId.Value == profile.AppUserId);
-        return ToUserProfileDto(profile, canSeeEmail ? profile.AppUser?.Email : null);
+        return await BuildUserProfileDtoAsync(profile, canSeeEmail ? profile.AppUser?.Email : null);
     }
 
-    private static UserProfileDto ToUserProfileDto(UserProfile profile, string? email)
+    private async Task<IEnumerable<UserProfileDto>> BuildUserProfileDtosAsync(IEnumerable<UserProfile> profiles, bool includeEmail)
+    {
+        var result = new List<UserProfileDto>();
+        foreach (var profile in profiles)
+        {
+            var email = includeEmail ? profile.AppUser?.Email : null;
+            result.Add(await BuildUserProfileDtoAsync(profile, email));
+        }
+        return result;
+    }
+
+    private async Task<UserProfileDto> BuildUserProfileDtoAsync(UserProfile profile, string? email)
+    {
+        var stats = await reviewService.GetRatingStatsForProfileAsync(profile.Id);
+        return ToUserProfileDto(profile, email, stats);
+    }
+
+    private static UserProfileDto ToUserProfileDto(UserProfile profile, string? email, RatingStatsDto? stats = null)
     {
         return new UserProfileDto
         {
@@ -176,7 +196,9 @@ public class UserService(
             CreatedAt = profile.AppUser?.CreatedAt ?? default,
             IsLocked = profile.AppUser?.LockoutEnd > DateTime.UtcNow,
             LockoutEnd = profile.AppUser?.LockoutEnd,
-            Roles = profile.Roles?.Select(r => r.Role).ToList() ?? []
+            Roles = profile.Roles?.Select(r => r.Role).ToList() ?? [],
+            AverageRating = stats?.AverageRating ?? 0,
+            ReviewCount = stats?.ReviewCount ?? 0
         };
     }
 }

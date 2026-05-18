@@ -15,4 +15,6 @@ public sealed class UserProfileDto
     public bool IsLocked { get; init; }
     public DateTime? LockoutEnd { get; init; }
     public IEnumerable<RoleType> Roles { get; init; } = [];
+    public double AverageRating { get; init; }
+    public int ReviewCount { get; init; }
 }

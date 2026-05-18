@@ -117,6 +117,32 @@ public class ReviewService(
         await uow.SaveChangesAsync();
     }
 
+    public async Task<RatingStatsDto> GetRatingStatsForProfileAsync(Guid profileId)
+    {
+        var query = reviews.Query().Where(r => r.ReviewedProfileId == profileId);
+        return await ComputeRatingStats(query);
+    }
+
+    public async Task<RatingStatsDto> GetRatingStatsForListingAsync(Guid listingId)
+    {
+        var query = reviews.Query().Where(r => r.Booking!.ServiceListingId == listingId);
+        return await ComputeRatingStats(query);
+    }
+
+    private async Task<RatingStatsDto> ComputeRatingStats(IQueryable<Review> query)
+    {
+        var count = await mat.CountAsync(query);
+        if (count == 0)
+            return new RatingStatsDto { AverageRating = 0, ReviewCount = 0 };
+
+        var sum = await mat.SumAsync(query, r => (decimal?)r.Rating);
+        return new RatingStatsDto
+        {
+            AverageRating = Math.Round((double)sum / count, 2),
+            ReviewCount = count
+        };
+    }
+
     private async Task<UserProfile> ResolveProfileOrThrow(Guid userId)
     {
         return await userProfiles.FirstOrDefaultAsync(p => p.AppUserId == userId)

@@ -11,4 +11,6 @@ public interface IReviewService
     Task<ReviewDto> UpdateAsync(Guid userId, UpdateReviewDto dto);
     Task DeleteAsync(Guid userId, Guid reviewId);
     Task<(IEnumerable<ReviewDto> Items, int TotalCount)> GetByProfileAsync(Guid profileId, int page, int pageSize);
+    Task<RatingStatsDto> GetRatingStatsForProfileAsync(Guid profileId);
+    Task<RatingStatsDto> GetRatingStatsForListingAsync(Guid listingId);
 }

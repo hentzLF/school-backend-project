@@ -15,4 +15,6 @@ public sealed class ListingDto
     public Guid? ProviderUserId { get; init; }
     public IReadOnlyList<AvailabilityDto> Availabilities { get; init; } = [];
     public IReadOnlyList<EquipmentDto> Equipments { get; init; } = [];
+    public double AverageRating { get; init; }
+    public int ReviewCount { get; init; }
 }

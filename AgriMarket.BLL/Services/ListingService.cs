@@ -1,5 +1,6 @@
 using AgriMarket.BLL.Contracts;
 using AgriMarket.BLL.Dtos.Listings;
+using AgriMarket.BLL.Dtos.Reviews;
 using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ public class ListingService(
     IRepository<Booking> bookings,
     IAvailabilityRepository availabilities,
     IUnitOfWork uow,
+    IReviewService reviewService,
     ILogger<ListingService> logger) : IListingService
 {
     private static readonly BookingStatus[] ActiveBookingStatuses =
@@ -25,19 +27,19 @@ public class ListingService(
     public async Task<IEnumerable<ListingSummaryDto>> GetAllAsync()
     {
         var listings = await serviceListings.ListWithSummaryAsync();
-        return listings.Select(ToListingSummaryDto);
+        return await BuildListingSummaryDtosAsync(listings);
     }
 
     public async Task<ListingDto?> GetByIdAsync(Guid id)
     {
         var listing = await serviceListings.GetWithFullDetailsAsync(id);
-        return listing is null ? null : ToListingDto(listing);
+        return listing is null ? null : await BuildListingDtoAsync(listing);
     }
 
     public async Task<IEnumerable<ListingSummaryDto>> GetByProviderAsync(Guid providerProfileId)
     {
         var listings = await serviceListings.ListWithSummaryAsync(l => l.UserProfileId == providerProfileId);
-        return listings.Select(ToListingSummaryDto);
+        return await BuildListingSummaryDtosAsync(listings);
     }
 
     public async Task<ListingDto> CreateAsync(Guid userId, CreateListingDto dto)
@@ -159,7 +161,7 @@ public class ListingService(
     public async Task<IEnumerable<ListingSummaryDto>> GetActiveListingsAsync()
     {
         var listings = await serviceListings.ListWithSummaryAsync(l => l.IsActive);
-        return listings.Select(ToListingSummaryDto);
+        return await BuildListingSummaryDtosAsync(listings);
     }
 
     public async Task ToggleActiveAsync(Guid userId, Guid listingId)
@@ -235,7 +237,24 @@ public class ListingService(
         return availability is null ? null : ToAvailabilityDto(availability);
     }
 
-    private static ListingSummaryDto ToListingSummaryDto(ServiceListing listing)
+    private async Task<IEnumerable<ListingSummaryDto>> BuildListingSummaryDtosAsync(IEnumerable<ServiceListing> listings)
+    {
+        var result = new List<ListingSummaryDto>();
+        foreach (var listing in listings)
+        {
+            var stats = await reviewService.GetRatingStatsForListingAsync(listing.Id);
+            result.Add(ToListingSummaryDto(listing, stats));
+        }
+        return result;
+    }
+
+    private async Task<ListingDto> BuildListingDtoAsync(ServiceListing listing)
+    {
+        var stats = await reviewService.GetRatingStatsForListingAsync(listing.Id);
+        return ToListingDto(listing, stats);
+    }
+
+    private static ListingSummaryDto ToListingSummaryDto(ServiceListing listing, RatingStatsDto? stats = null)
     {
         return new ListingSummaryDto
         {
@@ -246,11 +265,13 @@ public class ListingService(
                 ? "Unknown"
                 : $"{listing.UserProfile.FirstName} {listing.UserProfile.LastName}",
             PricePerHectare = listing.PricePerHectare,
-            IsActive = listing.IsActive
+            IsActive = listing.IsActive,
+            AverageRating = stats?.AverageRating ?? 0,
+            ReviewCount = stats?.ReviewCount ?? 0
         };
     }
 
-    private static ListingDto ToListingDto(ServiceListing listing)
+    private static ListingDto ToListingDto(ServiceListing listing, RatingStatsDto? stats = null)
     {
         return new ListingDto
         {
@@ -280,7 +301,9 @@ public class ListingService(
                     ManufactureYear = e.ManufactureYear,
                     Description = e.Description
                 })
-                .ToList()
+                .ToList(),
+            AverageRating = stats?.AverageRating ?? 0,
+            ReviewCount = stats?.ReviewCount ?? 0
         };
     }
 

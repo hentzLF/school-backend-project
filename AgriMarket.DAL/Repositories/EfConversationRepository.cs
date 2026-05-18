@@ -116,4 +116,14 @@ public class EfConversationRepository(AppDbContext db) : IConversationRepository
         return await db.ConversationParticipants
             .AnyAsync(cp => cp.ConversationId == conversationId && cp.UserProfileId == profileId, ct);
     }
+
+    public async Task<List<Guid>> GetConversationIdsAsync(
+        Guid profileId, CancellationToken ct = default)
+    {
+        return await db.ConversationParticipants
+            .AsNoTracking()
+            .Where(cp => cp.UserProfileId == profileId)
+            .Select(cp => cp.ConversationId)
+            .ToListAsync(ct);
+    }
 }

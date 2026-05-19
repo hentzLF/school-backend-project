@@ -19,6 +19,6 @@ public class ServiceListing
     public UserProfile? UserProfile {get; set;}
     public ServiceCategory? ServiceCategory {get; set;}
     public Location? Location {get; set;}
-    public ICollection<Equipment>? Equipments {get; set;}
+    public ICollection<ServiceListingEquipment>? ServiceListingEquipments { get; set; }
     public ICollection<Availability>? Availabilities { get; set; }
 }

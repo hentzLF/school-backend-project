@@ -1,6 +1,6 @@
 using AgriMarket.Domain.Enums;
 
-namespace AgriMarket.BLL.Dtos.Listings;
+namespace AgriMarket.BLL.Dtos.Equipment;
 
 public sealed class EquipmentDto
 {

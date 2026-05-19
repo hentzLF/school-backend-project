@@ -11,6 +11,7 @@ public static class BllServiceExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IBookingService, BookingService>();
         services.AddScoped<IListingService, ListingService>();
+        services.AddScoped<IEquipmentService, EquipmentService>();
         services.AddScoped<IReviewService, ReviewService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICategoryService, CategoryService>();

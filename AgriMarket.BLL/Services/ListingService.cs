@@ -304,14 +304,19 @@ public class ListingService(
                 .OrderBy(a => a.StartTime)
                 .Select(ToAvailabilityDto)
                 .ToList(),
-            Equipments = (listing.Equipments ?? [])
-                .Select(e => new Dtos.Listings.EquipmentDto
+            Equipments = (listing.ServiceListingEquipments ?? [])
+                .Where(sle => sle.Equipment is not null)
+                .Select(sle => new Dtos.Listings.EquipmentDto
                 {
-                    Id = e.Id,
-                    Name = e.Name,
-                    Model = e.Model,
-                    ManufactureYear = e.ManufactureYear,
-                    Description = e.Description
+                    Id = sle.Equipment!.Id,
+                    Name = sle.Equipment.Name,
+                    Make = sle.Equipment.Make,
+                    Model = sle.Equipment.Model,
+                    ManufactureYear = sle.Equipment.ManufactureYear,
+                    HorsePower = sle.Equipment.HorsePower,
+                    Condition = sle.Equipment.Condition,
+                    Status = sle.Equipment.Status,
+                    Description = sle.Equipment.Description
                 })
                 .ToList(),
             AverageRating = stats?.AverageRating ?? 0,

@@ -90,12 +90,28 @@ public class AppDbContext : DbContext
         .HasForeignKey(c => c.BookingId)
         .OnDelete(DeleteBehavior.SetNull);
 
-    // ServiceListing → Equipment ja Availability: kustuta koos listinguga
+    // Equipment → UserProfile: kustuta koos profiiliga
     modelBuilder.Entity<Equipment>()
-        .HasOne(e => e.ServiceListing)
-        .WithMany(sl => sl.Equipments)
-        .HasForeignKey(e => e.ServiceListingId)
+        .HasOne(e => e.UserProfile)
+        .WithMany(up => up.Equipments)
+        .HasForeignKey(e => e.UserProfileId)
         .OnDelete(DeleteBehavior.Cascade);
+
+    // ServiceListingEquipment: N:M join tabel
+    modelBuilder.Entity<ServiceListingEquipment>()
+        .HasKey(sle => new { sle.ServiceListingId, sle.EquipmentId });
+
+    modelBuilder.Entity<ServiceListingEquipment>()
+        .HasOne(sle => sle.ServiceListing)
+        .WithMany(sl => sl.ServiceListingEquipments)
+        .HasForeignKey(sle => sle.ServiceListingId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<ServiceListingEquipment>()
+        .HasOne(sle => sle.Equipment)
+        .WithMany(e => e.ServiceListingEquipments)
+        .HasForeignKey(sle => sle.EquipmentId)
+        .OnDelete(DeleteBehavior.Restrict);
 
     modelBuilder.Entity<Availability>()
         .HasOne(a => a.ServiceListing)
@@ -217,4 +233,5 @@ public class AppDbContext : DbContext
     public DbSet<Message> Messages { get; set; } = default!;
     public DbSet<MessageRead> MessageReads { get; set; } = default!;
     public DbSet<RefreshToken> RefreshTokens { get; set; } = default!;
+    public DbSet<ServiceListingEquipment> ServiceListingEquipments { get; set; } = default!;
 }

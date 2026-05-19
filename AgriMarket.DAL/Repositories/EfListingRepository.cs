@@ -31,6 +31,6 @@ public class EfListingRepository(AppDbContext db) : EfRepository<ServiceListing>
             .Include(l => l.ServiceCategory)
             .Include(l => l.Location!).ThenInclude(loc => loc.Municipality!).ThenInclude(m => m.County!)
             .Include(l => l.Availabilities)
-            .Include(l => l.Equipments)
+            .Include(l => l.ServiceListingEquipments!).ThenInclude(sle => sle.Equipment)
             .FirstOrDefaultAsync(l => l.Id == id, ct);
 }

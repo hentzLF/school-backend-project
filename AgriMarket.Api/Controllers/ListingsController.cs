@@ -4,6 +4,7 @@ using AgriMarket.BLL.Dtos;
 using AgriMarket.BLL.Dtos.Listings;
 using AgriMarket.BLL.Dtos.Bookings;
 using AgriMarket.BLL.Services;
+using EquipmentDtos = AgriMarket.BLL.Dtos.Equipment;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,14 @@ public sealed record CreateAvailabilityRequest(DateTime StartTime, DateTime EndT
 [ApiController]
 [ApiVersion("1")]
 [Route("api/v{version:apiVersion}/listings")]
-public class ListingsController(IListingService listingService, IBookingService bookingService) : ApiControllerBase
+public class ListingsController(
+    IListingService listingService,
+    IBookingService bookingService,
+    IEquipmentService equipmentService) : ApiControllerBase
 {
     private readonly IListingService _listingService = listingService;
     private readonly IBookingService _bookingService = bookingService;
+    private readonly IEquipmentService _equipmentService = equipmentService;
 
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResponse<ListingSummaryDto>), 200)]
@@ -263,5 +268,46 @@ public class ListingsController(IListingService listingService, IBookingService 
 
         var bookings = await _bookingService.GetByListingAsync(listingId);
         return Ok(bookings);
+    }
+
+    [HttpGet("{listingId:guid}/equipment")]
+    [ProducesResponseType(typeof(IReadOnlyList<EquipmentDtos.EquipmentDto>), 200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> GetListingEquipment(Guid listingId, CancellationToken ct)
+    {
+        var listing = await _listingService.GetByIdAsync(listingId);
+        if (listing is null)
+            return Problem(statusCode: 404, title: "Not Found", detail: $"ServiceListing {listingId} not found.");
+
+        var result = await _equipmentService.GetByListingAsync(listingId, ct);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPut("{listingId:guid}/equipment")]
+    [ProducesResponseType(typeof(IReadOnlyList<EquipmentDtos.EquipmentDto>), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(401)]
+    [ProducesResponseType(403)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> AssignEquipment(Guid listingId, [FromBody] EquipmentDtos.AssignEquipmentRequest request, CancellationToken ct)
+    {
+        if (!TryGetProfileId(out var profileId))
+            return Problem(statusCode: 401, title: "Unauthorized", detail: "Invalid profile identity.");
+
+        try
+        {
+            await _equipmentService.AssignToListingAsync(profileId, listingId, request.EquipmentIds, ct);
+            var result = await _equipmentService.GetByListingAsync(listingId, ct);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return Problem(statusCode: 404, title: "Not Found", detail: $"ServiceListing {listingId} not found.");
+        }
+        catch (BusinessRuleException ex)
+        {
+            return Problem(statusCode: 403, title: "Forbidden", detail: ex.Message);
+        }
     }
 }

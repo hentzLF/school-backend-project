@@ -89,6 +89,25 @@ public static class TestDbContextFactory
         return (listing, availability);
     }
 
+    public static Equipment SeedEquipment(AppDbContext db, Guid providerProfileId)
+    {
+        var equipment = new Equipment
+        {
+            Id = Guid.NewGuid(),
+            UserProfileId = providerProfileId,
+            Name = "Test Tractor",
+            Make = "John Deere",
+            Model = "6130M",
+            ManufactureYear = 2022,
+            HorsePower = 130,
+            Condition = EquipmentCondition.Good,
+            Status = EquipmentStatus.Available
+        };
+        db.Equipments.Add(equipment);
+        db.SaveChanges();
+        return equipment;
+    }
+
     public static Booking SeedBooking(
         AppDbContext db, Guid clientProfileId, Guid listingId, Guid availabilityId,
         BookingStatus status = BookingStatus.Pending)

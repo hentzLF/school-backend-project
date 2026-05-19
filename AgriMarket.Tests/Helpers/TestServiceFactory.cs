@@ -3,6 +3,7 @@ using AgriMarket.DAL;
 using AgriMarket.DAL.Repositories;
 using AgriMarket.Domain.Entities;
 using Microsoft.Extensions.Logging.Abstractions;
+using EquipmentEntity = AgriMarket.Domain.Entities.Equipment;
 
 namespace AgriMarket.Tests.Helpers;
 
@@ -15,4 +16,12 @@ public static class TestServiceFactory
             new EfUnitOfWork(db),
             new EfQueryMaterializer(),
             NullLogger<ReviewService>.Instance);
+
+    public static EquipmentService CreateEquipmentService(AppDbContext db) =>
+        new(new EfRepository<EquipmentEntity>(db),
+            new EfRepository<ServiceListing>(db),
+            new EfRepository<ServiceListingEquipment>(db),
+            new EfUnitOfWork(db),
+            new EfQueryMaterializer(),
+            NullLogger<EquipmentService>.Instance);
 }

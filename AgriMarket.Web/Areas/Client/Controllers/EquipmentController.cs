@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
-[Authorize(Policy = "ProviderOnly")]
+[Authorize(Policy = "ClientOnly")]
 public class EquipmentController(
     IEquipmentService equipmentService,
     IListingService listingService,

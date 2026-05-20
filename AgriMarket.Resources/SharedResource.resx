@@ -265,7 +265,7 @@
   <data name="HomePage" xml:space="preserve"><value>Home Page</value></data>
   <data name="AgriMarketMVC" xml:space="preserve"><value>AgriMarket MVC</value></data>
   <data name="HomeDescription" xml:space="preserve"><value>Connecting farmers with agricultural service providers.</value></data>
-  <data name="FarmersAndProviders" xml:space="preserve"><value>Farmers &amp; Providers</value></data>
+  <data name="FarmersAndProviders" xml:space="preserve"><value>Users</value></data>
   <data name="FarmersDescription" xml:space="preserve"><value>Browse listings, book services, and manage your agricultural needs.</value></data>
   <data name="Administration" xml:space="preserve"><value>Administration</value></data>
   <data name="AdminDescription" xml:space="preserve"><value>Manage users, listings, bookings, and platform settings.</value></data>

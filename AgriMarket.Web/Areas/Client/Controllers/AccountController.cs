@@ -36,7 +36,7 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
             return View(model);
         }
 
-        var hasClientRole = user.Roles?.Any(r => r.Role == RoleType.Farmer || r.Role == RoleType.Provider) ?? false;
+        var hasClientRole = user.Roles?.Any(r => r.Role == RoleType.Client) ?? false;
         if (!hasClientRole)
         {
             ModelState.AddModelError(string.Empty, "You do not have client access");
@@ -88,9 +88,9 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
             AppUserId = user.Id
         };
 
-        await userService.CreateUserWithProfileAsync(user, profile, RoleType.Farmer);
+        await userService.CreateUserWithProfileAsync(user, profile, RoleType.Client);
 
-        await SignInAsync(user, profile, [RoleType.Farmer, RoleType.Provider]);
+        await SignInAsync(user, profile, [RoleType.Client]);
         return RedirectToAction("Index", "Listings", new { area = "Client" });
     }
 

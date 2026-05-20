@@ -12,7 +12,7 @@ using System.Security.Claims;
 namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
-[Authorize(Policy = "ProviderOnly")]
+[Authorize(Policy = "ClientOnly")]
 public class MyListingsController(IListingService listingService, ICategoryService categoryService, IBookingService bookingService, IUserService userService, IEquipmentService equipmentService) : Controller
 {
     private bool TryGetUserId(out Guid userId)

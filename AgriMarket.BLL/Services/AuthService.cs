@@ -38,18 +38,11 @@ public class AuthService(
             AppUserId = user.Id,
         };
 
-        var farmerRole = new UserRole
+        var clientRole = new UserRole
         {
             Id = Guid.NewGuid(),
             AppUserId = user.Id,
-            Role = RoleType.Farmer,
-        };
-
-        var providerRole = new UserRole
-        {
-            Id = Guid.NewGuid(),
-            AppUserId = user.Id,
-            Role = RoleType.Provider,
+            Role = RoleType.Client,
         };
 
         await uow.BeginTransactionAsync();
@@ -57,8 +50,7 @@ public class AuthService(
         {
             appUsers.Add(user);
             userProfiles.Add(profile);
-            userRoles.Add(farmerRole);
-            userRoles.Add(providerRole);
+            userRoles.Add(clientRole);
             await uow.SaveChangesAsync();
             await uow.CommitTransactionAsync();
         }

@@ -34,9 +34,7 @@ public static class AppDbSeeder
     {
         await SeedAdminIfMissing(context, passwordHasher);
         await SeedClientUserIfMissing(context, passwordHasher,
-            "provider@agrimarket.ee", "Provider123!", "Jaan", "Tamm");
-        await SeedClientUserIfMissing(context, passwordHasher,
-            "farmer@agrimarket.ee", "Farmer123!", "Mari", "Mets");
+            "client@agrimarket.ee", "Client123!", "Jaan", "Tamm");
     }
 
     private static async Task SeedAdminIfMissing(AppDbContext context, IPasswordHasher passwordHasher)
@@ -66,8 +64,7 @@ public static class AppDbSeeder
 
         context.AppUsers.Add(user);
         context.UserProfiles.Add(profile);
-        context.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = RoleType.Farmer });
-        context.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = RoleType.Provider });
+        context.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = RoleType.Client });
 
         await context.SaveChangesAsync();
     }

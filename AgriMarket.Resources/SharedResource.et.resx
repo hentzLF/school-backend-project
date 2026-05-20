@@ -265,7 +265,7 @@
   <data name="HomePage" xml:space="preserve"><value>Avaleht</value></data>
   <data name="AgriMarketMVC" xml:space="preserve"><value>AgriMarket MVC</value></data>
   <data name="HomeDescription" xml:space="preserve"><value>Ühendame põllumehi põllumajandusteenuste pakkujatega.</value></data>
-  <data name="FarmersAndProviders" xml:space="preserve"><value>Põllumehed ja teenusepakkujad</value></data>
+  <data name="FarmersAndProviders" xml:space="preserve"><value>Kasutajad</value></data>
   <data name="FarmersDescription" xml:space="preserve"><value>Sirvige kuulutusi, broneerige teenuseid ja hallake oma põllumajanduslikke vajadusi.</value></data>
   <data name="Administration" xml:space="preserve"><value>Administreerimine</value></data>
   <data name="AdminDescription" xml:space="preserve"><value>Hallake kasutajaid, kuulutusi, broneeringuid ja platvormi seadeid.</value></data>

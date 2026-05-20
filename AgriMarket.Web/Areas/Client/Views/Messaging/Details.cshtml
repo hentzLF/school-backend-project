@@ -16,7 +16,7 @@
             </a>
             <div class="chat-avatar me-2" style="width:36px;height:36px;font-size:.75rem;">@initials</div>
             <h5 class="mb-0 flex-grow-1">@Model.ParticipantName</h5>
-            @if (Model.BookingId.HasValue && User.HasClaim(System.Security.Claims.ClaimTypes.Role, "Farmer"))
+            @if (Model.BookingId.HasValue)
             {
                 <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
                    asp-route-id="@Model.BookingId" class="btn btn-sm btn-outline-secondary">

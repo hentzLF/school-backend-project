@@ -42,7 +42,7 @@ public class BookingsController(
         var booking = await bookingService.GetByIdAsync(id);
         if (booking == null) return NotFound();
 
-        if (booking.ClientProfileId != clientProfile.Id)
+        if (booking.ClientProfileId != clientProfile.Id && booking.ProviderProfileId != clientProfile.Id)
             return RedirectToAction("AccessDenied", "Account");
 
         var vm = booking.ToClientDetailsVm();

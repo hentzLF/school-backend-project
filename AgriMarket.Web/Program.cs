@@ -67,11 +67,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireClaim(ClaimTypes.Role, "Admin"));
 
-    options.AddPolicy("ProviderOnly", policy =>
-        policy.RequireClaim(ClaimTypes.Role, "Provider"));
-
     options.AddPolicy("ClientOnly", policy =>
-        policy.RequireClaim(ClaimTypes.Role, "Farmer", "Provider"));
+        policy.RequireClaim(ClaimTypes.Role, "Client"));
 });
 
 var app = builder.Build();

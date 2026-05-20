@@ -10,7 +10,7 @@ namespace AgriMarket.BLL.Services;
 public class UserService(
     IAppUserRepository appUsers,
     IUserProfileRepository userProfiles,
-    IRepository<ProfileRole> profileRoles,
+    IRepository<UserRole> userRoles,
     IUnitOfWork uow,
     IRepository<MessageRead> messageReads,
     IRepository<Message> messages,
@@ -133,16 +133,16 @@ public class UserService(
 
     public async Task<AppUser> CreateUserWithProfileAsync(AppUser user, UserProfile profile, RoleType role)
     {
-        var profileRole = new ProfileRole
+        var userRole = new UserRole
         {
             Id = Guid.NewGuid(),
-            UserProfileId = profile.Id,
+            AppUserId = user.Id,
             Role = role
         };
 
         appUsers.Add(user);
         userProfiles.Add(profile);
-        profileRoles.Add(profileRole);
+        userRoles.Add(userRole);
         await uow.SaveChangesAsync();
         return user;
     }
@@ -196,7 +196,7 @@ public class UserService(
             CreatedAt = profile.AppUser?.CreatedAt ?? default,
             IsLocked = profile.AppUser?.LockoutEnd > DateTime.UtcNow,
             LockoutEnd = profile.AppUser?.LockoutEnd,
-            Roles = profile.Roles?.Select(r => r.Role).ToList() ?? [],
+            Roles = profile.AppUser?.Roles?.Select(r => r.Role).ToList() ?? [],
             AverageRating = stats?.AverageRating ?? 0,
             ReviewCount = stats?.ReviewCount ?? 0
         };

@@ -9,7 +9,8 @@ public class EfRefreshTokenRepository(AppDbContext db) : EfRepository<RefreshTok
     public async Task<RefreshToken?> GetByTokenWithUserAsync(string token, CancellationToken ct = default)
         => await db.Set<RefreshToken>()
             .Include(rt => rt.AppUser!)
-                .ThenInclude(u => u.Profiles!)
-                    .ThenInclude(p => p.Roles)
+                .ThenInclude(u => u.Profile)
+            .Include(rt => rt.AppUser!)
+                .ThenInclude(u => u.Roles)
             .FirstOrDefaultAsync(rt => rt.Token == token, ct);
 }

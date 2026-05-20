@@ -9,16 +9,16 @@ public class EfUserProfileRepository(AppDbContext db) : EfRepository<UserProfile
     public async Task<List<UserProfile>> ListWithDetailsAsync(CancellationToken ct = default)
         => await db.Set<UserProfile>()
             .AsNoTracking()
-            .Include(p => p.AppUser)
-            .Include(p => p.Roles)
+            .Include(p => p.AppUser!)
+                .ThenInclude(u => u.Roles)
             .OrderByDescending(p => p.Id)
             .ToListAsync(ct);
 
     public async Task<UserProfile?> GetByIdWithDetailsAsync(Guid id, CancellationToken ct = default)
         => await db.Set<UserProfile>()
             .AsNoTracking()
-            .Include(p => p.AppUser)
-            .Include(p => p.Roles)
+            .Include(p => p.AppUser!)
+                .ThenInclude(u => u.Roles)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
     public async Task<UserProfile?> GetByAppUserIdWithDetailsAsync(Guid appUserId, CancellationToken ct = default)
@@ -33,7 +33,8 @@ public class EfUserProfileRepository(AppDbContext db) : EfRepository<UserProfile
         var baseQuery = db.Set<UserProfile>().AsNoTracking();
         var totalCount = await baseQuery.CountAsync(ct);
         var items = await baseQuery
-            .Include(p => p.Roles)
+            .Include(p => p.AppUser!)
+                .ThenInclude(u => u.Roles)
             .OrderBy(p => p.FirstName)
             .ThenBy(p => p.LastName)
             .Skip((page - 1) * pageSize)

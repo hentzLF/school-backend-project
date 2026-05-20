@@ -12,5 +12,8 @@ schema: spec-driven
 # Per-artifact rules
 rules:
   tasks:
-    - Every task block (numbered section) MUST end with a git commit task as the last item, using conventional commit format. Example "- [ ] 2.8 Git commit: `feat: add County/Municipality seeding and Location migration`"
+    - >-
+      Every task block (numbered section) MUST end with a git commit task
+      as the last item, using conventional commit format.
+      Example: "- [ ] 2.8 Git commit: feat: add County/Municipality seeding"
     - Tasks must be written in English

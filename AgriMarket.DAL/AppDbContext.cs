@@ -119,9 +119,17 @@ public class AppDbContext : DbContext
         .HasForeignKey(a => a.ServiceListingId)
         .OnDelete(DeleteBehavior.Cascade);
 
-    modelBuilder.Entity<Availability>()
-        .Property(a => a.RowVersion)
-        .IsRowVersion();
+    if (Database.IsSqlite())
+    {
+        modelBuilder.Entity<Availability>()
+            .Ignore(a => a.RowVersion);
+    }
+    else
+    {
+        modelBuilder.Entity<Availability>()
+            .Property(a => a.RowVersion)
+            .IsRowVersion();
+    }
 
     // ProfileRole: sama kasutaja ei saa sama rolli kaks korda
     modelBuilder.Entity<ProfileRole>()

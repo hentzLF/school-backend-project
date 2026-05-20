@@ -37,15 +37,15 @@ public class EquipmentController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(EquipmentCreateViewModel model)
+    public async Task<IActionResult> Create(EquipmentCreateViewModel input)
     {
         if (!ModelState.IsValid)
-            return View(model);
+            return View(input);
 
         var profileId = await GetProviderProfileIdAsync();
         if (profileId == null) return NotFound();
 
-        await equipmentService.CreateAsync(profileId.Value, model.ToCreateDto());
+        await equipmentService.CreateAsync(profileId.Value, input.ToCreateDto());
         return RedirectToAction(nameof(Index));
     }
 
@@ -62,19 +62,19 @@ public class EquipmentController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Guid id, EquipmentEditViewModel model)
+    public async Task<IActionResult> Edit(Guid id, EquipmentEditViewModel input)
     {
-        if (id != model.Id) return BadRequest();
+        if (id != input.Id) return BadRequest();
 
         if (!ModelState.IsValid)
-            return View(model);
+            return View(input);
 
         var profileId = await GetProviderProfileIdAsync();
         if (profileId == null) return NotFound();
 
         try
         {
-            await equipmentService.UpdateAsync(profileId.Value, id, model.ToUpdateDto());
+            await equipmentService.UpdateAsync(profileId.Value, id, input.ToUpdateDto());
             return RedirectToAction(nameof(Index));
         }
         catch (BusinessRuleException)

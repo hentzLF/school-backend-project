@@ -7,6 +7,8 @@
 - [ ] 1.5 Create `EquipmentDeleteViewModel` in `Areas/Client/ViewModels/Equipment/` with `Id`, `Name`, `Make`, `Model` for the confirmation page.
 - [ ] 1.6 Create `EquipmentAssignViewModel` in `Areas/Client/ViewModels/Equipment/` with `ListingId`, `ListingTitle`, `List<EquipmentAssignItemViewModel>` where each item has `EquipmentId`, `Name`, `Make`, `Model`, `Status` (string), `IsSelected` (bool).
 
+> **GIT COMMIT:** `feat: add equipment ViewModels`
+
 ## 2. Mappers
 
 - [ ] 2.1 Create `EquipmentViewModelMapper` in `AgriMarket.Web/Mappers/` as a static class with extension methods:
@@ -15,6 +17,8 @@
   - `ToDeleteViewModel(this EquipmentDto dto)` → `EquipmentDeleteViewModel`
   - `ToCreateDto(this EquipmentCreateViewModel vm)` → `CreateEquipmentDto`
   - `ToUpdateDto(this EquipmentEditViewModel vm)` → `UpdateEquipmentDto`
+
+> **GIT COMMIT:** `feat: add equipment ViewModel mapper`
 
 ## 3. Controller
 
@@ -28,6 +32,8 @@
 - [ ] 3.8 Implement `EquipmentController.Delete` (POST) — calls `IEquipmentService.DeleteAsync(profileId, id)`, redirects to `Index`. Catches `BusinessRuleException` for ownership and returns 404.
 - [ ] 3.9 Implement `EquipmentController.UpdateStatus` (POST) — accepts `id` and `EquipmentStatus`, calls `IEquipmentService.UpdateStatusAsync(profileId, id, status)`, redirects to `Index`. Catches `BusinessRuleException` for ownership and returns 404.
 
+> **GIT COMMIT:** `feat: implement EquipmentController with CRUD and status actions`
+
 ## 4. Views
 
 - [ ] 4.1 Create `Areas/Client/Views/Equipment/Index.cshtml` — table/card list of equipment items with name, make, model, condition badge, status badge, and action links (Edit, Delete, status dropdown). Includes empty-state message with "Add Equipment" link when no items exist.
@@ -36,11 +42,15 @@
 - [ ] 4.4 Create `Areas/Client/Views/Equipment/Delete.cshtml` — confirmation page showing equipment name, make, and model. Warning text about listing assignment removal. Confirm Delete and Cancel buttons.
 - [ ] 4.5 Create `Areas/Client/Views/Equipment/_EquipmentCard.cshtml` partial view — renders a list of equipment items (name, make, model, condition) as a Bootstrap card. Accepts a model with equipment items and an optional "manage" link URL.
 
+> **GIT COMMIT:** `feat: add equipment CRUD views and card partial`
+
 ## 5. Equipment Assignment
 
 - [ ] 5.1 Implement `EquipmentController.AssignToListing` (GET) — accepts `listingId`, verifies listing ownership via `IListingService`, loads provider equipment via `IEquipmentService.GetByProviderAsync`, loads currently assigned equipment via `IEquipmentService.GetByListingAsync(listingId)`, builds `EquipmentAssignViewModel` with pre-checked items, returns view.
 - [ ] 5.2 Implement `EquipmentController.AssignToListing` (POST) — accepts `listingId` and list of selected equipment IDs, calls `IEquipmentService.AssignToListingAsync(profileId, listingId, selectedIds)`, redirects to `/Client/MyListings/Details/{listingId}`.
 - [ ] 5.3 Create `Areas/Client/Views/Equipment/AssignToListing.cshtml` — form showing listing title, checkbox list of provider equipment (name, make, model, status), with currently assigned items pre-checked. Submit ("Save Assignments") and Cancel buttons.
+
+> **GIT COMMIT:** `feat: add equipment-to-listing assignment UI`
 
 ## 6. Update Existing Views
 
@@ -52,12 +62,16 @@
 - [ ] 6.6 Update `MyListingsController.Details` action to load assigned equipment via `IEquipmentService.GetByListingAsync(listingId)` and populate the ViewModel.
 - [ ] 6.7 Update `ListingsController.Details` action (Client) to load assigned equipment via `IEquipmentService.GetByListingAsync(listingId)` and populate the ViewModel.
 
+> **GIT COMMIT:** `feat: integrate equipment display into listing views`
+
 ## 7. Localization
 
 - [ ] 7.1 Add English (EN) resx keys to `SharedResource.en.resx` for equipment labels: `Equipment_Title`, `Equipment_Name`, `Equipment_Make`, `Equipment_Model`, `Equipment_ManufactureYear`, `Equipment_HorsePower`, `Equipment_Condition`, `Equipment_Status`, `Equipment_Description`, `Equipment_Create`, `Equipment_Edit`, `Equipment_Delete`, `Equipment_DeleteWarning`, `Equipment_UpdateStatus`, `Equipment_AssignToListing`, `Equipment_ManageEquipment`, `Equipment_NoEquipment`, `Equipment_NoEquipmentAssigned`, `Equipment_AssignedCount`.
 - [ ] 7.2 Add Estonian (ET) resx keys to `SharedResource.et.resx` with corresponding Estonian translations for all keys added in 7.1.
 - [ ] 7.3 Add enum display name resx keys for `EquipmentCondition` values: `EquipmentCondition_New`, `EquipmentCondition_Excellent`, `EquipmentCondition_Good`, `EquipmentCondition_Fair`, `EquipmentCondition_Poor` in both EN and ET.
 - [ ] 7.4 Add enum display name resx keys for `EquipmentStatus` values: `EquipmentStatus_Available`, `EquipmentStatus_InUse`, `EquipmentStatus_UnderMaintenance`, `EquipmentStatus_Retired` in both EN and ET.
+
+> **GIT COMMIT:** `feat: add equipment localization strings`
 
 ## 8. Tests
 
@@ -68,3 +82,5 @@
 - [ ] 8.5 Write unit tests for `EquipmentController.Delete` (GET/POST) — verify ownership check (404 for non-owned), confirm calls `DeleteAsync` and redirects.
 - [ ] 8.6 Write unit tests for `EquipmentController.UpdateStatus` — verify valid status calls `UpdateStatusAsync`, ownership enforced.
 - [ ] 8.7 Write unit tests for `EquipmentController.AssignToListing` (GET/POST) — verify listing ownership check, equipment pre-selection, and `AssignToListingAsync` call with correct IDs.
+
+> **GIT COMMIT:** `test: add EquipmentController and mapper unit tests`

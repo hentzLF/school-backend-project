@@ -166,6 +166,9 @@ public class MessagingService(
 
     private async Task<Conversation?> FindExistingConversationAsync(CreateConversationDto dto)
     {
+        if (dto.BookingId.HasValue)
+            return null;
+
         return await conversationRepo.FindBetweenParticipantsAsync(
             dto.ParticipantProfileIds[0], dto.ParticipantProfileIds[1]);
     }

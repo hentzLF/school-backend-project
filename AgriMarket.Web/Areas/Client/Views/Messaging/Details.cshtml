@@ -1,68 +1,96 @@
 @model AgriMarket.Web.Areas.Client.ViewModels.Messaging.ConversationDetailViewModel
 @{
     ViewData["Title"] = Localizer["Messaging_Conversations"].Value;
+    var initials = string.Join("", Model.ParticipantName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(w => w[0])).ToUpper();
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h4 class="mb-0">@Model.ParticipantName</h4>
-    <div>
-        @if (Model.BookingId.HasValue)
-        {
-            <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
-               asp-route-id="@Model.BookingId" class="btn btn-sm btn-outline-secondary me-2">
-                @Localizer["Messaging_ViewBooking"]
+<div class="row justify-content-center">
+    <div class="col-lg-7 col-md-9">
+
+        <div class="d-flex align-items-center mb-3">
+            <a asp-action="Index" class="btn btn-sm btn-light rounded-circle me-2 d-flex align-items-center justify-content-center"
+               style="width:36px;height:36px;" title="@Localizer["Back"]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/>
+                </svg>
             </a>
-        }
-        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">@Localizer["Back"]</a>
-    </div>
-</div>
-
-@if (Model.TotalPages > 1 && Model.CurrentPage < Model.TotalPages)
-{
-    <div class="text-center mb-3">
-        <a asp-action="Details" asp-route-id="@Model.ConversationId" asp-route-page="@(Model.CurrentPage + 1)"
-           class="btn btn-sm btn-outline-secondary">@Localizer["Messaging_LoadOlderMessages"]</a>
-    </div>
-}
-
-<div class="card mb-3">
-    <div class="card-body" style="max-height: 500px; overflow-y: auto;">
-        @if (!Model.Messages.Any())
-        {
-            <p class="text-muted text-center">@Localizer["Messaging_NoMessages"]</p>
-        }
-        else
-        {
-            @foreach (var message in Model.Messages)
+            <div class="chat-avatar me-2" style="width:36px;height:36px;font-size:.75rem;">@initials</div>
+            <h5 class="mb-0 flex-grow-1">@Model.ParticipantName</h5>
+            @if (Model.BookingId.HasValue && User.HasClaim(System.Security.Claims.ClaimTypes.Role, "Farmer"))
             {
-                <div class="d-flex @(message.IsOwnMessage ? "justify-content-end" : "justify-content-start") mb-2">
-                    <div class="@(message.IsOwnMessage ? "bg-primary text-white" : "bg-light") rounded p-2"
-                         style="max-width: 75%;">
-                        @if (!message.IsOwnMessage)
-                        {
-                            <small class="fw-bold d-block">@message.SenderName</small>
-                        }
-                        <p class="mb-1">@message.Content</p>
-                        <small class="@(message.IsOwnMessage ? "text-white-50" : "text-muted")">
-                            @message.SentAt.ToString("dd MMM yyyy HH:mm")
-                        </small>
-                    </div>
-                </div>
+                <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
+                   asp-route-id="@Model.BookingId" class="btn btn-sm btn-outline-secondary">
+                    @Localizer["Messaging_ViewBooking"]
+                </a>
             }
+        </div>
+
+        @if (Model.TotalPages > 1 && Model.CurrentPage < Model.TotalPages)
+        {
+            <div class="text-center mb-2">
+                <a asp-action="Details" asp-route-id="@Model.ConversationId" asp-route-page="@(Model.CurrentPage + 1)"
+                   class="btn btn-sm btn-light rounded-pill">@Localizer["Messaging_LoadOlderMessages"]</a>
+            </div>
         }
+
+        <div class="shadow-sm rounded overflow-hidden">
+            <div class="chat-window" id="chatWindow">
+                @if (!Model.Messages.Any())
+                {
+                    <div class="text-center text-muted my-auto">
+                        <p class="mb-0">@Localizer["Messaging_NoMessages"]</p>
+                    </div>
+                }
+                else
+                {
+                    var previousDate = (DateTime?)null;
+                    @foreach (var message in Model.Messages)
+                    {
+                        if (previousDate == null || message.SentAt.Date != previousDate.Value.Date)
+                        {
+                            <div class="text-center my-2">
+                                <span class="chat-date-sep">@message.SentAt.ToString("dd MMM yyyy")</span>
+                            </div>
+                        }
+                        previousDate = message.SentAt;
+
+                        <div class="d-flex @(message.IsOwnMessage ? "justify-content-end" : "justify-content-start") mb-2">
+                            <div class="chat-bubble @(message.IsOwnMessage ? "chat-bubble-sent" : "chat-bubble-received")">
+                                @if (!message.IsOwnMessage)
+                                {
+                                    <small class="fw-semibold d-block mb-1" style="font-size:.78rem;">@message.SenderName</small>
+                                }
+                                <div>@message.Content</div>
+                                <div class="chat-time">@message.SentAt.ToString("HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <div class="chat-input-bar">
+                <form asp-area="Client" asp-controller="Messaging" asp-action="SendMessage" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ConversationId" value="@Model.ConversationId" />
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" name="Content" class="form-control"
+                               placeholder="@Localizer["Messaging_MessagePlaceholder"]" required autocomplete="off" />
+                        <button type="submit" class="btn btn-primary btn-send flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form asp-area="Client" asp-controller="Messaging" asp-action="SendMessage" method="post">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="ConversationId" value="@Model.ConversationId" />
-            <div class="input-group">
-                <input type="text" name="Content" class="form-control"
-                       placeholder="@Localizer["Messaging_MessagePlaceholder"]" required />
-                <button type="submit" class="btn btn-primary">@Localizer["Messaging_Send"]</button>
-            </div>
-        </form>
-    </div>
-</div>
+@section Scripts {
+    <script>
+        var chatWindow = document.getElementById('chatWindow');
+        if (chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
+    </script>
+}

@@ -49,9 +49,9 @@ All domain resources (listings, bookings, reviews, equipment, conversations) are
 
 ### 5. Registration assigns Farmer + Provider by default
 
-**Decision:** `RegisterAsync` no longer accepts a single `Role` field. Instead, it accepts an optional `Roles` list that defaults to `[Farmer, Provider]`. Admin remains non-self-assignable.
+**Decision:** `RegisterAsync` no longer accepts a role field at all. Every registered user automatically receives both Farmer and Provider roles. Admin remains non-self-assignable and can only be granted directly in the database.
 
-**Rationale:** Since every regular user can act as both farmer and provider, defaulting to both eliminates a meaningless registration choice. The optional list allows future flexibility.
+**Rationale:** Since every regular user can act as both farmer and provider, there is no meaningful role choice at registration. Removing the field entirely (rather than making it optional with a default) eliminates an unnecessary API surface and prevents clients from accidentally creating single-role users.
 
 ### 6. Remove session token and profile selection
 
@@ -65,3 +65,7 @@ All domain resources (listings, bookings, reviews, equipment, conversations) are
 - **Data migration complexity** → Multi-profile users need resource consolidation. Mitigated by writing explicit SQL in the migration that handles the merge deterministically.
 - **Existing JWT tokens invalidated** → Users will need to re-login after deployment. Mitigated by the short (15 min) access token expiry; only refresh tokens are affected, and those can be bulk-revoked.
 - **ProviderOnly policy semantics** → Users with both roles will pass `ProviderOnly` checks even when acting as a farmer. This is intentional — the unified model means all users have provider capabilities.
+
+## Open Questions
+
+None — all technical decisions are resolved. The migration strategy, JWT claim format, and registration behavior are defined above.

@@ -22,3 +22,7 @@ The system SHALL accept a registration request containing email, password, first
 #### Scenario: Password with non-alphanumeric characters rejected
 - **WHEN** a POST request is sent to `/api/auth/register` with a password containing characters other than letters (a-z, A-Z) and digits (0-9)
 - **THEN** the system returns HTTP 400 Bad Request with validation errors
+
+#### Scenario: Admin role is not self-assignable
+- **WHEN** a user registers via `/api/auth/register`
+- **THEN** the system assigns only Farmer and Provider roles; Admin role is never assigned through registration

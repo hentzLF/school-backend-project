@@ -15,8 +15,3 @@ The system SHALL issue JWTs containing `sub` (userId), `profileId`, and one `rol
 - **WHEN** an access token is used more than 15 minutes after issuance
 - **THEN** the request is rejected with HTTP 401 Unauthorized
 
-## REMOVED Requirements
-
-### Requirement: Session tokens for profile selection
-**Reason**: Profile selection is removed. Login always returns access tokens directly.
-**Migration**: Remove `GenerateSessionToken` and `ValidateSessionToken` from `ITokenService`. Remove `SessionTokenExpiryMinutes` configuration key.

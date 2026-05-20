@@ -53,29 +53,35 @@
 - [ ] 7.3 Update `AuthController.Register` to match new `RegisterRequest` (no role field)
 - [ ] 7.4 Git commit: `refactor: remove select-profile endpoint from API`
 
-## 8. Web Controllers and Policies
+## 8. Booking Service Role-Gating
 
-- [ ] 8.1 Update `Program.cs` (API): update authorization policies to work with multiple role claims
-- [ ] 8.2 Update `Program.cs` (Web): update `ProviderOnly` and `ClientOnly` policies for multi-role users
-- [ ] 8.3 Update Client `AccountController` login: load roles from `AppUser.Roles` instead of `ProfileRole`, add all roles as claims
-- [ ] 8.4 Update Admin `AccountController` login: load roles from `AppUser.Roles` instead of `ProfileRole`
-- [ ] 8.5 Git commit: `refactor: update auth policies and web login for multi-role users`
+- [ ] 8.1 Update `BookingService` status transition logic: determine caller role by booking relationship (client = profileId matches ClientProfileId, provider = profileId matches listing.UserProfileId) instead of single JWT role claim
+- [ ] 8.2 Verify self-booking prevention still works with unified roles (user cannot book own listing)
+- [ ] 8.3 Git commit: `refactor: update booking role-gating for unified role model`
 
-## 9. Seed Data
+## 9. Web Controllers and Policies
 
-- [ ] 9.1 Update `AppDbSeeder`: create `UserRole` entries instead of `ProfileRole`, give provider and farmer test users both roles
-- [ ] 9.2 Ensure admin test user retains Admin role only
-- [ ] 9.3 Verify seeding works with `dotnet run` on fresh database
-- [ ] 9.4 Git commit: `refactor: update seed data for unified role model`
+- [ ] 9.1 Update `Program.cs` (API): update authorization policies to work with multiple role claims
+- [ ] 9.2 Update `Program.cs` (Web): update `ProviderOnly` and `ClientOnly` policies for multi-role users
+- [ ] 9.3 Update Client `AccountController` login: load single profile via `AppUser.Profile` instead of `Profiles` collection, load roles from `AppUser.Roles` instead of `ProfileRole`, add all roles as claims
+- [ ] 9.4 Update Admin `AccountController` login: load single profile via `AppUser.Profile`, load roles from `AppUser.Roles` instead of `ProfileRole`
+- [ ] 9.5 Git commit: `refactor: update auth policies and web login for multi-role users`
 
-## 10. User Service and DTOs
+## 10. Seed Data
 
-- [ ] 10.1 Update `UserProfileDto` to load roles from `AppUser.Roles` (via `UserProfile.AppUser.Roles`) instead of `ProfileRole`
-- [ ] 10.2 Update `UserService` or mapping logic to populate roles from the new path
-- [ ] 10.3 Git commit: `refactor: update user DTOs for unified role model`
+- [ ] 10.1 Update `AppDbSeeder`: create `UserRole` entries instead of `ProfileRole`, give provider and farmer test users both roles
+- [ ] 10.2 Ensure admin test user retains Admin role only
+- [ ] 10.3 Verify seeding works with `dotnet run` on fresh database
+- [ ] 10.4 Git commit: `refactor: update seed data for unified role model`
 
-## 11. Build Verification
+## 11. User Service and DTOs
 
-- [ ] 11.1 Run `dotnet build` and fix any remaining compilation errors
-- [ ] 11.2 Run `dotnet test` and fix any failing tests
-- [ ] 11.3 Git commit: `fix: resolve remaining build and test issues`
+- [ ] 11.1 Update `UserProfileDto` to load roles from `AppUser.Roles` (via `UserProfile.AppUser.Roles`) instead of `ProfileRole`
+- [ ] 11.2 Update `UserService` or mapping logic to populate roles from the new path
+- [ ] 11.3 Git commit: `refactor: update user DTOs for unified role model`
+
+## 12. Build Verification
+
+- [ ] 12.1 Run `dotnet build` and fix any remaining compilation errors
+- [ ] 12.2 Run `dotnet test` and fix any failing tests
+- [ ] 12.3 Git commit: `fix: resolve remaining build and test issues`

@@ -1,0 +1,69 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Equipment.EquipmentEditViewModel
+@{
+    ViewData["Title"] = Localizer["Equipment_Edit"].Value;
+}
+
+<h1>@Localizer["Equipment_Edit"]</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label">@Localizer["Equipment_Name"]</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Make" class="control-label">@Localizer["Equipment_Make"]</label>
+                <input asp-for="Make" class="form-control" />
+                <span asp-validation-for="Make" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Model" class="control-label">@Localizer["Equipment_Model"]</label>
+                <input asp-for="Model" class="form-control" />
+                <span asp-validation-for="Model" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="ManufactureYear" class="control-label">@Localizer["Equipment_ManufactureYear"]</label>
+                <input asp-for="ManufactureYear" class="form-control" type="number" />
+                <span asp-validation-for="ManufactureYear" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="HorsePower" class="control-label">@Localizer["Equipment_HorsePower"]</label>
+                <input asp-for="HorsePower" class="form-control" type="number" />
+                <span asp-validation-for="HorsePower" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Condition" class="control-label">@Localizer["Equipment_Condition"]</label>
+                <select asp-for="Condition" class="form-control"
+                        asp-items="@(new SelectList(Enum.GetValues<AgriMarket.Domain.Enums.EquipmentCondition>()))">
+                </select>
+                <span asp-validation-for="Condition" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="control-label">@Localizer["Equipment_Description"]</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="@Localizer["Save"]" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">@Localizer["BackToList"]</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

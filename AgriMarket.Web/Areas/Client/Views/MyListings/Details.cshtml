@@ -36,6 +36,28 @@
     </dl>
 </div>
 
+<div class="card mt-4">
+    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#equipmentSection" role="button">
+        <strong>@Localizer["Equipment"] (@Model.AssignedEquipmentCount)</strong>
+    </div>
+    <div id="equipmentSection" class="collapse show">
+        <div class="card-body">
+            @if (Model.AssignedEquipment.Any())
+            {
+                <partial name="~/Areas/Client/Views/Equipment/_EquipmentCard.cshtml" model="Model.AssignedEquipment" />
+                <a asp-area="Client" asp-controller="Equipment" asp-action="AssignToListing" asp-route-listingId="@Model.Id"
+                   class="btn btn-sm btn-outline-primary mt-2">@Localizer["Equipment_ManageEquipment"]</a>
+            }
+            else
+            {
+                <p class="text-muted mb-2">@Localizer["Equipment_NoEquipmentAssigned"]</p>
+                <a asp-area="Client" asp-controller="Equipment" asp-action="AssignToListing" asp-route-listingId="@Model.Id"
+                   class="btn btn-sm btn-outline-primary">@Localizer["Equipment_AssignToListing"]</a>
+            }
+        </div>
+    </div>
+</div>
+
 <div class="mt-3">
     <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">@Localizer["Edit"]</a>
 

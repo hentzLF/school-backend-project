@@ -13,7 +13,7 @@ namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
 [Authorize(Policy = "ProviderOnly")]
-public class MyListingsController(IListingService listingService, ICategoryService categoryService, IBookingService bookingService, IUserService userService) : Controller
+public class MyListingsController(IListingService listingService, ICategoryService categoryService, IBookingService bookingService, IUserService userService, IEquipmentService equipmentService) : Controller
 {
     private bool TryGetUserId(out Guid userId)
     {
@@ -49,7 +49,12 @@ public class MyListingsController(IListingService listingService, ICategoryServi
         if (listing == null || listing.UserProfileId != profile.Id) return NotFound();
 
         var bookingCount = await bookingService.GetCountByListingAsync(id);
-        return View(listing.ToMyListingDetails(bookingCount));
+        var viewModel = listing.ToMyListingDetails(bookingCount);
+
+        var assignedEquipment = await equipmentService.GetByListingAsync(id);
+        viewModel.AssignedEquipment = assignedEquipment.Select(e => e.ToListItem()).ToList();
+
+        return View(viewModel);
     }
 
     public async Task<IActionResult> Create()

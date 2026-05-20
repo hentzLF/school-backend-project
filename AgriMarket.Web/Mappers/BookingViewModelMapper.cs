@@ -44,7 +44,9 @@ public static class BookingViewModelMapper
             ListingTitle = dto.ListingTitle,
             ListingId = dto.ServiceListingId,
             AvailabilityStart = dto.AvailabilityStart,
-            AvailabilityEnd = dto.AvailabilityEnd
+            AvailabilityEnd = dto.AvailabilityEnd,
+            ProviderProfileId = dto.ProviderProfileId,
+            ClientProfileId = dto.ClientProfileId
         };
     }
 

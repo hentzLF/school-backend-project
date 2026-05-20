@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
-public class ListingsController(IListingService listingService, IBookingService bookingService) : Controller
+public class ListingsController(IListingService listingService, IBookingService bookingService, IEquipmentService equipmentService) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -39,7 +39,12 @@ public class ListingsController(IListingService listingService, IBookingService 
                            listing.ProviderUserId.HasValue &&
                            listing.ProviderUserId.Value.ToString() == userId;
 
-        return View(listing.ToClientDetails(isOwnListing));
+        var viewModel = listing.ToClientDetails(isOwnListing);
+
+        var assignedEquipment = await equipmentService.GetByListingAsync(id);
+        viewModel.Equipment = assignedEquipment.Select(e => e.ToListItem()).ToList();
+
+        return View(viewModel);
     }
 
     [HttpPost]

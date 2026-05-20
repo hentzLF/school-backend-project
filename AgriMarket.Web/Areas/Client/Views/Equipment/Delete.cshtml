@@ -1,0 +1,30 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Equipment.EquipmentDeleteViewModel
+@{
+    ViewData["Title"] = Localizer["Equipment_Delete"].Value;
+}
+
+<h1>@Localizer["Equipment_Delete"]</h1>
+<hr />
+
+<h4>@Model.Name</h4>
+
+<div class="alert alert-warning">
+    <strong>@Localizer["Warning"]</strong> @Localizer["Equipment_DeleteWarning"]
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">@Localizer["Equipment_Name"]</dt>
+    <dd class="col-sm-9">@Model.Name</dd>
+
+    <dt class="col-sm-3">@Localizer["Equipment_Make"]</dt>
+    <dd class="col-sm-9">@Model.Make</dd>
+
+    <dt class="col-sm-3">@Localizer["Equipment_Model"]</dt>
+    <dd class="col-sm-9">@(Model.Model ?? "—")</dd>
+</dl>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">@Localizer["Delete"]</button>
+    <a asp-action="Index" class="btn btn-secondary">@Localizer["Cancel"]</a>
+</form>

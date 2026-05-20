@@ -1,0 +1,70 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Equipment.EquipmentIndexViewModel
+@{
+    ViewData["Title"] = Localizer["Equipment_Title"].Value;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>@Localizer["Equipment_Title"]</h1>
+    <a asp-action="Create" class="btn btn-primary">@Localizer["Equipment_Create"]</a>
+</div>
+
+@if (!Model.Equipments.Any())
+{
+    <div class="alert alert-info">
+        <p class="mb-0">@Localizer["Equipment_NoEquipment"]</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>@Localizer["Equipment_Name"]</th>
+                    <th>@Localizer["Equipment_Make"]</th>
+                    <th>@Localizer["Equipment_Model"]</th>
+                    <th>@Localizer["Equipment_ManufactureYear"]</th>
+                    <th>@Localizer["Equipment_HorsePower"]</th>
+                    <th>@Localizer["Equipment_Condition"]</th>
+                    <th>@Localizer["Equipment_Status"]</th>
+                    <th>@Localizer["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Equipments)
+                {
+                    <tr>
+                        <td>@item.Name</td>
+                        <td>@item.Make</td>
+                        <td>@(item.Model ?? "—")</td>
+                        <td>@(item.ManufactureYear?.ToString() ?? "—")</td>
+                        <td>@(item.HorsePower?.ToString() ?? "—")</td>
+                        <td>
+                            <span class="badge bg-info">@Localizer[$"EquipmentCondition_{item.Condition}"]</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">@Localizer[$"EquipmentStatus_{item.Status}"]</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-primary">@Localizer["Edit"]</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">@Localizer["Delete"]</a>
+                            </div>
+                            <form asp-action="UpdateStatus" asp-route-id="@item.Id" method="post" class="d-inline ms-1">
+                                @Html.AntiForgeryToken()
+                                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm d-inline-block w-auto">
+                                    @foreach (var s in Enum.GetValues<AgriMarket.Domain.Enums.EquipmentStatus>())
+                                    {
+                                        <option value="@s" selected="@(item.Status == s.ToString())">
+                                            @Localizer[$"EquipmentStatus_{s}"]
+                                        </option>
+                                    }
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

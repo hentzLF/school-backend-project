@@ -1,3 +1,4 @@
+using AgriMarket.Web.Areas.Client.ViewModels.Equipment;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AgriMarket.Web.Areas.Client.ViewModels.Listings;
@@ -12,6 +13,7 @@ public class ListingDetailsViewModel
     public string ProviderName { get; set; } = default!;
     public IEnumerable<AvailabilityOptionViewModel> Availabilities { get; set; } = [];
     public bool IsOwnListing { get; set; }
+    public List<EquipmentListItemViewModel> Equipment { get; set; } = [];
 }
 
 public class AvailabilityOptionViewModel

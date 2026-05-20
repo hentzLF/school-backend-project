@@ -1,0 +1,45 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Equipment.EquipmentAssignViewModel
+@{
+    ViewData["Title"] = Localizer["Equipment_AssignToListing"].Value;
+}
+
+<h1>@Localizer["Equipment_AssignToListing"]</h1>
+<h4>@Model.ListingTitle</h4>
+<hr />
+
+<form asp-action="AssignToListing" asp-route-listingId="@Model.ListingId" method="post">
+    @Html.AntiForgeryToken()
+
+    @if (!Model.Equipment.Any())
+    {
+        <div class="alert alert-info">
+            <p class="mb-0">@Localizer["Equipment_NoEquipment"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-group mb-3">
+            @for (var i = 0; i < Model.Equipment.Count; i++)
+            {
+                var item = Model.Equipment[i];
+                <label class="list-group-item">
+                    <input type="checkbox"
+                           name="selectedEquipmentIds"
+                           value="@item.EquipmentId"
+                           checked="@item.IsSelected"
+                           class="form-check-input me-2" />
+                    <strong>@item.Name</strong> — @item.Make
+                    @if (!string.IsNullOrEmpty(item.Model))
+                    {
+                        <span>(@item.Model)</span>
+                    }
+                    <span class="badge bg-secondary ms-2">@Localizer[$"EquipmentStatus_{item.Status}"]</span>
+                </label>
+            }
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">@Localizer["Save"]</button>
+    <a asp-area="Client" asp-controller="MyListings" asp-action="Details" asp-route-id="@Model.ListingId"
+       class="btn btn-secondary">@Localizer["Cancel"]</a>
+</form>

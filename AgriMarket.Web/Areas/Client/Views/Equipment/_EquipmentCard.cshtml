@@ -1,0 +1,25 @@
+@model IEnumerable<AgriMarket.Web.Areas.Client.ViewModels.Equipment.EquipmentListItemViewModel>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">@item.Name</h6>
+                        <p class="card-text mb-1"><strong>@Localizer["Equipment_Make"]:</strong> @item.Make</p>
+                        @if (!string.IsNullOrEmpty(item.Model))
+                        {
+                            <p class="card-text mb-1"><strong>@Localizer["Equipment_Model"]:</strong> @item.Model</p>
+                        }
+                        <p class="card-text mb-0">
+                            <span class="badge bg-info">@Localizer[$"EquipmentCondition_{item.Condition}"]</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

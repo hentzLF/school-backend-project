@@ -13,6 +13,7 @@ public class AppUser
     public DateTime CreatedAt { get; set; }
 
     // Navigation
-    public ICollection<UserProfile>? Profiles {get; set;}
+    public UserProfile? Profile { get; set; }
+    public ICollection<UserRole>? Roles { get; set; }
     public ICollection<RefreshToken>? RefreshTokens { get; set; }
 }

@@ -19,7 +19,6 @@ public class UserProfile
     public AppUser? AppUser { get; set; }
 
 
-    public ICollection<ProfileRole>? Roles { get; set; }
     public ICollection<ServiceListing>? ServiceListings { get; set; }
     public ICollection<Booking>? ClientBookings { get; set; }
     public ICollection<Review>? Reviews { get; set; }

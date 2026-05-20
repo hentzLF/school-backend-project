@@ -2,9 +2,7 @@
 
 ## Purpose
 Defines client-facing booking creation, listing, detail, and status management pages in the Client MVC area.
-
 ## Requirements
-
 ### Requirement: Client can create a booking from listing details
 The system SHALL allow an authenticated client to create a booking from a listing details page. The controller SHALL map the `CreateBookingViewModel` to a `CreateBookingDto` via Web mapper modules and call `IBookingService.CreateAsync(userId, dto)`. The controller SHALL NOT construct a `Booking` entity, calculate `TotalPrice`, or update availability status — all of this SHALL be delegated to the BLL service.
 
@@ -36,15 +34,19 @@ The system SHALL provide a booking management page at `/Client/Bookings` that li
 - **THEN** the system displays an empty-state message
 
 ### Requirement: Client can view own booking details
-The system SHALL provide booking details at `/Client/Bookings/Details/{id}` for bookings owned by the authenticated client profile.
+The system SHALL provide booking details at `/Client/Bookings/Details/{id}` for bookings owned by the authenticated client profile. When the booking is in `ClientConfirmed` status and no review exists for the booking, the details page SHALL display a review creation form (rating selector 1-5 and optional comment field) that posts to `/Client/Reviews/Create`. When a review already exists for the booking, the details page SHALL display the review (rating, comment, date) with links to edit and delete the review.
 
-#### Scenario: View own booking details
-- **WHEN** an authenticated client opens `/Client/Bookings/Details/{id}` for a booking they own
-- **THEN** the system shows booking details and available client actions
+#### Scenario: View booking details with review form
+- **WHEN** an authenticated client opens `/Client/Bookings/Details/{id}` for an owned booking in `ClientConfirmed` status that has no review
+- **THEN** the system shows booking details and a review creation section with a rating selector and comment field
 
-#### Scenario: Access denied for non-owned booking
-- **WHEN** an authenticated client opens `/Client/Bookings/Details/{id}` for a booking they do not own
-- **THEN** the system denies access and does not reveal booking details
+#### Scenario: View booking details with existing review
+- **WHEN** an authenticated client opens `/Client/Bookings/Details/{id}` for an owned booking that already has a review
+- **THEN** the system shows booking details and the existing review with edit and delete action links
+
+#### Scenario: View booking details for non-completed booking
+- **WHEN** an authenticated client opens `/Client/Bookings/Details/{id}` for an owned booking not in `ClientConfirmed` status
+- **THEN** the system shows booking details without a review section
 
 ### Requirement: Client can confirm booking completion
 The system SHALL allow a client to confirm completion for an owned booking that is in `ProviderCompleted` status, transitioning it to `ClientConfirmed`.
@@ -56,3 +58,4 @@ The system SHALL allow a client to confirm completion for an owned booking that 
 #### Scenario: Completion confirmation blocked for invalid status
 - **WHEN** an authenticated client attempts to confirm completion for an owned booking not in `ProviderCompleted` status
 - **THEN** the system rejects the action and preserves the current booking status
+

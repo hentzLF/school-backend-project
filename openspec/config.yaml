@@ -9,12 +9,8 @@ schema: spec-driven
 #     We use conventional commits
 #     Domain: e-commerce platform
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+# Per-artifact rules
+rules:
+  tasks:
+    - Every task block (numbered section) MUST end with a git commit task as the last item, using conventional commit format. Example "- [ ] 2.8 Git commit: `feat: add County/Municipality seeding and Location migration`"
+    - Tasks must be written in English

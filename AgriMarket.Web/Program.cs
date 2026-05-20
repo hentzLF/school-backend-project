@@ -17,6 +17,7 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddLocalization();
 builder.Services.AddDal();
 builder.Services.AddBll();
+builder.Services.AddScoped<AgriMarket.BLL.Contracts.IMessageNotifier, AgriMarket.Web.Services.NoOpMessageNotifier>();
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
@@ -27,8 +28,17 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+if (builder.Environment.IsDevelopment() &&
+    builder.Configuration.GetValue<bool>("UseSqlite"))
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("SqliteConnection")));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -75,7 +85,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await context.Database.MigrateAsync();
+    if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("UseSqlite"))
+        await context.Database.EnsureCreatedAsync();
+    else
+        await context.Database.MigrateAsync();
     var passwordHasher = scope.ServiceProvider.GetRequiredService<AgriMarket.BLL.Contracts.IPasswordHasher>();
     await AppDbSeeder.SeedAsync(context, passwordHasher);
 }

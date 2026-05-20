@@ -58,7 +58,7 @@ public class PaymentsControllerTests
     public async Task Receipt_WithValidPayment_ReturnsView()
     {
         using var db = TestDbContextFactory.Create(nameof(Receipt_WithValidPayment_ReturnsView));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
         var payment = SeedPayment(db, booking.Id);
@@ -77,7 +77,7 @@ public class PaymentsControllerTests
     public async Task Receipt_WithNonExistentPayment_ReturnsNotFound()
     {
         using var db = TestDbContextFactory.Create(nameof(Receipt_WithNonExistentPayment_ReturnsNotFound));
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
 
         var controller = CreateController(db, user.Id);
 
@@ -90,7 +90,7 @@ public class PaymentsControllerTests
     public async Task Index_WithPayments_ReturnsViewWithHistory()
     {
         using var db = TestDbContextFactory.Create(nameof(Index_WithPayments_ReturnsViewWithHistory));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
         SeedPayment(db, booking.Id);
@@ -108,7 +108,7 @@ public class PaymentsControllerTests
     public async Task Index_WithNoPayments_ReturnsEmptyView()
     {
         using var db = TestDbContextFactory.Create(nameof(Index_WithNoPayments_ReturnsEmptyView));
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
 
         var controller = CreateController(db, user.Id);
 

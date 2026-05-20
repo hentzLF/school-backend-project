@@ -17,7 +17,7 @@ public class EquipmentServiceTests
     private static (DAL.AppDbContext db, EquipmentService sut) CreateSut(string? dbName = null)
     {
         var db = TestDbContextFactory.Create(dbName ?? Guid.NewGuid().ToString());
-        TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pass", RoleType.Provider);
+        TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pass", RoleType.Client);
         var sut = TestServiceFactory.CreateEquipmentService(db);
         return (db, sut);
     }
@@ -196,7 +196,7 @@ public class EquipmentServiceTests
     public async Task AssignToListingAsync_ThrowsWhenListingNotOwned()
     {
         var (db, sut) = CreateSut();
-        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pass", RoleType.Provider);
+        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pass", RoleType.Client);
         var (listing, _) = TestDbContextFactory.SeedListing(db, otherProfile.Id);
         var equipment = await sut.CreateAsync(ProviderId, ValidCreateDto());
 

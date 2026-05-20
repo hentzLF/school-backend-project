@@ -18,10 +18,10 @@ public class ReviewApiTests
     }
 
     private static (AppUser user, UserProfile profile) SeedProvider(AppDbContext db)
-        => TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Farmer);
+        => TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Client);
 
     private static (AppUser user, UserProfile profile) SeedClient(AppDbContext db)
-        => TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        => TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
 
     private static Booking SeedCompletedBooking(
         AppDbContext db, Guid clientProfileId, Guid providerProfileId,
@@ -93,7 +93,7 @@ public class ReviewApiTests
         var (_, providerProfile) = SeedProvider(db);
         var (_, clientProfile) = SeedClient(db);
         var booking = SeedCompletedBooking(db, clientProfile.Id, providerProfile.Id);
-        var (outsiderUser, _) = TestDbContextFactory.SeedClientUser(db, "outsider@test.com", "pw", RoleType.Farmer);
+        var (outsiderUser, _) = TestDbContextFactory.SeedClientUser(db, "outsider@test.com", "pw", RoleType.Client);
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(
             () => service.CreateAsync(outsiderUser.Id,

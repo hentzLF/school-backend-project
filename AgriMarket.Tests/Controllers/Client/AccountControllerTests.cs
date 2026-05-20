@@ -29,13 +29,11 @@ public class AccountControllerTests
             TestServiceFactory.CreateReviewService(db),
             NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
 
-    [Theory]
-    [InlineData(RoleType.Farmer)]
-    [InlineData(RoleType.Provider)]
-    public async Task Login_WithClientRole_RedirectsToListings(RoleType role)
+    [Fact]
+    public async Task Login_WithClientRole_RedirectsToListings()
     {
-        using var db = TestDbContextFactory.Create(nameof(Login_WithClientRole_RedirectsToListings) + role);
-        TestDbContextFactory.SeedClientUser(db, "farmer@test.com", "password123", role);
+        using var db = TestDbContextFactory.Create(nameof(Login_WithClientRole_RedirectsToListings));
+        TestDbContextFactory.SeedClientUser(db, "farmer@test.com", "password123", RoleType.Client);
 
         var controller = new AccountController(CreateUserService(db), PasswordHasher);
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();
@@ -67,7 +65,7 @@ public class AccountControllerTests
     public async Task Login_WithWrongPassword_ReturnsViewWithError()
     {
         using var db = TestDbContextFactory.Create(nameof(Login_WithWrongPassword_ReturnsViewWithError));
-        TestDbContextFactory.SeedClientUser(db, "user@test.com", "correct", RoleType.Farmer);
+        TestDbContextFactory.SeedClientUser(db, "user@test.com", "correct", RoleType.Client);
 
         var controller = new AccountController(CreateUserService(db), PasswordHasher);
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();

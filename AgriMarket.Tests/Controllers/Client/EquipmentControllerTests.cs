@@ -47,7 +47,7 @@ public class EquipmentControllerTests
 
         return new EquipmentController(equipmentService, listingService, userService)
         {
-            ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId, "Provider")
+            ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId, "Client")
         };
     }
 
@@ -56,7 +56,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -74,7 +74,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var controller = CreateController(db, user.Id);
 
         // Act
@@ -91,7 +91,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var controller = CreateController(db, user.Id);
 
         // Act
@@ -107,7 +107,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var controller = CreateController(db, user.Id);
         var model = new EquipmentCreateViewModel
         {
@@ -130,7 +130,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var controller = CreateController(db, user.Id);
         controller.ModelState.AddModelError("Name", "Required");
         var model = new EquipmentCreateViewModel();
@@ -147,7 +147,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -166,8 +166,8 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
-        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
+        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, otherProfile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -183,7 +183,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
         var model = new EquipmentEditViewModel
@@ -207,7 +207,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
         controller.ModelState.AddModelError("Name", "Required");
@@ -225,7 +225,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -243,8 +243,8 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
-        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
+        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, otherProfile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -260,7 +260,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -278,7 +278,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -298,8 +298,8 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
-        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
+        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Client);
         var equipment = TestDbContextFactory.SeedEquipment(db, otherProfile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -315,7 +315,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var (listing, _) = TestDbContextFactory.SeedListing(db, profile.Id);
         TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);
@@ -335,8 +335,8 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
-        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
+        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pwd", RoleType.Client);
         var (listing, _) = TestDbContextFactory.SeedListing(db, otherProfile.Id);
         var controller = CreateController(db, user.Id);
 
@@ -352,7 +352,7 @@ public class EquipmentControllerTests
     {
         // Arrange
         using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "p@test.com", "pwd", RoleType.Client);
         var (listing, _) = TestDbContextFactory.SeedListing(db, profile.Id);
         var equipment = TestDbContextFactory.SeedEquipment(db, profile.Id);
         var controller = CreateController(db, user.Id);

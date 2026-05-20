@@ -21,7 +21,7 @@ namespace AgriMarket.Tests.Controllers.Client
 {
     public class MyListingsControllerTests
     {
-        private static MyListingsController CreateController(AppDbContext db, Guid userId, string role = "Provider") =>
+        private static MyListingsController CreateController(AppDbContext db, Guid userId, string role = "Client") =>
             new(
                 new ListingService(new EfListingRepository(db), new EfRepository<UserProfile>(db), new EfRepository<Booking>(db), new EfRepository<Municipality>(db), new EfRepository<Location>(db), new EfAvailabilityRepository(db), new EfUnitOfWork(db), TestServiceFactory.CreateReviewService(db), NullLogger<ListingService>.Instance),
                 new CategoryService(new EfRepository<ServiceCategory>(db), new EfRepository<ServiceListing>(db), new EfUnitOfWork(db), new EfQueryMaterializer(), NullLogger<CategoryService>.Instance),
@@ -32,12 +32,11 @@ namespace AgriMarket.Tests.Controllers.Client
                 ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId, role)
             };
         [Fact]
-        public void Controller_HasProviderOnlyPolicy()
+        public void Controller_HasClientOnlyPolicy()
         {
-            // 5.1 Verify ProviderOnly policy blocks Farmer-role users
             var attr = typeof(MyListingsController).GetCustomAttribute<AuthorizeAttribute>();
             Assert.NotNull(attr);
-            Assert.Equal("ProviderOnly", attr.Policy);
+            Assert.Equal("ClientOnly", attr.Policy);
         }
 
         [Fact]
@@ -45,8 +44,8 @@ namespace AgriMarket.Tests.Controllers.Client
         {
             // 5.2 Verify a Provider cannot view, add, or delete slots on another Provider's listing
             using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-            var (provider1, profile1) = TestDbContextFactory.SeedClientUser(db, "p1@t.c", "pwd", RoleType.Provider);
-            var (provider2, profile2) = TestDbContextFactory.SeedClientUser(db, "p2@t.c", "pwd", RoleType.Provider);
+            var (provider1, profile1) = TestDbContextFactory.SeedClientUser(db, "p1@t.c", "pwd", RoleType.Client);
+            var (provider2, profile2) = TestDbContextFactory.SeedClientUser(db, "p2@t.c", "pwd", RoleType.Client);
 
             var (listing, availability) = TestDbContextFactory.SeedListing(db, profile1.Id);
 
@@ -67,7 +66,7 @@ namespace AgriMarket.Tests.Controllers.Client
         {
             // 5.3 Verify deletion of a booked slot is rejected
             using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-            var (provider, profile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
+            var (provider, profile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Client);
             var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
 
             availability.IsBooked = true;
@@ -88,7 +87,7 @@ namespace AgriMarket.Tests.Controllers.Client
         {
             // 5.4 Verify AddAvailability rejects StartTime >= EndTime with a validation error
             using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-            var (provider, profile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
+            var (provider, profile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Client);
             var (listing, _) = TestDbContextFactory.SeedListing(db, profile.Id);
 
             var controller = CreateController(db, provider.Id);
@@ -111,8 +110,8 @@ namespace AgriMarket.Tests.Controllers.Client
         {
             // 5.5 Simulation: Provider login -> create listing -> add slot -> Farmer -> confirm booking -> Provider sees booked.
             using var db = TestDbContextFactory.Create(Guid.NewGuid().ToString());
-            var (provider, provProfile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Provider);
-            var (farmer, farmProfile) = TestDbContextFactory.SeedClientUser(db, "f@t.c", "pwd", RoleType.Farmer);
+            var (provider, provProfile) = TestDbContextFactory.SeedClientUser(db, "p@t.c", "pwd", RoleType.Client);
+            var (farmer, farmProfile) = TestDbContextFactory.SeedClientUser(db, "f@t.c", "pwd", RoleType.Client);
 
             TestDbContextFactory.EnsureServiceCategory(db);
             var pController = CreateController(db, provider.Id);

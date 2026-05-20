@@ -43,11 +43,8 @@ public static class TestDbContextFactory
         db.AppUsers.Add(user);
         db.UserProfiles.Add(profile);
         db.UserRoles.Add(userRole);
-        if (role != RoleType.Admin)
-        {
-            var secondRole = role == RoleType.Farmer ? RoleType.Provider : RoleType.Farmer;
-            db.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = secondRole });
-        }
+
+
         db.SaveChanges();
         return (user, profile);
     }

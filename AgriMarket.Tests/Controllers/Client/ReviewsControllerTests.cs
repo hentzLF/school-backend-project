@@ -51,7 +51,7 @@ public class ReviewsControllerTests
     public async Task CreateGet_WithValidBooking_ReturnsView()
     {
         using var db = TestDbContextFactory.Create(nameof(CreateGet_WithValidBooking_ReturnsView));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ClientConfirmed);
 
@@ -68,8 +68,8 @@ public class ReviewsControllerTests
     public async Task CreatePost_WithValidReview_RedirectsToBookingDetails()
     {
         using var db = TestDbContextFactory.Create(nameof(CreatePost_WithValidReview_RedirectsToBookingDetails));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
-        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
+        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, otherProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ClientConfirmed);
 
@@ -94,7 +94,7 @@ public class ReviewsControllerTests
     public async Task CreatePost_WithInvalidBookingState_RedirectsWithError()
     {
         using var db = TestDbContextFactory.Create(nameof(CreatePost_WithInvalidBookingState_RedirectsWithError));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Pending);
 
@@ -119,8 +119,8 @@ public class ReviewsControllerTests
     public async Task EditGet_WithExistingReview_ReturnsView()
     {
         using var db = TestDbContextFactory.Create(nameof(EditGet_WithExistingReview_ReturnsView));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
-        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
+        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, otherProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ClientConfirmed);
         var review = SeedReview(db, booking.Id, profile.Id, otherProfile.Id);
@@ -138,7 +138,7 @@ public class ReviewsControllerTests
     public async Task EditGet_WithNonExistentReview_ReturnsNotFound()
     {
         using var db = TestDbContextFactory.Create(nameof(EditGet_WithNonExistentReview_ReturnsNotFound));
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
 
         var controller = CreateController(db, user.Id);
 
@@ -151,8 +151,8 @@ public class ReviewsControllerTests
     public async Task DeleteGet_WithExistingReview_ReturnsView()
     {
         using var db = TestDbContextFactory.Create(nameof(DeleteGet_WithExistingReview_ReturnsView));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
-        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
+        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, otherProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ClientConfirmed);
         var review = SeedReview(db, booking.Id, profile.Id, otherProfile.Id);
@@ -170,8 +170,8 @@ public class ReviewsControllerTests
     public async Task DeletePost_WithExistingReview_DeletesAndRedirects()
     {
         using var db = TestDbContextFactory.Create(nameof(DeletePost_WithExistingReview_DeletesAndRedirects));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
-        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
+        var (otherUser, otherProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, otherProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ClientConfirmed);
         var review = SeedReview(db, booking.Id, profile.Id, otherProfile.Id);
@@ -192,8 +192,8 @@ public class ReviewsControllerTests
     public async Task ForProvider_WithReviews_ReturnsViewWithList()
     {
         using var db = TestDbContextFactory.Create(nameof(ForProvider_WithReviews_ReturnsViewWithList));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
-        var (providerUser, providerProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Provider);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
+        var (providerUser, providerProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, providerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ClientConfirmed);
         SeedReview(db, booking.Id, profile.Id, providerProfile.Id);
@@ -211,8 +211,8 @@ public class ReviewsControllerTests
     public async Task ForProvider_WithNoReviews_ReturnsEmptyView()
     {
         using var db = TestDbContextFactory.Create(nameof(ForProvider_WithNoReviews_ReturnsEmptyView));
-        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
-        var (providerUser, providerProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Provider);
+        var (user, _) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
+        var (providerUser, providerProfile) = TestDbContextFactory.SeedClientUser(db, "provider@test.com", "pw", RoleType.Client);
 
         var controller = CreateController(db, user.Id);
 

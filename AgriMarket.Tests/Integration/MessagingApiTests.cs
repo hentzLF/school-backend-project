@@ -30,8 +30,8 @@ public class MessagingApiTests
 
     private static (UserProfile caller, UserProfile other) SeedTwoProfiles(AppDbContext db)
     {
-        var (_, callerProfile) = TestDbContextFactory.SeedClientUser(db, "caller@test.com", "pw", RoleType.Farmer);
-        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pw", RoleType.Farmer);
+        var (_, callerProfile) = TestDbContextFactory.SeedClientUser(db, "caller@test.com", "pw", RoleType.Client);
+        var (_, otherProfile) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pw", RoleType.Client);
         return (callerProfile, otherProfile);
     }
 
@@ -80,7 +80,7 @@ public class MessagingApiTests
         var (service, db) = CreateServiceWithDb(nameof(Authorization_NonParticipantCannotAccessConversation));
         using var _ = db;
         var (caller, other) = SeedTwoProfiles(db);
-        var (_, outsider) = TestDbContextFactory.SeedClientUser(db, "outsider@test.com", "pw", RoleType.Farmer);
+        var (_, outsider) = TestDbContextFactory.SeedClientUser(db, "outsider@test.com", "pw", RoleType.Client);
 
         var (conversation, _) = await service.CreateConversationAsync(caller.Id,
             new CreateConversationDto { ParticipantProfileIds = [caller.Id, other.Id] });

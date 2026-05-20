@@ -45,13 +45,11 @@ public class AccountControllerTests
         Assert.Equal("Dashboard", redirect.ControllerName);
     }
 
-    [Theory]
-    [InlineData(RoleType.Farmer)]
-    [InlineData(RoleType.Provider)]
-    public async Task Login_WithClientRole_ReturnsViewWithError(RoleType role)
+    [Fact]
+    public async Task Login_WithClientRole_ReturnsViewWithError()
     {
-        using var db = TestDbContextFactory.Create(nameof(Login_WithClientRole_ReturnsViewWithError) + role);
-        TestDbContextFactory.SeedClientUser(db, "client@test.com", "password123", role);
+        using var db = TestDbContextFactory.Create(nameof(Login_WithClientRole_ReturnsViewWithError));
+        TestDbContextFactory.SeedClientUser(db, "client@test.com", "password123", RoleType.Client);
 
         var controller = new AccountController(CreateUserService(db), PasswordHasher);
         controller.ControllerContext = ControllerContextFactory.WithSignInSupport();

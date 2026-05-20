@@ -51,8 +51,8 @@ public class BookingsControllerTests
     public async Task Details_WithDifferentOwner_RedirectsToAccessDenied()
     {
         using var db = TestDbContextFactory.Create(nameof(Details_WithDifferentOwner_RedirectsToAccessDenied));
-        var (ownerUser, ownerProfile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Farmer);
-        var (requestorUser, _) = TestDbContextFactory.SeedClientUser(db, "requestor@test.com", "pw", RoleType.Farmer);
+        var (ownerUser, ownerProfile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Client);
+        var (requestorUser, _) = TestDbContextFactory.SeedClientUser(db, "requestor@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id);
 
@@ -68,7 +68,7 @@ public class BookingsControllerTests
     public async Task Details_WithCorrectOwner_ReturnsView()
     {
         using var db = TestDbContextFactory.Create(nameof(Details_WithCorrectOwner_ReturnsView));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id);
 
@@ -83,7 +83,7 @@ public class BookingsControllerTests
     public async Task ConfirmCompletion_WhenNotProviderCompleted_RedirectsToDetails()
     {
         using var db = TestDbContextFactory.Create(nameof(ConfirmCompletion_WhenNotProviderCompleted_RedirectsToDetails));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
 
@@ -102,7 +102,7 @@ public class BookingsControllerTests
     public async Task ConfirmCompletion_WhenProviderCompleted_TransitionsToClientConfirmed()
     {
         using var db = TestDbContextFactory.Create(nameof(ConfirmCompletion_WhenProviderCompleted_TransitionsToClientConfirmed));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ProviderCompleted);
 
@@ -121,8 +121,8 @@ public class BookingsControllerTests
     public async Task ConfirmCompletion_WithDifferentOwner_RedirectsToAccessDenied()
     {
         using var db = TestDbContextFactory.Create(nameof(ConfirmCompletion_WithDifferentOwner_RedirectsToAccessDenied));
-        var (ownerUser, ownerProfile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Farmer);
-        var (otherUser, _) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pw", RoleType.Farmer);
+        var (ownerUser, ownerProfile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Client);
+        var (otherUser, _) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id, BookingStatus.ProviderCompleted);
 
@@ -138,7 +138,7 @@ public class BookingsControllerTests
     public async Task CheckoutGet_WithAwaitingPayment_ReturnsCheckoutView()
     {
         using var db = TestDbContextFactory.Create(nameof(CheckoutGet_WithAwaitingPayment_ReturnsCheckoutView));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.AwaitingPayment);
 
@@ -155,7 +155,7 @@ public class BookingsControllerTests
     public async Task CheckoutGet_WithNonAwaitingPayment_RedirectsToDetails()
     {
         using var db = TestDbContextFactory.Create(nameof(CheckoutGet_WithNonAwaitingPayment_RedirectsToDetails));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
 
@@ -171,8 +171,8 @@ public class BookingsControllerTests
     public async Task CheckoutGet_WithDifferentOwner_RedirectsToAccessDenied()
     {
         using var db = TestDbContextFactory.Create(nameof(CheckoutGet_WithDifferentOwner_RedirectsToAccessDenied));
-        var (ownerUser, ownerProfile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Farmer);
-        var (otherUser, _) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pw", RoleType.Farmer);
+        var (ownerUser, ownerProfile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Client);
+        var (otherUser, _) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id, BookingStatus.AwaitingPayment);
 
@@ -188,7 +188,7 @@ public class BookingsControllerTests
     public async Task CheckoutPost_ValidPayment_RedirectsToReceipt()
     {
         using var db = TestDbContextFactory.Create(nameof(CheckoutPost_ValidPayment_RedirectsToReceipt));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.AwaitingPayment);
 
@@ -214,7 +214,7 @@ public class BookingsControllerTests
     public async Task CheckoutPost_NonAwaitingPayment_RedirectsWithError()
     {
         using var db = TestDbContextFactory.Create(nameof(CheckoutPost_NonAwaitingPayment_RedirectsWithError));
-        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Client);
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
 

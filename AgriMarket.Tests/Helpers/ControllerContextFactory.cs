@@ -41,7 +41,7 @@ public static class ControllerContextFactory
         return services.Object;
     }
 
-    public static ControllerContext WithAuthenticatedUser(Guid userId, string role = "Farmer")
+    public static ControllerContext WithAuthenticatedUser(Guid userId, string role = "Client")
     {
         var claims = new[]
         {

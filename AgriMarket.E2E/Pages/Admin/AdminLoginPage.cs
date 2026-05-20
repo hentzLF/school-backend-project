@@ -14,7 +14,7 @@ public sealed class AdminLoginPage : PageBase
         await Page.FillAsync("input[name='Email']", email);
         await Page.FillAsync("input[name='Password']", password);
         await Page.ClickAsync("button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<bool> HasErrorAsync()

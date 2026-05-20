@@ -27,7 +27,7 @@ public sealed class EquipmentIndexPage : PageBase
     public async Task ClickCreateAsync()
     {
         await Page.ClickAsync("a[href*='Create']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickEditAsync(int index)
@@ -36,7 +36,7 @@ public sealed class EquipmentIndexPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 
@@ -46,7 +46,7 @@ public sealed class EquipmentIndexPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 

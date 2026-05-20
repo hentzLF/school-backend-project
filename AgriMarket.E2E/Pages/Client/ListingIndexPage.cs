@@ -30,7 +30,7 @@ public sealed class ListingIndexPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 
@@ -46,6 +46,6 @@ public sealed class ListingIndexPage : PageBase
         {
             await link.ClickAsync();
         }
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 }

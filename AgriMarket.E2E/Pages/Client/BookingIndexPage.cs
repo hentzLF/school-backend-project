@@ -21,7 +21,7 @@ public sealed class BookingIndexPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 }

@@ -12,7 +12,7 @@ public sealed class ClientRegistrationTests
     public ClientRegistrationTests(E2EFixture fixture) => _fixture = fixture;
 
     [Fact]
-    public async Task Register_ValidData_RedirectsToLogin()
+    public async Task Register_ValidData_RedirectsToListings()
     {
         var page = await _fixture.CreatePageAsync();
         var registerPage = new ClientRegisterPage(page, _fixture.BaseUrl);
@@ -22,7 +22,8 @@ public sealed class ClientRegistrationTests
         await registerPage.FillFormAsync("Test", "User", uniqueEmail, "TestPass123!");
         await registerPage.SubmitAsync();
 
-        (await registerPage.IsOnLoginPageAsync()).Should().BeTrue();
+        page.Url.Should().Contain("/Client");
+        (await registerPage.IsOnRegisterPageAsync()).Should().BeFalse();
         await page.Context.DisposeAsync();
     }
 

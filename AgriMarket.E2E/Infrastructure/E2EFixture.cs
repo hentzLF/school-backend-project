@@ -2,9 +2,13 @@ using AgriMarket.BLL.Contracts;
 using AgriMarket.DAL;
 using AgriMarket.DAL.Seeding;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Playwright;
 using Testcontainers.PostgreSql;
 
@@ -16,12 +20,11 @@ public sealed class E2EFixture : IAsyncLifetime
         .WithImage("postgres:16-alpine")
         .Build();
 
-    private WebApplicationFactory<Program> _factory = null!;
+    private KestrelWebApplicationFactory _factory = null!;
     private IBrowser _browser = null!;
     private IPlaywright _playwright = null!;
 
     public string BaseUrl { get; private set; } = null!;
-    public HttpClient HttpClient { get; private set; } = null!;
 
     public async Task<IBrowserContext> CreateBrowserContextAsync()
     {
@@ -50,30 +53,18 @@ public sealed class E2EFixture : IAsyncLifetime
     {
         await _postgres.StartAsync();
 
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Testing");
-                builder.ConfigureServices(services =>
-                {
-                    var descriptor = services.SingleOrDefault(
-                        d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (descriptor is not null)
-                        services.Remove(descriptor);
+        Environment.SetEnvironmentVariable(
+            "ConnectionStrings__DefaultConnection",
+            _postgres.GetConnectionString());
 
-                    services.AddDbContext<AppDbContext>(options =>
-                        options.UseNpgsql(_postgres.GetConnectionString()));
-                });
-            });
+        _factory = new KestrelWebApplicationFactory(_postgres.GetConnectionString());
 
-        HttpClient = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false
-        });
+        // Trigger host creation via CreateClient (which goes through EnsureServer -> CreateHost)
+        _ = _factory.CreateClient();
 
-        BaseUrl = _factory.Server.BaseAddress.ToString().TrimEnd('/');
+        BaseUrl = _factory.ServerAddress;
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = _factory.RealServices.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await context.Database.MigrateAsync();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
@@ -90,7 +81,69 @@ public sealed class E2EFixture : IAsyncLifetime
     {
         await _browser.DisposeAsync();
         _playwright.Dispose();
+        if (_factory.RealHost is not null)
+            await _factory.RealHost.StopAsync();
         await _factory.DisposeAsync();
         await _postgres.DisposeAsync();
+        Environment.SetEnvironmentVariable("ConnectionStrings__DefaultConnection", null);
+    }
+
+    private sealed class KestrelWebApplicationFactory : WebApplicationFactory<Program>
+    {
+        private readonly string _connectionString;
+
+        public string ServerAddress { get; private set; } = "";
+        public IHost? RealHost { get; private set; }
+        public IServiceProvider RealServices => RealHost!.Services;
+
+        public KestrelWebApplicationFactory(string connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.SingleOrDefault(
+                    d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                if (descriptor is not null)
+                    services.Remove(descriptor);
+
+                services.AddDbContext<AppDbContext>(options =>
+                    options.UseNpgsql(_connectionString));
+            });
+        }
+
+        protected override IHost CreateHost(IHostBuilder builder)
+        {
+            // Build the real Kestrel host with full app configuration
+            builder.ConfigureWebHost(webHostBuilder =>
+            {
+                webHostBuilder.UseKestrel();
+                webHostBuilder.UseUrls("http://127.0.0.1:0");
+            });
+
+            RealHost = builder.Build();
+            RealHost.Start();
+
+            var server = RealHost.Services.GetRequiredService<IServer>();
+            var addressFeature = server.Features.Get<IServerAddressesFeature>();
+            ServerAddress = addressFeature!.Addresses.First();
+
+            // Return a dummy TestServer host to satisfy WebApplicationFactory's
+            // internal cast of IServer -> TestServer
+            var dummyBuilder = new HostBuilder();
+            dummyBuilder.ConfigureWebHost(wb =>
+            {
+                wb.UseTestServer();
+                wb.Configure(app => { });
+            });
+            var dummyHost = dummyBuilder.Build();
+            dummyHost.Start();
+
+            return dummyHost;
+        }
     }
 }

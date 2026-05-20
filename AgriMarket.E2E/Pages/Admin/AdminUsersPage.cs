@@ -21,7 +21,7 @@ public sealed class AdminUsersPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 
@@ -30,30 +30,30 @@ public sealed class AdminUsersPage : PageBase
     public async Task LockUserAsync()
     {
         await Page.ClickAsync("form[action*='Lock'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task UnlockUserAsync()
     {
         await Page.ClickAsync("form[action*='Unlock'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickDeleteAsync()
     {
         await Page.ClickAsync("a[href*='Delete']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ConfirmDeleteAsync()
     {
         await Page.ClickAsync("form[action*='Delete'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickEditAsync()
     {
         await Page.ClickAsync("a[href*='Edit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 }

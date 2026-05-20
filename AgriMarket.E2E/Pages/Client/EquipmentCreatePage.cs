@@ -19,7 +19,7 @@ public sealed class EquipmentCreatePage : PageBase
         await Page.FillAsync("input[name='ManufactureYear']", year);
         await Page.FillAsync("input[name='HorsePower']", horsePower);
 
-        var options = await Page.QuerySelectorAllAsync("select[name='Condition'] option");
+        var options = await Page.QuerySelectorAllAsync("select[name='Condition'] option:not([value=''])");
         if (conditionIndex < options.Count)
         {
             var value = await options[conditionIndex].GetAttributeAsync("value");
@@ -30,8 +30,8 @@ public sealed class EquipmentCreatePage : PageBase
 
     public async Task SubmitAsync()
     {
-        await Page.ClickAsync("input[type='submit'][value='Create'], button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.Locator("form").Last.Locator("input[type='submit']").ClickAsync();
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<bool> HasErrorAsync() => await HasValidationErrorsAsync();

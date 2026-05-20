@@ -21,20 +21,20 @@ public sealed class AdminPaymentsPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 
     public async Task ReleasePaymentAsync()
     {
         await Page.ClickAsync("button[name='Resolution'][value='Release']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task RefundPaymentAsync()
     {
         await Page.ClickAsync("button[name='Resolution'][value='Refund']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<string> GetPageTextAsync() => await Page.InnerTextAsync("body");

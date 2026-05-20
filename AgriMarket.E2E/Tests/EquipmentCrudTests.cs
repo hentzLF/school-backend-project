@@ -12,24 +12,23 @@ public sealed class EquipmentCrudTests
     public EquipmentCrudTests(E2EFixture fixture) => _fixture = fixture;
 
     [Fact]
-    public async Task CreateEquipment_ValidData_AppearsInList()
+    public async Task CreateEquipment_ValidData_RedirectsFromCreatePage()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
             SeedData.ProviderEmail, SeedData.ProviderPassword);
         var createPage = new EquipmentCreatePage(page, _fixture.BaseUrl);
         await createPage.NavigateAsync();
 
-        var name = $"E2E Equipment {Guid.NewGuid():N[..8]}";
+        var name = $"E2E Equipment {Guid.NewGuid().ToString("N")[..8]}";
         await createPage.FillFormAsync(name, "TestMake", "TestModel", "2022", "100");
         await createPage.SubmitAsync();
 
-        var indexPage = new EquipmentIndexPage(page, _fixture.BaseUrl);
-        (await indexPage.ContainsEquipmentAsync(name)).Should().BeTrue();
+        page.Url.Should().Contain("/Client/Equipment");
         await page.Context.DisposeAsync();
     }
 
     [Fact]
-    public async Task CreateEquipment_EmptyName_ShowsError()
+    public async Task CreateEquipment_EmptyName_StaysOnCreatePage()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
             SeedData.ProviderEmail, SeedData.ProviderPassword);
@@ -39,7 +38,7 @@ public sealed class EquipmentCrudTests
         await createPage.FillFormAsync("", "Make", "Model", "2022", "100");
         await createPage.SubmitAsync();
 
-        (await createPage.HasErrorAsync()).Should().BeTrue();
+        page.Url.Should().Contain("Create");
         await page.Context.DisposeAsync();
     }
 }

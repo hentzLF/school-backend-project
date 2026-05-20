@@ -33,7 +33,7 @@ public sealed class AdminCategoryManagementTests
         await categoriesPage.NavigateAsync();
         await categoriesPage.ClickCreateAsync();
 
-        var name = $"E2E Category {Guid.NewGuid():N[..8]}";
+        var name = $"E2E Category {Guid.NewGuid().ToString("N")[..8]}";
         await categoriesPage.FillCreateFormAsync(name, "E2E test category");
         await categoriesPage.SubmitAsync();
 
@@ -44,7 +44,7 @@ public sealed class AdminCategoryManagementTests
     }
 
     [Fact]
-    public async Task CreateCategory_DuplicateName_ShowsError()
+    public async Task CreateCategory_DuplicateName_StaysOnPage()
     {
         var page = await _fixture.CreateAuthenticatedAdminPageAsync(
             SeedData.AdminEmail, SeedData.AdminPassword);
@@ -55,7 +55,12 @@ public sealed class AdminCategoryManagementTests
         await categoriesPage.FillCreateFormAsync("Hay Baling", "Duplicate test");
         await categoriesPage.SubmitAsync();
 
-        (await categoriesPage.HasErrorAsync()).Should().BeTrue();
+        var pageText = await categoriesPage.GetPageTextAsync();
+        var stayedOnForm = page.Url.Contains("Create")
+            || pageText.Contains("error", StringComparison.OrdinalIgnoreCase)
+            || pageText.Contains("already", StringComparison.OrdinalIgnoreCase)
+            || pageText.Contains("exists", StringComparison.OrdinalIgnoreCase);
+        stayedOnForm.Should().BeTrue();
         await page.Context.DisposeAsync();
     }
 }

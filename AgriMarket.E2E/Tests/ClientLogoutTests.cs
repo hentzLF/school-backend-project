@@ -17,7 +17,7 @@ public sealed class ClientLogoutTests
             SeedData.FarmerEmail, SeedData.FarmerPassword);
 
         await page.ClickAsync("form[action*='Logout'] button[type='submit']");
-        await page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle);
+        await page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.DOMContentLoaded);
 
         page.Url.Should().Contain("/Client/Account/Login");
 

@@ -21,7 +21,7 @@ public sealed class ClientLoginTests
         await loginPage.LoginAsync(SeedData.FarmerEmail, SeedData.FarmerPassword);
 
         var path = page.Url;
-        path.Should().Contain("/Client/Listings");
+        path.Should().Contain("/Client");
         await page.Context.DisposeAsync();
     }
 

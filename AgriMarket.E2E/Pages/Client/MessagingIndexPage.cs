@@ -21,7 +21,7 @@ public sealed class MessagingIndexPage : PageBase
         if (index < items.Count)
         {
             await items[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 

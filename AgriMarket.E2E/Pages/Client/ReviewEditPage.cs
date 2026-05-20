@@ -23,6 +23,6 @@ public sealed class ReviewEditPage : PageBase
     public async Task SubmitAsync()
     {
         await Page.ClickAsync("button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 }

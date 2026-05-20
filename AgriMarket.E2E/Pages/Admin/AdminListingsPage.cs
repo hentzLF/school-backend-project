@@ -19,7 +19,7 @@ public sealed class AdminListingsPage : PageBase
     {
         var value = active ? "true" : "false";
         await Page.ClickAsync($"a[href*='active={value}']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickDetailsAsync(int index)
@@ -28,26 +28,26 @@ public sealed class AdminListingsPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 
     public async Task ClickEditAsync()
     {
         await Page.ClickAsync("a[href*='Edit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickDeleteAsync()
     {
         await Page.ClickAsync("a[href*='Delete']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ConfirmDeleteAsync()
     {
         await Page.ClickAsync("form[action*='Delete'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<string> GetPageTextAsync() => await Page.InnerTextAsync("body");

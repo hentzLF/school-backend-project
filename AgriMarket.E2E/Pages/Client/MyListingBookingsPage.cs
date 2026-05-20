@@ -35,12 +35,12 @@ public sealed class MyListingBookingsPage : PageBase
             var statusBtn = await Page.QuerySelectorAsync($"button:has-text('{status}'), input[value='{status}']");
             if (statusBtn is not null) await statusBtn.ClickAsync();
         }
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickStatusButtonAsync(string buttonText)
     {
         await Page.ClickAsync($"form[action*='UpdateBookingStatus'] button:has-text('{buttonText}')");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 }

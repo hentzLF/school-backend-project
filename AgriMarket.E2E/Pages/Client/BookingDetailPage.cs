@@ -24,19 +24,19 @@ public sealed class BookingDetailPage : PageBase
     public async Task ClickCheckoutAsync()
     {
         await Page.ClickAsync("a[href*='Checkout']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ConfirmCompletionAsync()
     {
         await Page.ClickAsync("form[action*='ConfirmCompletion'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task CancelBookingAsync()
     {
         await Page.ClickAsync("form[action*='Cancel'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<bool> HasConfirmCompletionButtonAsync() =>
@@ -48,7 +48,7 @@ public sealed class BookingDetailPage : PageBase
     public async Task ClickMessageProviderAsync()
     {
         await Page.ClickAsync("form[action*='Messaging'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<bool> HasReviewLinkAsync() =>
@@ -57,6 +57,6 @@ public sealed class BookingDetailPage : PageBase
     public async Task ClickCreateReviewAsync()
     {
         await Page.ClickAsync("a[href*='Reviews/Create']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 }

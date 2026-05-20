@@ -14,6 +14,6 @@ public sealed class ProfilePage : PageBase
     public async Task ClickEditAsync()
     {
         await Page.ClickAsync("a[href*='Profile/Edit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 }

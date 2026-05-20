@@ -27,7 +27,7 @@ public sealed class AdminCategoriesPage : PageBase
     public async Task ClickCreateAsync()
     {
         await Page.ClickAsync("a[href*='Create']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task FillCreateFormAsync(string name, string description)
@@ -38,8 +38,8 @@ public sealed class AdminCategoriesPage : PageBase
 
     public async Task SubmitAsync()
     {
-        await Page.ClickAsync("button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.ClickAsync("form[action*='Categories'] button[type='submit']");
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickEditAsync(int index)
@@ -48,7 +48,7 @@ public sealed class AdminCategoriesPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 
@@ -63,14 +63,14 @@ public sealed class AdminCategoriesPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 
     public async Task ConfirmDeleteAsync()
     {
         await Page.ClickAsync("form[action*='Delete'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<bool> HasErrorAsync() => await HasValidationErrorsAsync();

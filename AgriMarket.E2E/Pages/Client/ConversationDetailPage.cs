@@ -29,7 +29,7 @@ public sealed class ConversationDetailPage : PageBase
     {
         await Page.FillAsync("input[name='Content']", content);
         await Page.ClickAsync("form[action*='SendMessage'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<bool> ContainsMessageAsync(string text)

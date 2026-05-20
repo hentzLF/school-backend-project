@@ -15,7 +15,7 @@ public sealed class AvailabilitiesPage : PageBase
         await Page.FillAsync("input[name='AddStartTime']", startTime.ToString("yyyy-MM-ddTHH:mm"));
         await Page.FillAsync("input[name='AddEndTime']", endTime.ToString("yyyy-MM-ddTHH:mm"));
         await Page.ClickAsync("form[action*='AddAvailability'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<int> GetAvailabilityCountAsync()
@@ -31,7 +31,7 @@ public sealed class AvailabilitiesPage : PageBase
         if (deleteBtn is not null)
         {
             await deleteBtn.ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 

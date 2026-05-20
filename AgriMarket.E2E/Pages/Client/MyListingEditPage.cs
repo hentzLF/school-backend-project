@@ -27,7 +27,7 @@ public sealed class MyListingEditPage : PageBase
 
     public async Task SubmitAsync()
     {
-        await Page.ClickAsync("input[type='submit'][value='Save'], button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.ClickAsync("form[action*='MyListings'] input[type='submit']");
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 }

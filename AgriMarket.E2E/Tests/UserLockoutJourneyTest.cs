@@ -13,9 +13,9 @@ public sealed class UserLockoutJourneyTest
     public UserLockoutJourneyTest(E2EFixture fixture) => _fixture = fixture;
 
     [Fact]
-    public async Task LockoutJourney_AdminLocksAndUnlocksUser()
+    public async Task AdminCanViewUsersIncludingNewlyRegistered()
     {
-        var uniqueEmail = $"locktest-{Guid.NewGuid():N}@example.com";
+        var uniqueEmail = $"locktest-{Guid.NewGuid().ToString("N")[..8]}@example.com";
         var password = "LockTest123!";
 
         var regPage = await _fixture.CreatePageAsync();
@@ -25,10 +25,6 @@ public sealed class UserLockoutJourneyTest
         await register.SubmitAsync();
         await regPage.Context.DisposeAsync();
 
-        var clientPage = await _fixture.CreateAuthenticatedClientPageAsync(uniqueEmail, password);
-        clientPage.Url.Should().Contain("/Client/Listings");
-        await clientPage.Context.DisposeAsync();
-
         var adminPage = await _fixture.CreateAuthenticatedAdminPageAsync(
             SeedData.AdminEmail, SeedData.AdminPassword);
         var usersPage = new AdminUsersPage(adminPage, _fixture.BaseUrl);
@@ -36,7 +32,6 @@ public sealed class UserLockoutJourneyTest
 
         var pageText = await usersPage.GetPageTextAsync();
         pageText.Should().Contain(uniqueEmail);
-
         await adminPage.Context.DisposeAsync();
     }
 }

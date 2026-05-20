@@ -23,7 +23,7 @@ public sealed class ClientLoginPage : PageBase
         await FillEmailAsync(email);
         await FillPasswordAsync(password);
         await SubmitAsync();
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<bool> HasErrorAsync()

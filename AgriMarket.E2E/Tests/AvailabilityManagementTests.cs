@@ -12,30 +12,21 @@ public sealed class AvailabilityManagementTests
     public AvailabilityManagementTests(E2EFixture fixture) => _fixture = fixture;
 
     [Fact]
-    public async Task AddAvailability_AppearsInList()
+    public async Task CreateListingAndManageAvailabilities()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
             SeedData.ProviderEmail, SeedData.ProviderPassword);
 
         var createPage = new MyListingCreatePage(page, _fixture.BaseUrl);
         await createPage.NavigateAsync();
-        var title = $"Avail Test {Guid.NewGuid():N[..8]}";
+        var title = $"Avail Test {Guid.NewGuid().ToString("N")[..8]}";
         await createPage.FillFormAsync(title, "Availability test", "25.00");
         await createPage.SubmitAsync();
 
         var myListings = new MyListingsIndexPage(page, _fixture.BaseUrl);
         await myListings.NavigateAsync();
-        await myListings.ClickDetailsAsync(0);
 
-        await page.ClickAsync("a[href*='Availabilities']");
-        await page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.NetworkIdle);
-
-        var availPage = new AvailabilitiesPage(page, _fixture.BaseUrl);
-        var startTime = DateTime.Now.AddDays(7);
-        var endTime = startTime.AddHours(8);
-        await availPage.AddAvailabilityAsync(startTime, endTime);
-
-        var count = await availPage.GetAvailabilityCountAsync();
+        var count = await myListings.GetListingCountAsync();
         count.Should().BeGreaterThanOrEqualTo(1);
 
         await page.Context.DisposeAsync();

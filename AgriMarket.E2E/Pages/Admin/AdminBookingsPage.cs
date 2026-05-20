@@ -18,7 +18,7 @@ public sealed class AdminBookingsPage : PageBase
     public async Task FilterByStatusAsync(string status)
     {
         await Page.ClickAsync($"a[href*='status={status}']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task ClickDetailsAsync(int index)
@@ -27,7 +27,7 @@ public sealed class AdminBookingsPage : PageBase
         if (index < links.Count)
         {
             await links[index].ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
         }
     }
 

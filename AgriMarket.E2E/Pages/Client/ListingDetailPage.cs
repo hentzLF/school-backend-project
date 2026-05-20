@@ -36,7 +36,7 @@ public sealed class ListingDetailPage : PageBase
     public async Task SubmitBookingAsync()
     {
         await Page.ClickAsync("form[action*='Book'] button[type='submit']");
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Page.WaitForLoadStateAsync(LoadState.DOMContentLoaded);
     }
 
     public async Task<int> GetAvailabilityCountAsync()

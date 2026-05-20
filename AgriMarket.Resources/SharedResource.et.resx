@@ -287,6 +287,43 @@
   <data name="ConfirmAndPay" xml:space="preserve"><value>Kinnita ja maksa</value></data>
   <data name="CancelBooking" xml:space="preserve"><value>Tühista broneering</value></data>
   <data name="AwaitingPayment" xml:space="preserve"><value>Ootab makset</value></data>
+  <!-- Kliendi arvustused -->
+  <data name="Reviews_Create_Title" xml:space="preserve"><value>Jäta arvustus</value></data>
+  <data name="Reviews_Create_Submit" xml:space="preserve"><value>Esita arvustus</value></data>
+  <data name="Reviews_Edit_Title" xml:space="preserve"><value>Muuda arvustust</value></data>
+  <data name="Reviews_Edit_Submit" xml:space="preserve"><value>Uuenda arvustust</value></data>
+  <data name="Reviews_Delete_Title" xml:space="preserve"><value>Kustuta arvustus</value></data>
+  <data name="Reviews_Delete_Confirm" xml:space="preserve"><value>Kas olete kindel, et soovite selle arvustuse kustutada?</value></data>
+  <data name="Reviews_Delete_Cancel" xml:space="preserve"><value>Tühista</value></data>
+  <data name="Reviews_Rating_Label" xml:space="preserve"><value>Hinnang</value></data>
+  <data name="Reviews_Comment_Label" xml:space="preserve"><value>Kommentaar</value></data>
+  <data name="Reviews_Comment_Placeholder" xml:space="preserve"><value>Jagage oma kogemust (valikuline)</value></data>
+  <data name="Reviews_NoReviews" xml:space="preserve"><value>Arvustusi pole veel.</value></data>
+  <data name="Reviews_LeaveReview" xml:space="preserve"><value>Jäta arvustus</value></data>
+  <data name="Reviews_AverageRating" xml:space="preserve"><value>Keskmine hinnang</value></data>
+  <data name="Reviews_ReviewCount" xml:space="preserve"><value>arvustust</value></data>
+  <data name="Reviews_ForProvider_Title" xml:space="preserve"><value>Arvustused</value></data>
+  <data name="Reviews_CreatedAt" xml:space="preserve"><value>Kuupäev</value></data>
+  <data name="Reviews_EditLink" xml:space="preserve"><value>Muuda</value></data>
+  <data name="Reviews_DeleteLink" xml:space="preserve"><value>Kustuta</value></data>
+  <data name="Reviews_Error_BusinessRule" xml:space="preserve"><value>Arvustuse töötlemisel ilmnes viga.</value></data>
+  <!-- Kliendi maksmine ja maksed -->
+  <data name="Checkout_FeeBreakdown" xml:space="preserve"><value>Tasude jaotus</value></data>
+  <data name="Checkout_SelectPaymentMethod" xml:space="preserve"><value>Valige makseviis</value></data>
+  <data name="Checkout_PaymentMethod_Card" xml:space="preserve"><value>Krediit- / deebetkaart</value></data>
+  <data name="Checkout_PaymentMethod_BankTransfer" xml:space="preserve"><value>Pangaülekanne</value></data>
+  <data name="Checkout_PaymentMethod_Cash" xml:space="preserve"><value>Sularaha</value></data>
+  <data name="Checkout_ProceedToCheckout" xml:space="preserve"><value>Jätka maksmisega</value></data>
+  <data name="Receipt_Title" xml:space="preserve"><value>Maksekviitung</value></data>
+  <data name="Receipt_PaymentConfirmed" xml:space="preserve"><value>Makse kinnitatud</value></data>
+  <data name="Receipt_PaymentId" xml:space="preserve"><value>Makse ID</value></data>
+  <data name="Receipt_TotalCharged" xml:space="preserve"><value>Kogusumma</value></data>
+  <data name="Receipt_Method" xml:space="preserve"><value>Makseviis</value></data>
+  <data name="Receipt_PaidAt" xml:space="preserve"><value>Makstud</value></data>
+  <data name="Receipt_BackToBooking" xml:space="preserve"><value>Tagasi broneeringu juurde</value></data>
+  <data name="Receipt_ViewReceipt" xml:space="preserve"><value>Vaata kviitungit</value></data>
+  <data name="PaymentHistory_Title" xml:space="preserve"><value>Maksete ajalugu</value></data>
+  <data name="PaymentHistory_NoPayments" xml:space="preserve"><value>Teil pole veel makseid.</value></data>
   <!-- Footer -->
   <data name="FooterCopyright" xml:space="preserve"><value>2026 - AgriMarket.Web -</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Lülita navigatsioon</value></data>

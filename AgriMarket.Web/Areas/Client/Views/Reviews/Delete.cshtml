@@ -1,0 +1,33 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Reviews.DeleteReviewViewModel
+@{
+    ViewData["Title"] = Localizer["Reviews_Delete_Title"].Value;
+}
+
+<h4 class="mb-4">@Localizer["Reviews_Delete_Title"]</h4>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">@Localizer["Reviews_Delete_Confirm"]</div>
+            <div class="card-body">
+                <dl class="row mb-3">
+                    <dt class="col-sm-4">@Localizer["Reviews_Rating_Label"]</dt>
+                    <dd class="col-sm-8">@Model.Rating / 5</dd>
+                    <dt class="col-sm-4">@Localizer["Reviews_Comment_Label"]</dt>
+                    <dd class="col-sm-8">@(Model.Comment ?? "---")</dd>
+                    <dt class="col-sm-4">@Localizer["Reviews_CreatedAt"]</dt>
+                    <dd class="col-sm-8">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+                </dl>
+
+                <form asp-area="Client" asp-controller="Reviews" asp-action="Delete" asp-route-id="@Model.ReviewId" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="d-flex justify-content-between">
+                        <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
+                           asp-route-id="@Model.BookingId" class="btn btn-outline-secondary">@Localizer["Reviews_Delete_Cancel"]</a>
+                        <button type="submit" class="btn btn-danger">@Localizer["Delete"]</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

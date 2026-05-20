@@ -1,6 +1,9 @@
+using AgriMarket.BLL;
+using AgriMarket.BLL.Dtos.Payments;
 using AgriMarket.BLL.Services;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Web.Areas.Client.ViewModels.Bookings;
+using AgriMarket.Web.Areas.Client.ViewModels.Payments;
 using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +13,11 @@ namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
 [Authorize(Policy = "ClientOnly")]
-public class BookingsController(IBookingService bookingService, IUserService userService) : Controller
+public class BookingsController(
+    IBookingService bookingService,
+    IUserService userService,
+    IClientPaymentService clientPaymentService,
+    IReviewService reviewService) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -38,12 +45,21 @@ public class BookingsController(IBookingService bookingService, IUserService use
         if (booking.ClientProfileId != clientProfile.Id)
             return RedirectToAction("AccessDenied", "Account");
 
-        return View(booking.ToClientDetailsVm());
+        var vm = booking.ToClientDetailsVm();
+        await LoadReviewForBooking(vm, id);
+        return View(vm);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Pay(Guid id)
+    private async Task LoadReviewForBooking(BookingDetailsViewModel vm, Guid bookingId)
+    {
+        var reviewDto = await reviewService.GetByBookingAsync(bookingId);
+        if (reviewDto != null)
+        {
+            vm.Review = reviewDto.ToViewModel();
+        }
+    }
+
+    public async Task<IActionResult> Checkout(Guid id)
     {
         var clientProfile = await GetClientProfileAsync();
         if (clientProfile == null) return Unauthorized();
@@ -57,8 +73,54 @@ public class BookingsController(IBookingService bookingService, IUserService use
         if (booking.Status != BookingStatus.AwaitingPayment)
             return RedirectToAction(nameof(Details), new { id });
 
-        await bookingService.UpdateStatusAsync(id, BookingStatus.Confirmed, clientProfile.Id);
-        return RedirectToAction(nameof(Details), new { id });
+        var vm = BuildCheckoutViewModel(booking);
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Checkout(CheckoutSubmitViewModel model)
+    {
+        var clientProfile = await GetClientProfileAsync();
+        if (clientProfile == null) return Unauthorized();
+
+        if (!ModelState.IsValid)
+            return await ReloadCheckoutView(model.BookingId);
+
+        try
+        {
+            var request = new PayRequest(model.BookingId, model.Method);
+            var receipt = await clientPaymentService.PayAsync(clientProfile.Id, request);
+            return RedirectToAction("Receipt", "Payments", new { area = "Client", id = receipt.PaymentId });
+        }
+        catch (BusinessRuleException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+            return RedirectToAction(nameof(Details), new { id = model.BookingId });
+        }
+    }
+
+    private static CheckoutViewModel BuildCheckoutViewModel(BLL.Dtos.Bookings.BookingDto booking)
+    {
+        var platformFee = booking.TotalPrice * 0.05m;
+        return new CheckoutViewModel
+        {
+            BookingId = booking.Id,
+            ListingTitle = booking.ListingTitle,
+            AreaInHectares = booking.AreaInHectares,
+            ServiceTotal = booking.TotalPrice,
+            PlatformFee = platformFee,
+            GrandTotal = booking.TotalPrice + platformFee
+        };
+    }
+
+    private async Task<IActionResult> ReloadCheckoutView(Guid bookingId)
+    {
+        var booking = await bookingService.GetByIdAsync(bookingId);
+        if (booking == null) return NotFound();
+
+        var vm = BuildCheckoutViewModel(booking);
+        return View("Checkout", vm);
     }
 
     [HttpPost]

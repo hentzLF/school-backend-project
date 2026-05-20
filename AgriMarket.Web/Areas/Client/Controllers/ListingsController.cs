@@ -2,6 +2,7 @@ using AgriMarket.BLL;
 using AgriMarket.BLL.Services;
 using AgriMarket.Web.Areas.Client.ViewModels.Bookings;
 using AgriMarket.Web.Areas.Client.ViewModels.Listings;
+using AgriMarket.Web.Areas.Client.ViewModels.Reviews;
 using AgriMarket.Web.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,10 @@ using System.Security.Claims;
 namespace AgriMarket.Web.Areas.Client.Controllers;
 
 [Area("Client")]
-public class ListingsController(IListingService listingService, IBookingService bookingService) : Controller
+public class ListingsController(
+    IListingService listingService,
+    IBookingService bookingService,
+    IReviewService reviewService) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -21,6 +25,11 @@ public class ListingsController(IListingService listingService, IBookingService 
             Listings = listings.Select(l =>
             {
                 var item = l.ToClientIndexItem();
+                item.RatingStats = new RatingStatsViewModel
+                {
+                    AverageRating = l.AverageRating,
+                    ReviewCount = l.ReviewCount
+                };
                 return item;
             })
         };
@@ -39,7 +48,12 @@ public class ListingsController(IListingService listingService, IBookingService 
                            listing.ProviderUserId.HasValue &&
                            listing.ProviderUserId.Value.ToString() == userId;
 
-        return View(listing.ToClientDetails(isOwnListing));
+        var vm = listing.ToClientDetails(isOwnListing);
+        var stats = await reviewService.GetRatingStatsForListingAsync(id);
+        vm.RatingStats = stats.ToRatingStatsViewModel();
+        vm.ProviderProfileId = listing.UserProfileId;
+
+        return View(vm);
     }
 
     [HttpPost]

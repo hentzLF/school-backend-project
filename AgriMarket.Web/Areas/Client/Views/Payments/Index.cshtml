@@ -1,0 +1,50 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Payments.PaymentHistoryViewModel
+@{
+    ViewData["Title"] = Localizer["PaymentHistory_Title"].Value;
+}
+
+<h4 class="mb-4">@Localizer["PaymentHistory_Title"]</h4>
+
+@if (!Model.Payments.Any())
+{
+    <div class="alert alert-info">@Localizer["PaymentHistory_NoPayments"]</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>@Localizer["Listing"]</th>
+                    <th>@Localizer["Amount"]</th>
+                    <th>@Localizer["PlatformFee"]</th>
+                    <th>@Localizer["Receipt_Method"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th>@Localizer["Date"]</th>
+                    <th>@Localizer["Actions"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var payment in Model.Payments)
+                {
+                    <tr>
+                        <td>
+                            <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
+                               asp-route-id="@payment.BookingId">@payment.ListingTitle</a>
+                        </td>
+                        <td>&euro;@payment.Amount.ToString("0.00")</td>
+                        <td>&euro;@payment.PlatformFee.ToString("0.00")</td>
+                        <td>@payment.Method</td>
+                        <td><span class="badge text-bg-primary">@payment.Status</span></td>
+                        <td>@payment.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a asp-area="Client" asp-controller="Payments" asp-action="Receipt"
+                               asp-route-id="@payment.PaymentId"
+                               class="btn btn-sm btn-outline-success">@Localizer["Receipt_ViewReceipt"]</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

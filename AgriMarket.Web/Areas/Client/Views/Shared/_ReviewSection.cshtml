@@ -1,0 +1,37 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Reviews.ReviewViewModel?
+@{
+    var bookingId = ViewData["BookingId"] as Guid? ?? Guid.Empty;
+    var isCompleted = ViewData["IsCompleted"] as bool? ?? false;
+}
+
+@if (Model != null)
+{
+    <div class="card mb-3">
+        <div class="card-header">@Localizer["Review"]</div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-warning text-dark">@Model.Rating / 5</span>
+                <small class="text-muted">@Model.CreatedAt.ToString("dd MMM yyyy")</small>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Comment))
+            {
+                <p class="mb-2">@Model.Comment</p>
+            }
+            <div class="d-flex gap-2">
+                <a asp-area="Client" asp-controller="Reviews" asp-action="Edit"
+                   asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">@Localizer["Reviews_EditLink"]</a>
+                <a asp-area="Client" asp-controller="Reviews" asp-action="Delete"
+                   asp-route-id="@Model.Id" class="btn btn-sm btn-outline-danger">@Localizer["Reviews_DeleteLink"]</a>
+            </div>
+        </div>
+    </div>
+}
+else if (isCompleted)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <a asp-area="Client" asp-controller="Reviews" asp-action="Create"
+               asp-route-bookingId="@bookingId" class="btn btn-outline-success w-100">@Localizer["Reviews_LeaveReview"]</a>
+        </div>
+    </div>
+}

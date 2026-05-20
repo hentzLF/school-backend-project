@@ -33,6 +33,7 @@ else
                             <small class="text-muted">@Localizer["Provider"]: @listing.ProviderName</small>
                         </p>
                         <p class="card-text fw-bold">&euro;@listing.PricePerHectare.ToString("N2") / ha</p>
+                        <partial name="_RatingBadge" model="listing.RatingStats" />
                     </div>
                     <div class="card-footer bg-transparent border-0">
                         <a asp-area="Client" asp-controller="Listings" asp-action="Details" asp-route-id="@listing.Id"

@@ -4,6 +4,7 @@ using AgriMarket.Domain.Entities;
 using AgriMarket.Domain.Enums;
 using AgriMarket.Tests.Helpers;
 using AgriMarket.Web.Areas.Client.Controllers;
+using AgriMarket.Web.Areas.Client.ViewModels.Payments;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -35,6 +36,17 @@ public class BookingsControllerTests
             TestServiceFactory.CreateReviewService(db),
             NullLogger<AgriMarket.BLL.Services.UserService>.Instance);
 
+    private static BookingsController CreateController(AppDbContext db, Guid userId)
+    {
+        var controller = new BookingsController(
+            CreateBookingService(db),
+            CreateUserService(db),
+            TestServiceFactory.CreateClientPaymentService(db),
+            TestServiceFactory.CreateReviewService(db));
+        controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(userId);
+        return controller;
+    }
+
     [Fact]
     public async Task Details_WithDifferentOwner_RedirectsToAccessDenied()
     {
@@ -44,8 +56,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id);
 
-        var controller = new BookingsController(CreateBookingService(db), CreateUserService(db));
-        controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(requestorUser.Id);
+        var controller = CreateController(db, requestorUser.Id);
 
         var result = await controller.Details(booking.Id);
 
@@ -61,8 +72,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id);
 
-        var controller = new BookingsController(CreateBookingService(db), CreateUserService(db));
-        controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(user.Id);
+        var controller = CreateController(db, user.Id);
 
         var result = await controller.Details(booking.Id);
 
@@ -77,8 +87,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
 
-        var controller = new BookingsController(CreateBookingService(db), CreateUserService(db));
-        controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(user.Id);
+        var controller = CreateController(db, user.Id);
 
         var result = await controller.ConfirmCompletion(booking.Id);
 
@@ -97,8 +106,7 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.ProviderCompleted);
 
-        var controller = new BookingsController(CreateBookingService(db), CreateUserService(db));
-        controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(user.Id);
+        var controller = CreateController(db, user.Id);
 
         var result = await controller.ConfirmCompletion(booking.Id);
 
@@ -118,12 +126,109 @@ public class BookingsControllerTests
         var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
         var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id, BookingStatus.ProviderCompleted);
 
-        var controller = new BookingsController(CreateBookingService(db), CreateUserService(db));
-        controller.ControllerContext = ControllerContextFactory.WithAuthenticatedUser(otherUser.Id);
+        var controller = CreateController(db, otherUser.Id);
 
         var result = await controller.ConfirmCompletion(booking.Id);
 
         var redirect = Assert.IsType<RedirectToActionResult>(result);
         Assert.Equal("AccessDenied", redirect.ActionName);
+    }
+
+    [Fact]
+    public async Task CheckoutGet_WithAwaitingPayment_ReturnsCheckoutView()
+    {
+        using var db = TestDbContextFactory.Create(nameof(CheckoutGet_WithAwaitingPayment_ReturnsCheckoutView));
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
+        var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.AwaitingPayment);
+
+        var controller = CreateController(db, user.Id);
+
+        var result = await controller.Checkout(booking.Id);
+
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var vm = Assert.IsType<CheckoutViewModel>(viewResult.Model);
+        Assert.Equal(booking.Id, vm.BookingId);
+    }
+
+    [Fact]
+    public async Task CheckoutGet_WithNonAwaitingPayment_RedirectsToDetails()
+    {
+        using var db = TestDbContextFactory.Create(nameof(CheckoutGet_WithNonAwaitingPayment_RedirectsToDetails));
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
+        var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
+
+        var controller = CreateController(db, user.Id);
+
+        var result = await controller.Checkout(booking.Id);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
+    }
+
+    [Fact]
+    public async Task CheckoutGet_WithDifferentOwner_RedirectsToAccessDenied()
+    {
+        using var db = TestDbContextFactory.Create(nameof(CheckoutGet_WithDifferentOwner_RedirectsToAccessDenied));
+        var (ownerUser, ownerProfile) = TestDbContextFactory.SeedClientUser(db, "owner@test.com", "pw", RoleType.Farmer);
+        var (otherUser, _) = TestDbContextFactory.SeedClientUser(db, "other@test.com", "pw", RoleType.Farmer);
+        var (listing, availability) = TestDbContextFactory.SeedListing(db, ownerProfile.Id);
+        var booking = TestDbContextFactory.SeedBooking(db, ownerProfile.Id, listing.Id, availability.Id, BookingStatus.AwaitingPayment);
+
+        var controller = CreateController(db, otherUser.Id);
+
+        var result = await controller.Checkout(booking.Id);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("AccessDenied", redirect.ActionName);
+    }
+
+    [Fact]
+    public async Task CheckoutPost_ValidPayment_RedirectsToReceipt()
+    {
+        using var db = TestDbContextFactory.Create(nameof(CheckoutPost_ValidPayment_RedirectsToReceipt));
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
+        var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.AwaitingPayment);
+
+        var controller = CreateController(db, user.Id);
+
+        var model = new CheckoutSubmitViewModel
+        {
+            BookingId = booking.Id,
+            Method = PaymentMethod.Card
+        };
+
+        var result = await controller.Checkout(model);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Receipt", redirect.ActionName);
+        Assert.Equal("Payments", redirect.ControllerName);
+
+        var updated = await db.Bookings.FindAsync(booking.Id);
+        Assert.Equal(BookingStatus.Confirmed, updated!.Status);
+    }
+
+    [Fact]
+    public async Task CheckoutPost_NonAwaitingPayment_RedirectsWithError()
+    {
+        using var db = TestDbContextFactory.Create(nameof(CheckoutPost_NonAwaitingPayment_RedirectsWithError));
+        var (user, profile) = TestDbContextFactory.SeedClientUser(db, "client@test.com", "pw", RoleType.Farmer);
+        var (listing, availability) = TestDbContextFactory.SeedListing(db, profile.Id);
+        var booking = TestDbContextFactory.SeedBooking(db, profile.Id, listing.Id, availability.Id, BookingStatus.Confirmed);
+
+        var controller = CreateController(db, user.Id);
+
+        var model = new CheckoutSubmitViewModel
+        {
+            BookingId = booking.Id,
+            Method = PaymentMethod.Card
+        };
+
+        var result = await controller.Checkout(model);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal("Details", redirect.ActionName);
     }
 }

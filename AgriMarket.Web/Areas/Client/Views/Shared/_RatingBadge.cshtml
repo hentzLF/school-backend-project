@@ -1,0 +1,9 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Reviews.RatingStatsViewModel?
+
+@if (Model != null && Model.ReviewCount > 0)
+{
+    <span class="text-warning" title="@Localizer["Reviews_AverageRating"]">
+        &#9733; @Model.AverageRating.ToString("0.0")
+    </span>
+    <small class="text-muted">(@Model.ReviewCount)</small>
+}

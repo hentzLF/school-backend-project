@@ -1,0 +1,70 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Payments.CheckoutViewModel
+@{
+    ViewData["Title"] = Localizer["Checkout"].Value;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["Checkout"]</h4>
+    <a asp-area="Client" asp-controller="Bookings" asp-action="Details" asp-route-id="@Model.BookingId"
+       class="btn btn-sm btn-outline-secondary">
+        @Localizer["BackToMyBookings"]
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">@Localizer["BookingInfo"]</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">@Localizer["Listing"]</dt>
+                    <dd class="col-sm-7">@Model.ListingTitle</dd>
+                    <dt class="col-sm-5">@Localizer["Area"]</dt>
+                    <dd class="col-sm-7">@Model.AreaInHectares.ToString("0.00") ha</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">@Localizer["Checkout_FeeBreakdown"]</div>
+            <div class="card-body">
+                <dl class="row mb-3">
+                    <dt class="col-7">@Localizer["ServiceTotal"]</dt>
+                    <dd class="col-5 text-end">&euro;@Model.ServiceTotal.ToString("0.00")</dd>
+                    <dt class="col-7">@Localizer["PlatformFee"] (5%)</dt>
+                    <dd class="col-5 text-end">&euro;@Model.PlatformFee.ToString("0.00")</dd>
+                    <dt class="col-7 fw-bold">@Localizer["Total"]</dt>
+                    <dd class="col-5 text-end fw-bold">&euro;@Model.GrandTotal.ToString("0.00")</dd>
+                </dl>
+
+                <form asp-area="Client" asp-controller="Bookings" asp-action="Checkout" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="BookingId" value="@Model.BookingId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">@Localizer["Checkout_SelectPaymentMethod"]</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="Method" id="methodCard"
+                                   value="@((int)AgriMarket.Domain.Enums.PaymentMethod.Card)" checked />
+                            <label class="form-check-label" for="methodCard">@Localizer["Checkout_PaymentMethod_Card"]</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="Method" id="methodBank"
+                                   value="@((int)AgriMarket.Domain.Enums.PaymentMethod.BankTransfer)" />
+                            <label class="form-check-label" for="methodBank">@Localizer["Checkout_PaymentMethod_BankTransfer"]</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="Method" id="methodCash"
+                                   value="@((int)AgriMarket.Domain.Enums.PaymentMethod.Cash)" />
+                            <label class="form-check-label" for="methodCash">@Localizer["Checkout_PaymentMethod_Cash"]</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">@Localizer["ConfirmAndPay"]</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

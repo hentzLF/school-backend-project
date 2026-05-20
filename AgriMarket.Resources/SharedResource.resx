@@ -287,6 +287,43 @@
   <data name="ConfirmAndPay" xml:space="preserve"><value>Confirm and Pay</value></data>
   <data name="CancelBooking" xml:space="preserve"><value>Cancel Booking</value></data>
   <data name="AwaitingPayment" xml:space="preserve"><value>Awaiting Payment</value></data>
+  <!-- Client Reviews -->
+  <data name="Reviews_Create_Title" xml:space="preserve"><value>Leave a Review</value></data>
+  <data name="Reviews_Create_Submit" xml:space="preserve"><value>Submit Review</value></data>
+  <data name="Reviews_Edit_Title" xml:space="preserve"><value>Edit Review</value></data>
+  <data name="Reviews_Edit_Submit" xml:space="preserve"><value>Update Review</value></data>
+  <data name="Reviews_Delete_Title" xml:space="preserve"><value>Delete Review</value></data>
+  <data name="Reviews_Delete_Confirm" xml:space="preserve"><value>Are you sure you want to delete this review?</value></data>
+  <data name="Reviews_Delete_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Reviews_Rating_Label" xml:space="preserve"><value>Rating</value></data>
+  <data name="Reviews_Comment_Label" xml:space="preserve"><value>Comment</value></data>
+  <data name="Reviews_Comment_Placeholder" xml:space="preserve"><value>Share your experience (optional)</value></data>
+  <data name="Reviews_NoReviews" xml:space="preserve"><value>No reviews yet.</value></data>
+  <data name="Reviews_LeaveReview" xml:space="preserve"><value>Leave a Review</value></data>
+  <data name="Reviews_AverageRating" xml:space="preserve"><value>Average Rating</value></data>
+  <data name="Reviews_ReviewCount" xml:space="preserve"><value>reviews</value></data>
+  <data name="Reviews_ForProvider_Title" xml:space="preserve"><value>Reviews</value></data>
+  <data name="Reviews_CreatedAt" xml:space="preserve"><value>Date</value></data>
+  <data name="Reviews_EditLink" xml:space="preserve"><value>Edit</value></data>
+  <data name="Reviews_DeleteLink" xml:space="preserve"><value>Delete</value></data>
+  <data name="Reviews_Error_BusinessRule" xml:space="preserve"><value>An error occurred while processing your review.</value></data>
+  <!-- Client Checkout & Payments -->
+  <data name="Checkout_FeeBreakdown" xml:space="preserve"><value>Fee Breakdown</value></data>
+  <data name="Checkout_SelectPaymentMethod" xml:space="preserve"><value>Select Payment Method</value></data>
+  <data name="Checkout_PaymentMethod_Card" xml:space="preserve"><value>Credit / Debit Card</value></data>
+  <data name="Checkout_PaymentMethod_BankTransfer" xml:space="preserve"><value>Bank Transfer</value></data>
+  <data name="Checkout_PaymentMethod_Cash" xml:space="preserve"><value>Cash</value></data>
+  <data name="Checkout_ProceedToCheckout" xml:space="preserve"><value>Proceed to Checkout</value></data>
+  <data name="Receipt_Title" xml:space="preserve"><value>Payment Receipt</value></data>
+  <data name="Receipt_PaymentConfirmed" xml:space="preserve"><value>Payment Confirmed</value></data>
+  <data name="Receipt_PaymentId" xml:space="preserve"><value>Payment ID</value></data>
+  <data name="Receipt_TotalCharged" xml:space="preserve"><value>Total Charged</value></data>
+  <data name="Receipt_Method" xml:space="preserve"><value>Method</value></data>
+  <data name="Receipt_PaidAt" xml:space="preserve"><value>Paid At</value></data>
+  <data name="Receipt_BackToBooking" xml:space="preserve"><value>Back to Booking</value></data>
+  <data name="Receipt_ViewReceipt" xml:space="preserve"><value>View Receipt</value></data>
+  <data name="PaymentHistory_Title" xml:space="preserve"><value>Payment History</value></data>
+  <data name="PaymentHistory_NoPayments" xml:space="preserve"><value>You have no payments yet.</value></data>
   <!-- Footer -->
   <data name="FooterCopyright" xml:space="preserve"><value>2026 - AgriMarket.Web -</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Toggle navigation</value></data>

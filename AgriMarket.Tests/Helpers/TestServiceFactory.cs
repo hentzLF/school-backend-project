@@ -24,4 +24,16 @@ public static class TestServiceFactory
             new EfUnitOfWork(db),
             new EfQueryMaterializer(),
             NullLogger<EquipmentService>.Instance);
+
+    public static ClientPaymentService CreateClientPaymentService(AppDbContext db) =>
+        new(new EfBookingRepository(db),
+            new EfRepository<Payment>(db),
+            new EfUnitOfWork(db),
+            new EfQueryMaterializer());
+
+    public static PaymentService CreatePaymentService(AppDbContext db) =>
+        new(new EfPaymentRepository(db),
+            new EfUnitOfWork(db),
+            new EfQueryMaterializer(),
+            NullLogger<PaymentService>.Instance);
 }

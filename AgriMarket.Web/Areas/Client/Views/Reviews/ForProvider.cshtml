@@ -1,0 +1,59 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Reviews.ReviewListViewModel
+@{
+    ViewData["Title"] = Localizer["Reviews_ForProvider_Title"].Value;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["Reviews_ForProvider_Title"] &mdash; @Model.ProviderName</h4>
+</div>
+
+@if (Model.ReviewCount > 0)
+{
+    <div class="mb-3">
+        <span class="badge bg-warning text-dark fs-6">
+            @Model.AverageRating.ToString("0.0") / 5
+        </span>
+        <span class="text-muted ms-2">@Model.ReviewCount @Localizer["Reviews_ReviewCount"]</span>
+    </div>
+}
+
+@if (!Model.Reviews.Any())
+{
+    <div class="alert alert-info">@Localizer["Reviews_NoReviews"]</div>
+}
+else
+{
+    @foreach (var review in Model.Reviews)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge bg-warning text-dark">@review.Rating / 5</span>
+                        <small class="text-muted ms-2">@review.CreatedAt.ToString("dd MMM yyyy")</small>
+                    </div>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(review.Comment))
+                {
+                    <p class="mt-2 mb-0">@review.Comment</p>
+                }
+            </div>
+        </div>
+    }
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-area="Client" asp-controller="Reviews"
+                           asp-action="ForProvider" asp-route-profileId="@Model.ProfileId"
+                           asp-route-page="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

@@ -1,0 +1,38 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Payments.ReceiptViewModel
+@{
+    ViewData["Title"] = Localizer["Receipt_Title"].Value;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="mb-0">@Localizer["Receipt_Title"]</h4>
+    <a asp-area="Client" asp-controller="Bookings" asp-action="Details" asp-route-id="@Model.BookingId"
+       class="btn btn-sm btn-outline-secondary">
+        @Localizer["Receipt_BackToBooking"]
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">@Localizer["Receipt_PaymentConfirmed"]</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">@Localizer["Receipt_PaymentId"]</dt>
+                    <dd class="col-sm-7"><code>@Model.PaymentId.ToString("N")[..8]...</code></dd>
+                    <dt class="col-sm-5">@Localizer["Amount"]</dt>
+                    <dd class="col-sm-7">&euro;@Model.Amount.ToString("0.00")</dd>
+                    <dt class="col-sm-5">@Localizer["PlatformFee"]</dt>
+                    <dd class="col-sm-7">&euro;@Model.PlatformFee.ToString("0.00")</dd>
+                    <dt class="col-sm-5 fw-bold">@Localizer["Receipt_TotalCharged"]</dt>
+                    <dd class="col-sm-7 fw-bold">&euro;@Model.TotalCharged.ToString("0.00")</dd>
+                    <dt class="col-sm-5">@Localizer["Receipt_Method"]</dt>
+                    <dd class="col-sm-7">@Model.Method</dd>
+                    <dt class="col-sm-5">@Localizer["Status"]</dt>
+                    <dd class="col-sm-7"><span class="badge text-bg-success">@Model.Status</span></dd>
+                    <dt class="col-sm-5">@Localizer["Receipt_PaidAt"]</dt>
+                    <dd class="col-sm-7">@Model.PaidAt.ToString("dd MMM yyyy HH:mm")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>

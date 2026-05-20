@@ -55,11 +55,8 @@
                         <dt class="col-7 fw-bold">@Localizer["Total"]</dt>
                         <dd class="col-5 text-end fw-bold">&euro;@Model.GrandTotal.ToString("0.00")</dd>
                     </dl>
-                    <form asp-area="Client" asp-controller="Bookings" asp-action="Pay"
-                          asp-route-id="@Model.Id" method="post">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-primary w-100">@Localizer["ConfirmAndPay"]</button>
-                    </form>
+                    <a asp-area="Client" asp-controller="Bookings" asp-action="Checkout"
+                       asp-route-id="@Model.Id" class="btn btn-primary w-100">@Localizer["Checkout_ProceedToCheckout"]</a>
                 </div>
             </div>
         }
@@ -91,7 +88,12 @@
                 </div>
             </div>
         }
-        @if (!Model.CanPay && !Model.CanConfirmCompletion && !Model.CanCancel)
+        @if (Model.IsCompleted || Model.Review != null)
+        {
+            <partial name="_ReviewSection" model="Model.Review"
+                     view-data='@(new ViewDataDictionary(ViewData) { { "BookingId", Model.Id }, { "IsCompleted", Model.IsCompleted } })' />
+        }
+        @if (!Model.CanPay && !Model.CanConfirmCompletion && !Model.CanCancel && !Model.IsCompleted && Model.Review == null)
         {
             <div class="card">
                 <div class="card-body text-muted">

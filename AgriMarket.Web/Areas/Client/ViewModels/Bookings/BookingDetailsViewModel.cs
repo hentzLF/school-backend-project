@@ -1,4 +1,5 @@
 using AgriMarket.Domain.Enums;
+using AgriMarket.Web.Areas.Client.ViewModels.Reviews;
 
 namespace AgriMarket.Web.Areas.Client.ViewModels.Bookings;
 
@@ -17,6 +18,8 @@ public class BookingDetailsViewModel
     public bool CanConfirmCompletion => Status == BookingStatus.ProviderCompleted;
     public bool CanPay => Status == BookingStatus.AwaitingPayment;
     public bool CanCancel => Status is BookingStatus.Pending or BookingStatus.AwaitingPayment or BookingStatus.Confirmed;
+    public bool IsCompleted => Status == BookingStatus.ClientConfirmed;
     public decimal PlatformFee => TotalPrice * 0.05m;
     public decimal GrandTotal => TotalPrice + PlatformFee;
+    public ReviewViewModel? Review { get; set; }
 }

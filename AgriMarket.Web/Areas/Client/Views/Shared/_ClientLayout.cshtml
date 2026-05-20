@@ -39,6 +39,12 @@
                             @Localizer["MyBookings"]
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Payments" ? "active" : "")"
+                           asp-area="Client" asp-controller="Payments" asp-action="Index">
+                            @Localizer["Payments"]
+                        </a>
+                    </li>
                 }
             </ul>
             <ul class="navbar-nav ms-auto align-items-center">

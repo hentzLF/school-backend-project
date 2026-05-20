@@ -16,10 +16,15 @@
 
         <h2>@Model.Title</h2>
         <span class="badge bg-secondary mb-3">@Model.CategoryName</span>
+        <partial name="_RatingBadge" model="Model.RatingStats" />
 
         <dl class="row mt-3">
             <dt class="col-sm-4">@Localizer["Provider"]</dt>
-            <dd class="col-sm-8">@Model.ProviderName</dd>
+            <dd class="col-sm-8">
+                @Model.ProviderName
+                <a asp-area="Client" asp-controller="Reviews" asp-action="ForProvider"
+                   asp-route-profileId="@Model.ProviderProfileId" class="ms-2 small">@Localizer["Reviews_ForProvider_Title"]</a>
+            </dd>
 
             <dt class="col-sm-4">@Localizer["PricePerHectare"]</dt>
             <dd class="col-sm-8 fw-bold text-success">&euro;@Model.PricePerHectare.ToString("N2")</dd>

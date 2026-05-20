@@ -10,7 +10,7 @@ namespace AgriMarket.BLL.Services;
 public class AuthService(
     IAppUserRepository appUsers,
     IRepository<UserProfile> userProfiles,
-    IRepository<ProfileRole> profileRoles,
+    IRepository<UserRole> userRoles,
     IRefreshTokenRepository refreshTokens,
     IUnitOfWork uow,
     ITokenService tokenService,
@@ -20,9 +20,6 @@ public class AuthService(
 {
     public async Task RegisterAsync(RegisterRequest request)
     {
-        if (request.Role == RoleType.Admin)
-            throw new InvalidOperationException("Admin role cannot be self-assigned.");
-
         if (await appUsers.AnyAsync(u => u.Email == request.Email))
             throw new InvalidOperationException("Email already in use.");
 
@@ -41,11 +38,18 @@ public class AuthService(
             AppUserId = user.Id,
         };
 
-        var role = new ProfileRole
+        var farmerRole = new UserRole
         {
             Id = Guid.NewGuid(),
-            UserProfileId = profile.Id,
-            Role = request.Role,
+            AppUserId = user.Id,
+            Role = RoleType.Farmer,
+        };
+
+        var providerRole = new UserRole
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = user.Id,
+            Role = RoleType.Provider,
         };
 
         await uow.BeginTransactionAsync();
@@ -53,7 +57,8 @@ public class AuthService(
         {
             appUsers.Add(user);
             userProfiles.Add(profile);
-            profileRoles.Add(role);
+            userRoles.Add(farmerRole);
+            userRoles.Add(providerRole);
             await uow.SaveChangesAsync();
             await uow.CommitTransactionAsync();
         }
@@ -64,7 +69,7 @@ public class AuthService(
         }
     }
 
-    public async Task<LoginResult> LoginAsync(LoginRequest request)
+    public async Task<TokenResponse> LoginAsync(LoginRequest request)
     {
         var user = await appUsers.GetByEmailWithProfilesAsync(request.Email);
 
@@ -74,62 +79,15 @@ public class AuthService(
             throw new UnauthorizedAccessException("Invalid credentials.");
         }
 
-        var profiles = user.Profiles!.ToList();
-
-        if (profiles.Count == 1)
-        {
-            var profile = profiles[0];
-            var role = profile.Roles?.FirstOrDefault()?.Role
-                ?? throw new InvalidOperationException("Profile has no assigned role.");
-            var refreshToken = await IssueRefreshTokenAsync(user.Id);
-
-            return new LoginResult
-            {
-                Tokens = new TokenResponse
-                {
-                    AccessToken = tokenService.GenerateAccessToken(user, profile, role),
-                    RefreshToken = refreshToken,
-                },
-            };
-        }
-
-        return new LoginResult
-        {
-            ProfileSelection = new ProfileSelectionResponse
-            {
-                SessionToken = tokenService.GenerateSessionToken(user.Id),
-                Profiles = profiles.Select(p => new ProfileSummary
-                {
-                    ProfileId = p.Id,
-                    FullName = $"{p.FirstName} {p.LastName}",
-                    Role = p.Roles?.FirstOrDefault()?.Role ?? throw new InvalidOperationException("Profile has no assigned role."),
-                }).ToList(),
-            },
-        };
-    }
-
-    public async Task<TokenResponse> SelectProfileAsync(SelectProfileRequest request)
-    {
-        var userId = tokenService.ValidateSessionToken(request.SessionToken);
-        if (userId is null)
-            throw new UnauthorizedAccessException("Invalid or expired session token.");
-
-        var user = await appUsers.GetByIdWithProfilesAsync(userId.Value);
-
-        if (user is null)
-            throw new UnauthorizedAccessException("User not found.");
-
-        var profile = user.Profiles!.FirstOrDefault(p => p.Id == request.ProfileId);
-        if (profile is null)
-            throw new UnauthorizedAccessException("Profile does not belong to this user.");
-
-        var role = profile.Roles?.FirstOrDefault()?.Role
-            ?? throw new InvalidOperationException("Profile has no assigned role.");
+        var profile = user.Profile
+            ?? throw new InvalidOperationException("User has no profile.");
+        var roles = user.Roles?.Select(r => r.Role).ToList()
+            ?? throw new InvalidOperationException("User has no assigned roles.");
         var refreshToken = await IssueRefreshTokenAsync(user.Id);
 
         return new TokenResponse
         {
-            AccessToken = tokenService.GenerateAccessToken(user, profile, role),
+            AccessToken = tokenService.GenerateAccessToken(user, profile, roles),
             RefreshToken = refreshToken,
         };
     }
@@ -147,10 +105,10 @@ public class AuthService(
             stored.IsRevoked = true;
 
             var user = stored.AppUser;
-            var profile = user.Profiles?.FirstOrDefault()
+            var profile = user.Profile
                 ?? throw new InvalidOperationException("User has no profile.");
-            var role = profile.Roles?.FirstOrDefault()?.Role
-                ?? throw new InvalidOperationException("Profile has no assigned role.");
+            var roles = user.Roles?.Select(r => r.Role).ToList()
+                ?? throw new InvalidOperationException("User has no assigned roles.");
             var newRefreshToken = await IssueRefreshTokenAsync(user.Id);
 
             await uow.SaveChangesAsync();
@@ -158,7 +116,7 @@ public class AuthService(
 
             return new TokenResponse
             {
-                AccessToken = tokenService.GenerateAccessToken(user, profile, role),
+                AccessToken = tokenService.GenerateAccessToken(user, profile, roles),
                 RefreshToken = newRefreshToken,
             };
         }

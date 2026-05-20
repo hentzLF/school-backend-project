@@ -123,10 +123,20 @@ public class AppDbContext : DbContext
         .Property(a => a.RowVersion)
         .IsRowVersion();
 
-    // ProfileRole: sama kasutaja ei saa sama rolli kaks korda
-    modelBuilder.Entity<ProfileRole>()
-        .HasIndex(pr => new { pr.UserProfileId, pr.Role })
+    // UserRole: sama kasutaja ei saa sama rolli kaks korda
+    modelBuilder.Entity<UserRole>()
+        .HasIndex(ur => new { ur.AppUserId, ur.Role })
         .IsUnique();
+
+    // UserProfile: üks profiil kasutaja kohta (1:1)
+    modelBuilder.Entity<UserProfile>()
+        .HasIndex(up => up.AppUserId)
+        .IsUnique();
+
+    modelBuilder.Entity<AppUser>()
+        .HasOne(u => u.Profile)
+        .WithOne(p => p.AppUser)
+        .HasForeignKey<UserProfile>(p => p.AppUserId);
 
     // ServiceCategory: nimi peab olema unikaalne
     modelBuilder.Entity<ServiceCategory>()
@@ -217,7 +227,7 @@ public class AppDbContext : DbContext
 
     public DbSet<AppUser> AppUsers {get; set;} = default!;
     public DbSet<UserProfile> UserProfiles {get; set;} = default!;
-    public DbSet<ProfileRole> ProfileRoles {get; set;} = default!;
+    public DbSet<UserRole> UserRoles { get; set; } = default!;
     public DbSet<County> Counties { get; set; } = default!;
     public DbSet<Municipality> Municipalities { get; set; } = default!;
     public DbSet<Location> Locations  {get; set;} = default!;

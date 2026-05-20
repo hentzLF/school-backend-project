@@ -28,17 +28,11 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
 });
 
-if (builder.Environment.IsDevelopment() &&
-    builder.Configuration.GetValue<bool>("UseSqlite"))
-{
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("SqliteConnection")));
-}
-else
-{
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-}
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection is missing from configuration.");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -85,10 +79,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    if (app.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("UseSqlite"))
-        await context.Database.EnsureCreatedAsync();
-    else
-        await context.Database.MigrateAsync();
+    await context.Database.MigrateAsync();
     var passwordHasher = scope.ServiceProvider.GetRequiredService<AgriMarket.BLL.Contracts.IPasswordHasher>();
     await AppDbSeeder.SeedAsync(context, passwordHasher);
 }

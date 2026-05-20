@@ -14,7 +14,8 @@ namespace AgriMarket.Web.Areas.Client.Controllers;
 public class ListingsController(
     IListingService listingService,
     IBookingService bookingService,
-    IReviewService reviewService) : Controller
+    IReviewService reviewService,
+    IEquipmentService equipmentService) : Controller
 {
     public async Task<IActionResult> Index()
     {
@@ -49,9 +50,13 @@ public class ListingsController(
                            listing.ProviderUserId.Value.ToString() == userId;
 
         var vm = listing.ToClientDetails(isOwnListing);
+
         var stats = await reviewService.GetRatingStatsForListingAsync(id);
         vm.RatingStats = stats.ToRatingStatsViewModel();
         vm.ProviderProfileId = listing.UserProfileId;
+
+        var assignedEquipment = await equipmentService.GetByListingAsync(id);
+        vm.Equipment = assignedEquipment.Select(e => e.ToListItem()).ToList();
 
         return View(vm);
     }

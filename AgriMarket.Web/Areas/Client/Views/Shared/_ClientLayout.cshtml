@@ -32,6 +32,12 @@
                                 @Localizer["MyListings"]
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Equipment" ? "active" : "")"
+                               asp-area="Client" asp-controller="Equipment" asp-action="Index">
+                                @Localizer["Equipment"]
+                            </a>
+                        </li>
                     }
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bookings" ? "active" : "")"
@@ -43,6 +49,13 @@
                         <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Payments" ? "active" : "")"
                            asp-area="Client" asp-controller="Payments" asp-action="Index">
                             @Localizer["Payments"]
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Messaging" ? "active" : "")"
+                           asp-area="Client" asp-controller="Messaging" asp-action="Index">
+                            @Localizer["Messaging_Messages"]
+                            @await Component.InvokeAsync("UnreadMessageCount")
                         </a>
                     </li>
                 }

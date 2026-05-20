@@ -36,6 +36,12 @@
             }
         </dl>
 
+        @if (Model.Equipment.Any())
+        {
+            <h5 class="mt-4">@Localizer["Equipment"]</h5>
+            <partial name="~/Areas/Client/Views/Equipment/_EquipmentCard.cshtml" model="Model.Equipment" />
+        }
+
         @if (Model.Availabilities.Any())
         {
             <h5 class="mt-4">@Localizer["AvailableSlots"]</h5>

@@ -1,0 +1,61 @@
+@model AgriMarket.Web.Areas.Client.ViewModels.Messaging.ConversationListViewModel
+@{
+    ViewData["Title"] = Localizer["Messaging_Conversations"].Value;
+}
+
+<h1>@Localizer["Messaging_Conversations"]</h1>
+
+@if (!Model.Conversations.Any())
+{
+    <div class="alert alert-info">
+        <p class="mb-0">@Localizer["Messaging_NoConversations"]</p>
+    </div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var item in Model.Conversations)
+        {
+            <a asp-action="Details" asp-route-id="@item.ConversationId"
+               class="list-group-item list-group-item-action @(item.UnreadCount > 0 ? "list-group-item-light fw-bold" : "")">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">@item.ParticipantName</h6>
+                        <p class="mb-1 text-muted small">
+                            @(item.LastMessagePreview ?? Localizer["Messaging_NoMessages"].Value)
+                        </p>
+                        @if (item.BookingId.HasValue)
+                        {
+                            <small class="text-muted">
+                                <a asp-area="Client" asp-controller="Bookings" asp-action="Details"
+                                   asp-route-id="@item.BookingId">@Localizer["Messaging_ViewBooking"]</a>
+                            </small>
+                        }
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted">@item.LastActivityAt.ToString("dd MMM yyyy HH:mm")</small>
+                        @if (item.UnreadCount > 0)
+                        {
+                            <br />
+                            <span class="badge bg-primary rounded-pill">@item.UnreadCount</span>
+                        }
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

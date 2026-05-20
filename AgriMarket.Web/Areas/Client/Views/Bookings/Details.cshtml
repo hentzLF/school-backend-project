@@ -88,6 +88,16 @@
                 </div>
             </div>
         }
+        <div class="card border-info mb-3">
+            <div class="card-body">
+                <form asp-area="Client" asp-controller="Messaging" asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="participantProfileId" value="@Model.ProviderProfileId" />
+                    <input type="hidden" name="bookingId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-outline-info w-100">@Localizer["Messaging_MessageProvider"]</button>
+                </form>
+            </div>
+        </div>
         @if (Model.IsCompleted || Model.Review != null)
         {
             <partial name="_ReviewSection" model="Model.Review"

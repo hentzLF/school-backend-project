@@ -324,6 +324,51 @@
   <data name="Receipt_ViewReceipt" xml:space="preserve"><value>View Receipt</value></data>
   <data name="PaymentHistory_Title" xml:space="preserve"><value>Payment History</value></data>
   <data name="PaymentHistory_NoPayments" xml:space="preserve"><value>You have no payments yet.</value></data>
+  <!-- Client Equipment -->
+  <data name="Equipment_Title" xml:space="preserve"><value>My Equipment</value></data>
+  <data name="Equipment_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Equipment_Make" xml:space="preserve"><value>Make</value></data>
+  <data name="Equipment_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Equipment_ManufactureYear" xml:space="preserve"><value>Manufacture Year</value></data>
+  <data name="Equipment_HorsePower" xml:space="preserve"><value>Horsepower</value></data>
+  <data name="Equipment_Condition" xml:space="preserve"><value>Condition</value></data>
+  <data name="Equipment_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Equipment_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Equipment_Create" xml:space="preserve"><value>Add Equipment</value></data>
+  <data name="Equipment_Edit" xml:space="preserve"><value>Edit Equipment</value></data>
+  <data name="Equipment_Delete" xml:space="preserve"><value>Delete Equipment</value></data>
+  <data name="Equipment_DeleteWarning" xml:space="preserve"><value>Deleting this equipment will also remove it from any assigned listings.</value></data>
+  <data name="Equipment_UpdateStatus" xml:space="preserve"><value>Update Status</value></data>
+  <data name="Equipment_AssignToListing" xml:space="preserve"><value>Assign Equipment</value></data>
+  <data name="Equipment_ManageEquipment" xml:space="preserve"><value>Manage Equipment</value></data>
+  <data name="Equipment_NoEquipment" xml:space="preserve"><value>You have no equipment yet. Add your first piece of equipment to get started.</value></data>
+  <data name="Equipment_NoEquipmentAssigned" xml:space="preserve"><value>No equipment assigned to this listing.</value></data>
+  <data name="Equipment_AssignedCount" xml:space="preserve"><value>Assigned Equipment ({0})</value></data>
+  <!-- Equipment Condition Enums -->
+  <data name="EquipmentCondition_New" xml:space="preserve"><value>New</value></data>
+  <data name="EquipmentCondition_Excellent" xml:space="preserve"><value>Excellent</value></data>
+  <data name="EquipmentCondition_Good" xml:space="preserve"><value>Good</value></data>
+  <data name="EquipmentCondition_Fair" xml:space="preserve"><value>Fair</value></data>
+  <data name="EquipmentCondition_Poor" xml:space="preserve"><value>Poor</value></data>
+  <!-- Equipment Status Enums -->
+  <data name="EquipmentStatus_Available" xml:space="preserve"><value>Available</value></data>
+  <data name="EquipmentStatus_InUse" xml:space="preserve"><value>In Use</value></data>
+  <data name="EquipmentStatus_UnderMaintenance" xml:space="preserve"><value>Under Maintenance</value></data>
+  <data name="EquipmentStatus_Retired" xml:space="preserve"><value>Retired</value></data>
+  <!-- Messaging -->
+  <data name="Messaging_Messages" xml:space="preserve"><value>Messages</value></data>
+  <data name="Messaging_Conversations" xml:space="preserve"><value>Conversations</value></data>
+  <data name="Messaging_SendMessage" xml:space="preserve"><value>Send Message</value></data>
+  <data name="Messaging_MessagePlaceholder" xml:space="preserve"><value>Type your message...</value></data>
+  <data name="Messaging_NoConversations" xml:space="preserve"><value>You have no conversations yet.</value></data>
+  <data name="Messaging_NoMessages" xml:space="preserve"><value>No messages yet. Start the conversation!</value></data>
+  <data name="Messaging_MessageProvider" xml:space="preserve"><value>Message Provider</value></data>
+  <data name="Messaging_MessageClient" xml:space="preserve"><value>Message Client</value></data>
+  <data name="Messaging_UnreadMessages" xml:space="preserve"><value>Unread Messages</value></data>
+  <data name="Messaging_ViewBooking" xml:space="preserve"><value>View Booking</value></data>
+  <data name="Messaging_NewMessage" xml:space="preserve"><value>New Message</value></data>
+  <data name="Messaging_Send" xml:space="preserve"><value>Send</value></data>
+  <data name="Messaging_LoadOlderMessages" xml:space="preserve"><value>Load older messages</value></data>
   <!-- Footer -->
   <data name="FooterCopyright" xml:space="preserve"><value>2026 - AgriMarket.Web -</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Toggle navigation</value></data>

@@ -324,6 +324,51 @@
   <data name="Receipt_ViewReceipt" xml:space="preserve"><value>Vaata kviitungit</value></data>
   <data name="PaymentHistory_Title" xml:space="preserve"><value>Maksete ajalugu</value></data>
   <data name="PaymentHistory_NoPayments" xml:space="preserve"><value>Teil pole veel makseid.</value></data>
+  <!-- Client Equipment -->
+  <data name="Equipment_Title" xml:space="preserve"><value>Minu varustus</value></data>
+  <data name="Equipment_Name" xml:space="preserve"><value>Nimetus</value></data>
+  <data name="Equipment_Make" xml:space="preserve"><value>Tootja</value></data>
+  <data name="Equipment_Model" xml:space="preserve"><value>Mudel</value></data>
+  <data name="Equipment_ManufactureYear" xml:space="preserve"><value>Tootmisaasta</value></data>
+  <data name="Equipment_HorsePower" xml:space="preserve"><value>Hobujõud</value></data>
+  <data name="Equipment_Condition" xml:space="preserve"><value>Seisukord</value></data>
+  <data name="Equipment_Status" xml:space="preserve"><value>Olek</value></data>
+  <data name="Equipment_Description" xml:space="preserve"><value>Kirjeldus</value></data>
+  <data name="Equipment_Create" xml:space="preserve"><value>Lisa varustus</value></data>
+  <data name="Equipment_Edit" xml:space="preserve"><value>Muuda varustust</value></data>
+  <data name="Equipment_Delete" xml:space="preserve"><value>Kustuta varustus</value></data>
+  <data name="Equipment_DeleteWarning" xml:space="preserve"><value>Selle varustuse kustutamine eemaldab selle ka kõigist määratud kuulutustest.</value></data>
+  <data name="Equipment_UpdateStatus" xml:space="preserve"><value>Muuda olekut</value></data>
+  <data name="Equipment_AssignToListing" xml:space="preserve"><value>Määra varustus</value></data>
+  <data name="Equipment_ManageEquipment" xml:space="preserve"><value>Halda varustust</value></data>
+  <data name="Equipment_NoEquipment" xml:space="preserve"><value>Teil pole veel varustust. Lisage oma esimene varustus alustamiseks.</value></data>
+  <data name="Equipment_NoEquipmentAssigned" xml:space="preserve"><value>Sellele kuulutusele pole varustust määratud.</value></data>
+  <data name="Equipment_AssignedCount" xml:space="preserve"><value>Määratud varustus ({0})</value></data>
+  <!-- Equipment Condition Enums -->
+  <data name="EquipmentCondition_New" xml:space="preserve"><value>Uus</value></data>
+  <data name="EquipmentCondition_Excellent" xml:space="preserve"><value>Suurepärane</value></data>
+  <data name="EquipmentCondition_Good" xml:space="preserve"><value>Hea</value></data>
+  <data name="EquipmentCondition_Fair" xml:space="preserve"><value>Rahuldav</value></data>
+  <data name="EquipmentCondition_Poor" xml:space="preserve"><value>Halb</value></data>
+  <!-- Equipment Status Enums -->
+  <data name="EquipmentStatus_Available" xml:space="preserve"><value>Saadaval</value></data>
+  <data name="EquipmentStatus_InUse" xml:space="preserve"><value>Kasutusel</value></data>
+  <data name="EquipmentStatus_UnderMaintenance" xml:space="preserve"><value>Hoolduses</value></data>
+  <data name="EquipmentStatus_Retired" xml:space="preserve"><value>Kasutusest kõrvaldatud</value></data>
+  <!-- Messaging -->
+  <data name="Messaging_Messages" xml:space="preserve"><value>Sõnumid</value></data>
+  <data name="Messaging_Conversations" xml:space="preserve"><value>Vestlused</value></data>
+  <data name="Messaging_SendMessage" xml:space="preserve"><value>Saada sõnum</value></data>
+  <data name="Messaging_MessagePlaceholder" xml:space="preserve"><value>Kirjuta oma sõnum...</value></data>
+  <data name="Messaging_NoConversations" xml:space="preserve"><value>Teil pole veel vestlusi.</value></data>
+  <data name="Messaging_NoMessages" xml:space="preserve"><value>Sõnumeid veel pole. Alustage vestlust!</value></data>
+  <data name="Messaging_MessageProvider" xml:space="preserve"><value>Kirjuta teenusepakkujale</value></data>
+  <data name="Messaging_MessageClient" xml:space="preserve"><value>Kirjuta kliendile</value></data>
+  <data name="Messaging_UnreadMessages" xml:space="preserve"><value>Lugemata sõnumid</value></data>
+  <data name="Messaging_ViewBooking" xml:space="preserve"><value>Vaata broneeringut</value></data>
+  <data name="Messaging_NewMessage" xml:space="preserve"><value>Uus sõnum</value></data>
+  <data name="Messaging_Send" xml:space="preserve"><value>Saada</value></data>
+  <data name="Messaging_LoadOlderMessages" xml:space="preserve"><value>Laadi vanemaid sõnumeid</value></data>
   <!-- Footer -->
   <data name="FooterCopyright" xml:space="preserve"><value>2026 - AgriMarket.Web -</value></data>
   <data name="ToggleNavigation" xml:space="preserve"><value>Lülita navigatsioon</value></data>

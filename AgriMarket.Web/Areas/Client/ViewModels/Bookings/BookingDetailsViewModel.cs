@@ -15,6 +15,8 @@ public class BookingDetailsViewModel
     public Guid ListingId { get; set; }
     public DateTime AvailabilityStart { get; set; }
     public DateTime AvailabilityEnd { get; set; }
+    public Guid ProviderProfileId { get; set; }
+    public Guid ClientProfileId { get; set; }
     public bool CanConfirmCompletion => Status == BookingStatus.ProviderCompleted;
     public bool CanPay => Status == BookingStatus.AwaitingPayment;
     public bool CanCancel => Status is BookingStatus.Pending or BookingStatus.AwaitingPayment or BookingStatus.Confirmed;

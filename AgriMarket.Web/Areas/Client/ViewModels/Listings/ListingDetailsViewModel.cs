@@ -1,3 +1,4 @@
+using AgriMarket.Web.Areas.Client.ViewModels.Equipment;
 using AgriMarket.Web.Areas.Client.ViewModels.Reviews;
 
 namespace AgriMarket.Web.Areas.Client.ViewModels.Listings;
@@ -14,6 +15,7 @@ public class ListingDetailsViewModel
     public IEnumerable<AvailabilityOptionViewModel> Availabilities { get; set; } = [];
     public bool IsOwnListing { get; set; }
     public RatingStatsViewModel? RatingStats { get; set; }
+    public List<EquipmentListItemViewModel> Equipment { get; set; } = [];
 }
 
 public class AvailabilityOptionViewModel

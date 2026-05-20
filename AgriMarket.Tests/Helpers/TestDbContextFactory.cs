@@ -34,15 +34,20 @@ public static class TestDbContextFactory
             LastName = "User",
             AppUserId = user.Id
         };
-        var profileRole = new ProfileRole
+        var userRole = new UserRole
         {
             Id = Guid.NewGuid(),
-            UserProfileId = profile.Id,
+            AppUserId = user.Id,
             Role = role
         };
         db.AppUsers.Add(user);
         db.UserProfiles.Add(profile);
-        db.ProfileRoles.Add(profileRole);
+        db.UserRoles.Add(userRole);
+        if (role != RoleType.Admin)
+        {
+            var secondRole = role == RoleType.Farmer ? RoleType.Provider : RoleType.Farmer;
+            db.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = secondRole });
+        }
         db.SaveChanges();
         return (user, profile);
     }

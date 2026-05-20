@@ -17,7 +17,7 @@ public class EquipmentControllerTests
     private static UserService CreateUserService(AppDbContext db) =>
         new(new EfAppUserRepository(db),
             new EfUserProfileRepository(db),
-            new EfRepository<ProfileRole>(db),
+            new EfRepository<UserRole>(db),
             new EfUnitOfWork(db),
             new EfRepository<MessageRead>(db),
             new EfRepository<Message>(db),

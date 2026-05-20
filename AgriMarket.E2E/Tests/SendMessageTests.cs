@@ -15,7 +15,7 @@ public sealed class SendMessageTests
     public async Task MessagingIndex_AccessibleForAuthenticatedUser()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var messagingPage = new MessagingIndexPage(page, _fixture.BaseUrl);
         await messagingPage.NavigateAsync();
 

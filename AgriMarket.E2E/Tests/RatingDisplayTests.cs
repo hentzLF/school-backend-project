@@ -15,7 +15,7 @@ public sealed class RatingDisplayTests
     public async Task ListingIndex_LoadsSuccessfully()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var listingIndex = new ListingIndexPage(page, _fixture.BaseUrl);
         await listingIndex.NavigateAsync();
 

@@ -14,7 +14,7 @@ public sealed class ReviewDeletionTests
     public async Task ReviewDelete_InvalidReviewId_HandlesGracefully()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var response = await page.GotoAsync($"{_fixture.BaseUrl}/Client/Reviews/Delete/99999");
 

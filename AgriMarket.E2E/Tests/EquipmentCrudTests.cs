@@ -15,7 +15,7 @@ public sealed class EquipmentCrudTests
     public async Task CreateEquipment_ValidData_RedirectsFromCreatePage()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var createPage = new EquipmentCreatePage(page, _fixture.BaseUrl);
         await createPage.NavigateAsync();
 
@@ -31,7 +31,7 @@ public sealed class EquipmentCrudTests
     public async Task CreateEquipment_EmptyName_StaysOnCreatePage()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var createPage = new EquipmentCreatePage(page, _fixture.BaseUrl);
         await createPage.NavigateAsync();
 

@@ -14,7 +14,7 @@ public sealed class ClientLogoutTests
     public async Task Logout_RedirectsToLogin_AndProtectedPagesRedirect()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         await page.ClickAsync("form[action*='Logout'] button[type='submit']");
         await page.WaitForLoadStateAsync(Microsoft.Playwright.LoadState.DOMContentLoaded);

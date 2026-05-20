@@ -15,7 +15,7 @@ public sealed class ServiceBookingJourneyTest
     public async Task FullJourney_ProviderCreatesListingAndFarmerBrowses()
     {
         var providerPage = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var createPage = new MyListingCreatePage(providerPage, _fixture.BaseUrl);
         await createPage.NavigateAsync();
@@ -29,7 +29,7 @@ public sealed class ServiceBookingJourneyTest
         await providerPage.Context.DisposeAsync();
 
         var farmerPage = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var listingIndex = new ListingIndexPage(farmerPage, _fixture.BaseUrl);
         await listingIndex.NavigateAsync();
 

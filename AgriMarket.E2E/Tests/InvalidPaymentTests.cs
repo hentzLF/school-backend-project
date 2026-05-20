@@ -14,7 +14,7 @@ public sealed class InvalidPaymentTests
     public async Task Checkout_NonPayableBooking_ShowsErrorOrRedirects()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var response = await page.GotoAsync($"{_fixture.BaseUrl}/Client/Bookings/Checkout/99999");
 

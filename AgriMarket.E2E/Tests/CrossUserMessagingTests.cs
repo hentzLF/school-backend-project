@@ -15,14 +15,14 @@ public sealed class CrossUserMessagingTests
     public async Task Messaging_BothUsersCanAccessMessaging()
     {
         var farmerPage = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var farmerMessaging = new MessagingIndexPage(farmerPage, _fixture.BaseUrl);
         await farmerMessaging.NavigateAsync();
         farmerPage.Url.Should().Contain("/Client/Messaging");
         await farmerPage.Context.DisposeAsync();
 
         var providerPage = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var providerMessaging = new MessagingIndexPage(providerPage, _fixture.BaseUrl);
         await providerMessaging.NavigateAsync();
         providerPage.Url.Should().Contain("/Client/Messaging");

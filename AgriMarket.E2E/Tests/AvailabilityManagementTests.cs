@@ -15,7 +15,7 @@ public sealed class AvailabilityManagementTests
     public async Task CreateListingAndManageAvailabilities()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var createPage = new MyListingCreatePage(page, _fixture.BaseUrl);
         await createPage.NavigateAsync();

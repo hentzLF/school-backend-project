@@ -15,7 +15,7 @@ public sealed class ListingCrudTests
     public async Task CreateListing_ValidData_AppearsInMyListings()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var createPage = new MyListingCreatePage(page, _fixture.BaseUrl);
         await createPage.NavigateAsync();
 
@@ -33,7 +33,7 @@ public sealed class ListingCrudTests
     public async Task CreateListing_EmptyTitle_ShowsError()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var createPage = new MyListingCreatePage(page, _fixture.BaseUrl);
         await createPage.NavigateAsync();
 

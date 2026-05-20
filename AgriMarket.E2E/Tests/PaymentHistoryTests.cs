@@ -15,7 +15,7 @@ public sealed class PaymentHistoryTests
     public async Task PaymentHistory_PageLoads()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var historyPage = new PaymentHistoryPage(page, _fixture.BaseUrl);
         await historyPage.NavigateAsync();
 

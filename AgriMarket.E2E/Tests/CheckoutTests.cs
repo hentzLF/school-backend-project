@@ -15,7 +15,7 @@ public sealed class CheckoutTests
     public async Task Checkout_ValidBooking_ShowsReceipt()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var bookingIndex = new BookingIndexPage(page, _fixture.BaseUrl);
         await bookingIndex.NavigateAsync();
 

@@ -15,7 +15,7 @@ public sealed class BookingListTests
     public async Task BookingsIndex_ShowsUserBookings()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var bookingIndex = new BookingIndexPage(page, _fixture.BaseUrl);
         await bookingIndex.NavigateAsync();
 

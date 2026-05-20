@@ -15,13 +15,13 @@ public sealed class MessagingJourneyTest
     public async Task MessagingJourney_BothUsersCanAccessMessaging()
     {
         var farmerPage = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         await farmerPage.GotoAsync($"{_fixture.BaseUrl}/Client/Messaging");
         farmerPage.Url.Should().Contain("/Client/Messaging");
         await farmerPage.Context.DisposeAsync();
 
         var providerPage = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         await providerPage.GotoAsync($"{_fixture.BaseUrl}/Client/Messaging");
         providerPage.Url.Should().Contain("/Client/Messaging");
         await providerPage.Context.DisposeAsync();

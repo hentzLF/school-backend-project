@@ -14,7 +14,7 @@ public sealed class RoleAccessTests
     public async Task NonAdmin_CannotAccessAdminDashboard()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         await page.GotoAsync($"{_fixture.BaseUrl}/Admin/Dashboard");
 
@@ -33,7 +33,7 @@ public sealed class RoleAccessTests
     public async Task NonAdmin_CannotAccessAdminUsers()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         await page.GotoAsync($"{_fixture.BaseUrl}/Admin/Users");
 

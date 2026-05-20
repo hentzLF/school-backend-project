@@ -31,7 +31,7 @@ public sealed class AdminLoginTests
         var loginPage = new AdminLoginPage(page, _fixture.BaseUrl);
         await loginPage.NavigateAsync();
 
-        await loginPage.LoginAsync(SeedData.FarmerEmail, SeedData.FarmerPassword);
+        await loginPage.LoginAsync(SeedData.ClientEmail, SeedData.ClientPassword);
 
         (await loginPage.HasErrorAsync()).Should().BeTrue();
         await page.Context.DisposeAsync();

@@ -14,7 +14,7 @@ public sealed class DataIsolationTests
     public async Task User_CannotAccessOthersBooking()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var response = await page.GotoAsync($"{_fixture.BaseUrl}/Client/Bookings/Details/99999");
 
@@ -31,7 +31,7 @@ public sealed class DataIsolationTests
     public async Task User_CannotAccessOthersConversation()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var response = await page.GotoAsync($"{_fixture.BaseUrl}/Client/Messaging/Details/99999");
 

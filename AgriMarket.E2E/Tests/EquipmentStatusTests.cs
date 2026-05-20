@@ -15,7 +15,7 @@ public sealed class EquipmentStatusTests
     public async Task EquipmentIndex_PageLoads()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
         var indexPage = new EquipmentIndexPage(page, _fixture.BaseUrl);
         await indexPage.NavigateAsync();
 

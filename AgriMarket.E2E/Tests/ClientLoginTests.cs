@@ -18,7 +18,7 @@ public sealed class ClientLoginTests
         var loginPage = new ClientLoginPage(page, _fixture.BaseUrl);
         await loginPage.NavigateAsync();
 
-        await loginPage.LoginAsync(SeedData.FarmerEmail, SeedData.FarmerPassword);
+        await loginPage.LoginAsync(SeedData.ClientEmail, SeedData.ClientPassword);
 
         var path = page.Url;
         path.Should().Contain("/Client");
@@ -32,7 +32,7 @@ public sealed class ClientLoginTests
         var loginPage = new ClientLoginPage(page, _fixture.BaseUrl);
         await loginPage.NavigateAsync();
 
-        await loginPage.LoginAsync(SeedData.FarmerEmail, "WrongPassword123!");
+        await loginPage.LoginAsync(SeedData.ClientEmail, "WrongPassword123!");
 
         (await loginPage.IsOnLoginPageAsync()).Should().BeTrue();
         (await loginPage.HasErrorAsync()).Should().BeTrue();

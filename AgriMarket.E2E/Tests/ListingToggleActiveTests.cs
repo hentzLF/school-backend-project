@@ -15,7 +15,7 @@ public sealed class ListingToggleActiveTests
     public async Task MyListings_PageLoadsSuccessfully()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.ProviderEmail, SeedData.ProviderPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var myListings = new MyListingsIndexPage(page, _fixture.BaseUrl);
         await myListings.NavigateAsync();

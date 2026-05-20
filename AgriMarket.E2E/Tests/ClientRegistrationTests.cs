@@ -34,7 +34,7 @@ public sealed class ClientRegistrationTests
         var registerPage = new ClientRegisterPage(page, _fixture.BaseUrl);
         await registerPage.NavigateAsync();
 
-        await registerPage.FillFormAsync("Test", "User", SeedData.ProviderEmail, SeedData.ProviderPassword);
+        await registerPage.FillFormAsync("Test", "User", SeedData.ClientEmail, SeedData.ClientPassword);
         await registerPage.SubmitAsync();
 
         (await registerPage.IsOnRegisterPageAsync()).Should().BeTrue();

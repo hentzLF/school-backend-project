@@ -15,7 +15,7 @@ public sealed class ReviewCreationTests
     public async Task CreateReview_PageLoads()
     {
         var page = await _fixture.CreateAuthenticatedClientPageAsync(
-            SeedData.FarmerEmail, SeedData.FarmerPassword);
+            SeedData.ClientEmail, SeedData.ClientPassword);
 
         var bookingIndex = new BookingIndexPage(page, _fixture.BaseUrl);
         await bookingIndex.NavigateAsync();

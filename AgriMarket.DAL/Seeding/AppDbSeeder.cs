@@ -32,24 +32,28 @@ public static class AppDbSeeder
 
     private static async Task SeedUsersAsync(AppDbContext context, IPasswordHasher passwordHasher)
     {
-        if (await context.AppUsers.AnyAsync(u => u.Email == "admin@agrimarket.ee"))
+        await SeedUserIfMissing(context, passwordHasher,
+            "admin@agrimarket.ee", "Admin123!", "Admin", "AgriMarket", RoleType.Admin);
+        await SeedUserIfMissing(context, passwordHasher,
+            "provider@agrimarket.ee", "Provider123!", "Jaan", "Tamm", RoleType.Provider);
+        await SeedUserIfMissing(context, passwordHasher,
+            "farmer@agrimarket.ee", "Farmer123!", "Mari", "Mets", RoleType.Farmer);
+    }
+
+    private static async Task SeedUserIfMissing(
+        AppDbContext context, IPasswordHasher passwordHasher,
+        string email, string password, string firstName, string lastName, RoleType role)
+    {
+        if (await context.AppUsers.AnyAsync(u => u.Email == email))
             return;
 
-        var adminUser = CreateUser("admin@agrimarket.ee", "Admin123!", passwordHasher);
-        var adminProfile = CreateProfile("Admin", "AgriMarket", adminUser.Id);
-        var adminRole = CreateRole(adminProfile.Id, RoleType.Admin);
+        var user = CreateUser(email, password, passwordHasher);
+        var profile = CreateProfile(firstName, lastName, user.Id);
+        var profileRole = CreateRole(profile.Id, role);
 
-        var providerUser = CreateUser("provider@agrimarket.ee", "Provider123!", passwordHasher);
-        var providerProfile = CreateProfile("Jaan", "Tamm", providerUser.Id);
-        var providerRole = CreateRole(providerProfile.Id, RoleType.Provider);
-
-        var farmerUser = CreateUser("farmer@agrimarket.ee", "Farmer123!", passwordHasher);
-        var farmerProfile = CreateProfile("Mari", "Mets", farmerUser.Id);
-        var farmerRole = CreateRole(farmerProfile.Id, RoleType.Farmer);
-
-        context.AppUsers.AddRange(adminUser, providerUser, farmerUser);
-        context.UserProfiles.AddRange(adminProfile, providerProfile, farmerProfile);
-        context.ProfileRoles.AddRange(adminRole, providerRole, farmerRole);
+        context.AppUsers.Add(user);
+        context.UserProfiles.Add(profile);
+        context.ProfileRoles.Add(profileRole);
 
         await context.SaveChangesAsync();
     }

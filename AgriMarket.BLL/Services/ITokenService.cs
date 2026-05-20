@@ -5,8 +5,6 @@ namespace AgriMarket.BLL.Services;
 
 public interface ITokenService
 {
-    string GenerateAccessToken(AppUser user, UserProfile profile, RoleType role);
-    string GenerateSessionToken(Guid userId);
+    string GenerateAccessToken(AppUser user, UserProfile profile, IEnumerable<RoleType> roles);
     string GenerateRefreshToken();
-    Guid? ValidateSessionToken(string token);
 }

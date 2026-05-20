@@ -13,7 +13,6 @@ public class EfConversationRepository(AppDbContext db) : IConversationRepository
         return await db.Conversations
             .Include(c => c.Participants!)
                 .ThenInclude(p => p.UserProfile)
-            .Where(c => c.BookingId == null)
             .Where(c => c.Participants!.Any(p => p.UserProfileId == profileId1))
             .Where(c => c.Participants!.Any(p => p.UserProfileId == profileId2))
             .FirstOrDefaultAsync(ct);
@@ -97,6 +96,7 @@ public class EfConversationRepository(AppDbContext db) : IConversationRepository
             })
             .ToListAsync(ct);
 
+        items.Reverse();
         return (items, totalCount);
     }
 

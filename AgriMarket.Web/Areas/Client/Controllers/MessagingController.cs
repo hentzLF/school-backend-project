@@ -90,7 +90,7 @@ public class MessagingController(
 
         var dto = new CreateConversationDto
         {
-            ParticipantProfileIds = new List<Guid> { participantProfileId },
+            ParticipantProfileIds = new List<Guid> { profileId.Value, participantProfileId },
             BookingId = bookingId
         };
 

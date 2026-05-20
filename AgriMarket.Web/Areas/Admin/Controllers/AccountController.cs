@@ -38,16 +38,21 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
             return View(model);
         }
 
-        var adminProfile = user.Profiles?
-            .FirstOrDefault(p => p.Roles != null && p.Roles.Any(r => r.Role == RoleType.Admin));
-
-        if (adminProfile == null)
+        var hasAdminRole = user.Roles?.Any(r => r.Role == RoleType.Admin) ?? false;
+        if (!hasAdminRole)
         {
             ModelState.AddModelError(string.Empty, "You do not have administrator access");
             return View(model);
         }
 
-        await SignInAsync(user, adminProfile);
+        var profile = user.Profile;
+        if (profile == null)
+        {
+            ModelState.AddModelError(string.Empty, "User profile not found");
+            return View(model);
+        }
+
+        await SignInAsync(user, profile);
         return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
     }
 
@@ -109,6 +114,7 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, $"{profile.FirstName} {profile.LastName}"),
+            new("profileId", profile.Id.ToString()),
             new(ClaimTypes.Role, "Admin")
         };
 

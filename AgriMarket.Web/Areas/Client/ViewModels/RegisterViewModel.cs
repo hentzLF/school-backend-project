@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using AgriMarket.Domain.Enums;
 
 namespace AgriMarket.Web.Areas.Client.ViewModels;
 
@@ -19,7 +18,4 @@ public class RegisterViewModel
 
     [Required]
     public string LastName { get; set; } = default!;
-
-    [Required]
-    public RoleType Role { get; set; } = RoleType.Farmer;
 }

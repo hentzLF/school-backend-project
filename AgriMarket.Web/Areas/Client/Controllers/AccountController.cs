@@ -36,18 +36,22 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
             return View(model);
         }
 
-        var clientProfile = user.Profiles?
-            .FirstOrDefault(p => p.Roles != null &&
-                p.Roles.Any(r => r.Role == RoleType.Farmer || r.Role == RoleType.Provider));
-
-        if (clientProfile == null)
+        var hasClientRole = user.Roles?.Any(r => r.Role == RoleType.Farmer || r.Role == RoleType.Provider) ?? false;
+        if (!hasClientRole)
         {
             ModelState.AddModelError(string.Empty, "You do not have client access");
             return View(model);
         }
 
-        var role = clientProfile.Roles!.First(r => r.Role == RoleType.Farmer || r.Role == RoleType.Provider).Role;
-        await SignInAsync(user, clientProfile, role);
+        var profile = user.Profile;
+        if (profile == null)
+        {
+            ModelState.AddModelError(string.Empty, "User profile not found");
+            return View(model);
+        }
+
+        var roles = user.Roles!.Select(r => r.Role).ToList();
+        await SignInAsync(user, profile, roles);
         return RedirectToAction("Index", "Listings", new { area = "Client" });
     }
 
@@ -60,12 +64,6 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
     {
         if (!ModelState.IsValid)
             return View(model);
-
-        if (model.Role != RoleType.Farmer && model.Role != RoleType.Provider)
-        {
-            ModelState.AddModelError(nameof(model.Role), "Role must be Farmer or Provider");
-            return View(model);
-        }
 
         var existingUser = await userService.GetByEmailAsync(model.Email);
         if (existingUser != null)
@@ -90,9 +88,9 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
             AppUserId = user.Id
         };
 
-        await userService.CreateUserWithProfileAsync(user, profile, model.Role);
+        await userService.CreateUserWithProfileAsync(user, profile, RoleType.Farmer);
 
-        await SignInAsync(user, profile, model.Role);
+        await SignInAsync(user, profile, [RoleType.Farmer, RoleType.Provider]);
         return RedirectToAction("Index", "Listings", new { area = "Client" });
     }
 
@@ -106,15 +104,21 @@ public class AccountController(IUserService userService, IPasswordHasher passwor
 
     public IActionResult AccessDenied() => View();
 
-    private async Task SignInAsync(AgriMarket.Domain.Entities.AppUser user, AgriMarket.Domain.Entities.UserProfile profile, RoleType role)
+    private async Task SignInAsync(
+        AgriMarket.Domain.Entities.AppUser user,
+        AgriMarket.Domain.Entities.UserProfile profile,
+        IEnumerable<RoleType> roles)
     {
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, $"{profile.FirstName} {profile.LastName}"),
-            new(ClaimTypes.Role, role.ToString())
+            new("profileId", profile.Id.ToString()),
         };
+
+        foreach (var role in roles)
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);

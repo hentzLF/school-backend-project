@@ -32,28 +32,42 @@ public static class AppDbSeeder
 
     private static async Task SeedUsersAsync(AppDbContext context, IPasswordHasher passwordHasher)
     {
-        await SeedUserIfMissing(context, passwordHasher,
-            "admin@agrimarket.ee", "Admin123!", "Admin", "AgriMarket", RoleType.Admin);
-        await SeedUserIfMissing(context, passwordHasher,
-            "provider@agrimarket.ee", "Provider123!", "Jaan", "Tamm", RoleType.Provider);
-        await SeedUserIfMissing(context, passwordHasher,
-            "farmer@agrimarket.ee", "Farmer123!", "Mari", "Mets", RoleType.Farmer);
+        await SeedAdminIfMissing(context, passwordHasher);
+        await SeedClientUserIfMissing(context, passwordHasher,
+            "provider@agrimarket.ee", "Provider123!", "Jaan", "Tamm");
+        await SeedClientUserIfMissing(context, passwordHasher,
+            "farmer@agrimarket.ee", "Farmer123!", "Mari", "Mets");
     }
 
-    private static async Task SeedUserIfMissing(
+    private static async Task SeedAdminIfMissing(AppDbContext context, IPasswordHasher passwordHasher)
+    {
+        if (await context.AppUsers.AnyAsync(u => u.Email == "admin@agrimarket.ee"))
+            return;
+
+        var user = CreateUser("admin@agrimarket.ee", "Admin123!", passwordHasher);
+        var profile = CreateProfile("Admin", "AgriMarket", user.Id);
+
+        context.AppUsers.Add(user);
+        context.UserProfiles.Add(profile);
+        context.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = RoleType.Admin });
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedClientUserIfMissing(
         AppDbContext context, IPasswordHasher passwordHasher,
-        string email, string password, string firstName, string lastName, RoleType role)
+        string email, string password, string firstName, string lastName)
     {
         if (await context.AppUsers.AnyAsync(u => u.Email == email))
             return;
 
         var user = CreateUser(email, password, passwordHasher);
         var profile = CreateProfile(firstName, lastName, user.Id);
-        var profileRole = CreateRole(profile.Id, role);
 
         context.AppUsers.Add(user);
         context.UserProfiles.Add(profile);
-        context.ProfileRoles.Add(profileRole);
+        context.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = RoleType.Farmer });
+        context.UserRoles.Add(new UserRole { Id = Guid.NewGuid(), AppUserId = user.Id, Role = RoleType.Provider });
 
         await context.SaveChangesAsync();
     }
@@ -72,12 +86,5 @@ public static class AppDbSeeder
         FirstName = firstName,
         LastName = lastName,
         AppUserId = appUserId
-    };
-
-    private static ProfileRole CreateRole(Guid profileId, RoleType role) => new()
-    {
-        Id = Guid.NewGuid(),
-        UserProfileId = profileId,
-        Role = role
     };
 }

@@ -104,6 +104,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.CustomSchemaIds(type => type.FullName);
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -118,6 +119,7 @@ builder.Services.AddSwaggerGen(c =>
         req.Add(new OpenApiSecuritySchemeReference("Bearer"), new List<string>());
         return req;
     });
+    
 });
 
 var app = builder.Build();
